@@ -32,6 +32,26 @@ That single rule generates most of the depth:
 The role triangle gives legible counterplay on top: **Protector > Fighter >
 Caster > Protector**, at double damage.
 
+## Play it
+
+A browser front end lives in `web/`. It is a view over the engine and never
+re-implements a rule: legal orders come from `optionsForMerc`, resolution from
+`resolveRound`, the opponent from `greedyPolicy`, damage previews from
+`rawDamage`.
+
+```bash
+npm run build:web   # bundles src/ to web/engine.js with esbuild
+# then serve web/ over http (ES modules need a real origin, not file://)
+python3 -m http.server -d web 8000
+```
+
+Published demo: <https://claude.ai/artifact/9zNA9ffjyNHQ856GTWeZYU>
+
+The centrepiece is the **resolution track**: a 1-9 speed scale where your
+committed orders pin above the line and the opposition's stay unknown below it
+until the commit, then resolve in place so the speed order is legible as it
+happens.
+
 ## Architecture
 
 | File | Responsibility |

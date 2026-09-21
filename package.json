@@ -4,14 +4,18 @@
   "private": true,
   "type": "module",
   "description": "Deterministic simultaneous-resolution tactics engine.",
-  "engines": { "node": ">=22.18" },
+  "engines": {
+    "node": ">=22.18"
+  },
   "scripts": {
     "test": "node --test test/*.test.ts",
     "typecheck": "tsc --noEmit",
-    "bench": "node bench/resolve.bench.ts"
+    "bench": "node bench/resolve.bench.ts",
+    "build:web": "esbuild src/index.ts --bundle --format=esm --target=es2022 --outfile=web/engine.js"
   },
   "devDependencies": {
-    "typescript": "^6.0.2",
-    "@types/node": "^22.9.0"
+    "@types/node": "^22.9.0",
+    "esbuild": "^0.28.2",
+    "typescript": "^6.0.2"
   }
 }
