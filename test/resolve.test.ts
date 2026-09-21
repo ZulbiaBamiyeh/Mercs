@@ -395,3 +395,82 @@ describe('fizzling', () => {
     assert.equal(findMerc(next, uid(state, 'b', 1))!.health, 5);
   });
 });
+
+describe('speed ties', () => {
+  const same = (speed: number) => statBlock('fighter', 10, 100, [hit('go', speed, 5)]);
+
+  /** Queue two of my own gods at the same speed, submitted in a given order. */
+  function ownQueue(seed: string, order: readonly number[]) {
+    const def = same(5);
+    const state = createBattle({ seed, partyA: [{ def }, { def }], partyB: [{ def }] });
+    // Only 2 board slots are filled on side A here, both at speed 5.
+    const orders = {
+      a: order.map((i) => ({
+        actorUid: uid(state, 'a', i),
+        abilityId: 'go',
+        targetUid: uid(state, 'b', 0),
+      })),
+      b: [],
+    };
+    return buildQueue(state, orders, roundRng(seed, 1)).map((q) => q.actorUid);
+  }
+
+  test('ties between your own gods follow the order you committed them', () => {
+    // The rule has to hold for every seed, not most of them: sequencing a buff
+    // before the attack that uses it is a decision, not a coin flip.
+    for (let i = 0; i < 40; i++) {
+      const seed = `tie-${i}`;
+      const first = ownQueue(seed, [0, 1]);
+      assert.deepEqual(first, [`a0`, `a1`], `${seed}: submission order not honoured`);
+
+      const reversed = ownQueue(seed, [1, 0]);
+      assert.deepEqual(reversed, [`a1`, `a0`], `${seed}: reversed submission not honoured`);
+    }
+  });
+
+  test('ties across sides are decided at random', () => {
+    const def = same(5);
+    const seen = new Set<string>();
+
+    for (let i = 0; i < 40; i++) {
+      const seed = `cross-${i}`;
+      const state = createBattle({ seed, partyA: [{ def }], partyB: [{ def }] });
+      const queue = buildQueue(state, {
+        a: [{ actorUid: uid(state, 'a', 0), abilityId: 'go', targetUid: uid(state, 'b', 0) }],
+        b: [{ actorUid: uid(state, 'b', 0), abilityId: 'go', targetUid: uid(state, 'a', 0) }],
+      }, roundRng(seed, 1));
+      seen.add(queue.map((q) => q.side).join(''));
+    }
+
+    assert.deepEqual([...seen].sort(), ['ab', 'ba'], 'both orderings should occur across seeds');
+  });
+
+  test('a faster ability still beats a slower one regardless of submission order', () => {
+    const slow = statBlock('fighter', 10, 100, [hit('slow', 8, 5)]);
+    const fast = statBlock('fighter', 10, 100, [hit('fast', 2, 5)]);
+    const state = createBattle({ seed: 'speeds', partyA: [{ def: slow }, { def: fast }], partyB: [{ def: slow }] });
+
+    // Submit the slow one first; speed must still win.
+    const queue = buildQueue(state, {
+      a: [
+        { actorUid: uid(state, 'a', 0), abilityId: 'slow', targetUid: uid(state, 'b', 0) },
+        { actorUid: uid(state, 'a', 1), abilityId: 'fast', targetUid: uid(state, 'b', 0) },
+      ],
+      b: [],
+    }, roundRng('speeds', 1));
+
+    assert.deepEqual(queue.map((q) => q.abilityId), ['fast', 'slow']);
+  });
+
+  test('the queue is reproducible from the seed', () => {
+    const def = same(5);
+    const state = createBattle({ seed: 'repro', partyA: [{ def }, { def }], partyB: [{ def }, { def }] });
+    const orders = {
+      a: [0, 1].map((i) => ({ actorUid: uid(state, 'a', i), abilityId: 'go', targetUid: uid(state, 'b', 0) })),
+      b: [0, 1].map((i) => ({ actorUid: uid(state, 'b', i), abilityId: 'go', targetUid: uid(state, 'a', 0) })),
+    };
+    const once = buildQueue(state, orders, roundRng('repro', 1)).map((q) => q.actorUid);
+    const twice = buildQueue(state, orders, roundRng('repro', 1)).map((q) => q.actorUid);
+    assert.deepEqual(once, twice);
+  });
+});

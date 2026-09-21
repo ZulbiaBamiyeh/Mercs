@@ -47,26 +47,66 @@ python3 -m http.server -d web 8000
 
 Published demo: <https://claude.ai/artifact/9zNA9ffjyNHQ856GTWeZYU>
 
-The board is laid out the way Mercenaries laid its out, because that layout
-answers the two questions a simultaneous-resolution game has to answer at a
-glance:
+Mercenaries' whole combat screen is three rows and two thin edge strips, and
+that restraint is the point - so this is too:
 
-- **Ordinal badges** (`1st`, `2nd`, ...) sit on each god, so *who acts when*
-  is read straight off the board. They come from `buildQueue` against the same
-  seeded round stream the resolver will use, so the order shown is exact,
-  tie-breaks included.
-- **A queued-ability slot** beside each god, facing the centre line, so *what
-  each unit is doing* and at what speed is visible for all six at once.
-- Dashed arrows for who is aimed at whom, a card-detail panel for the ability
-  under the cursor, and floating damage numbers during resolution - the job
-  Hearthstone's animations do.
+```
+ history │   enemy rank (3 circular medallions)   │  Ready
+  strip  │   ability tray (the selected god's 3)  │  bench
+         │   your rank (3 circular medallions)    │  strip
+```
+
+Everything else is on demand. Role lives in the **ring colour** (green
+Fighter, blue Caster, amber Protector, matching the source game's own legend),
+never a text chip. The only numbers on the board are attack, health, and an
+ability's speed. Rules text, forecasts and statuses come from a hover tooltip;
+the full log lives behind the history strip.
+
+- **Speech-bubble ordinals** above each god for who acts when, with a `?` when
+  the placing is genuinely uncertain (see below).
+- **The ability tray** holds the selected god's three abilities as orbs, speed
+  beneath each and a cooldown badge on the ones not ready. During resolution
+  the same tray narrates the acting god.
+- A small badge on each medallion shows the committed ability; on a Bounty the
+  opposition's shows too.
+
+### Animations
+
+Resolution plays out rather than jumping to the result: fighters and
+protectors lunge at their target, casters throw a bolt, hits land with a
+shake, a brightness flash, an expanding ripple and a damage number that reads
+`×2` gold on a role bonus. Deaths desaturate and collapse; heals pulse green;
+denials, fizzles and taunt intercepts pop a word. `prefers-reduced-motion`
+skips all of it.
+
+This forced one architectural rule: **resolution never re-renders the board.**
+It renders once with every order revealed, then mutates that DOM and animates
+against it, because a re-render mid-round tears out anything in flight.
 
 Two modes, following the source game's own split:
 
 | Mode | Behaviour |
 |---|---|
-| **Bounty** (default) | The opponent's picks are revealed before you commit, so every unit carries an exact ordinal. This is what Mercenaries' PvE did. |
-| **Fighting Pit** | Neither side sees the other's orders. Your units show their committed speed; true order resolves only after both commit. |
+| **Bounty** (default) | The opponent's picks are revealed before you commit, so every unit carries an ordinal. This is what Mercenaries' PvE did. |
+| **Fighting Pit** | Neither side sees the other's orders. Enemy picks stay sealed until both commit. |
+
+### Speed ties
+
+A tie is not a coin flip in every direction, and the split matters:
+
+- **Within one side, ties follow submission order.** Committing a buff before
+  the attack that should benefit from it is a real decision, so it must not be
+  undone by chance.
+- **Across sides, ties are random.** Neither player can know whether their
+  speed-5 ability lands before the enemy's.
+
+Both hold at once because each speed group draws one sorted key per side and
+hands them out in submission order: same-side keys ascend by construction
+while the two sides' interleave at random, and a single numeric sort key keeps
+the comparator transitive where a pairwise rule would not be.
+
+The UI marks an ordinal with `?` only when the tie crosses sides, which is
+what Mercenaries' `1st?` / `2nd?` bubbles were telling you.
 
 ### Art
 

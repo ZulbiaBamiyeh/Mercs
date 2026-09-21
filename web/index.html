@@ -1,9 +1,10 @@
 <title>Theomachy</title>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Marcellus&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Marcellus&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap">
 <style>
   :root {
     --ground: #12161c;
+    --felt: #1b2530;
     --surface: #1a2028;
     --surface-2: #232b35;
     --surface-3: #2b3540;
@@ -21,496 +22,478 @@
     --harm: #c2564a;
     --mend: #5fa37c;
     --warn: #d08b3a;
-    --atk: #6ea84f;
-    --hp: #c0453c;
+    --atk: #3f6f8c;
+    --hp: #b83f36;
 
-    --fighter: #d98555;
-    --caster: #6d92c9;
-    --protector: #a88bc4;
+    --fighter: #6fae53;
+    --caster: #5b8fd0;
+    --protector: #d9a03a;
 
     --display: "Marcellus", "Palatino Linotype", Palatino, Georgia, serif;
     --sans: "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, sans-serif;
     --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
-
-    --r-sm: 3px;
-    --r-md: 5px;
   }
 
   * { box-sizing: border-box; }
 
   body {
     background: var(--ground);
-    background-image:
-      radial-gradient(1100px 620px at 50% -8%, #1b2330 0%, transparent 62%),
-      radial-gradient(760px 420px at 92% 104%, #191f2b 0%, transparent 58%);
-    color: var(--ink);
-    font-family: var(--sans);
-    font-size: 14px;
-    line-height: 1.5;
-    -webkit-font-smoothing: antialiased;
-    min-height: 100%;
+    color: var(--ink); font-family: var(--sans); font-size: 14px; line-height: 1.5;
+    -webkit-font-smoothing: antialiased; min-height: 100%;
   }
-
-  .shell { max-width: 1180px; margin: 0 auto; padding-inline: 16px; padding-block: 18px 52px; }
-
-  /* ---------- masthead ---------- */
+  .shell { max-width: 1120px; margin: 0 auto; padding-inline: 16px; padding-block: 16px 44px; }
 
   .masthead {
-    display: flex; align-items: flex-end; justify-content: space-between;
-    gap: 16px; flex-wrap: wrap;
-    border-bottom: 1px solid var(--line); padding-bottom: 12px; margin-bottom: 18px;
+    display: flex; align-items: baseline; justify-content: space-between;
+    gap: 14px; flex-wrap: wrap; margin-bottom: 14px;
   }
   .wordmark {
-    font-family: var(--display); font-size: clamp(24px, 4.6vw, 34px);
-    letter-spacing: 0.10em; text-transform: uppercase; line-height: 1; margin: 0;
+    font-family: var(--display); font-size: clamp(21px, 4vw, 28px);
+    letter-spacing: 0.11em; text-transform: uppercase; line-height: 1; margin: 0;
   }
   .wordmark span { color: var(--verdigris); }
-  .tagline { font-family: var(--mono); font-size: 11px; color: var(--ink-faint); margin: 6px 0 0; }
-  .masthead-meta { font-family: var(--mono); font-size: 11px; color: var(--ink-faint); text-align: right; }
+  .masthead-meta { font-family: var(--mono); font-size: 11px; color: var(--ink-faint); }
   .masthead-meta b { color: var(--ink-dim); font-weight: 500; }
-
-  /* ---------- shared ---------- */
-
-  .eyebrow {
-    font-family: var(--mono); font-size: 10.5px; text-transform: uppercase;
-    letter-spacing: 0.14em; color: var(--ink-faint); margin: 0 0 10px;
-  }
-  .tnum { font-variant-numeric: tabular-nums; }
 
   button {
     font-family: var(--sans); font-size: 13px; color: var(--ink);
     background: var(--surface-2); border: 1px solid var(--line);
-    border-radius: var(--r-sm); padding: 7px 13px; cursor: pointer;
+    border-radius: 3px; padding: 6px 12px; cursor: pointer;
     transition: background 120ms ease, border-color 120ms ease;
   }
   button:hover:not(:disabled) { background: var(--surface-3); border-color: #3c4855; }
   button:disabled { opacity: 0.4; cursor: not-allowed; }
   button:focus-visible { outline: 2px solid var(--verdigris); outline-offset: 2px; }
-
-  .btn-primary {
-    background: var(--verdigris-dim); border-color: var(--verdigris);
-    color: #eafaf7; font-weight: 600;
-  }
+  .btn-primary { background: var(--verdigris-dim); border-color: var(--verdigris); color: #eafaf7; font-weight: 600; }
   .btn-primary:hover:not(:disabled) { background: #3b8579; border-color: #63c0b2; }
-  .btn-ready {
-    font-family: var(--display); font-size: 18px; letter-spacing: 0.1em;
-    text-transform: uppercase; padding: 12px 28px;
+  .tnum { font-variant-numeric: tabular-nums; }
+
+  /* ================= the table ================= */
+
+  .table {
+    display: grid; grid-template-columns: 30px minmax(0, 1fr) 76px;
+    gap: 10px; align-items: stretch;
   }
 
-  .role-chip {
-    font-family: var(--mono); font-size: 9.5px; text-transform: uppercase;
-    letter-spacing: 0.1em; padding: 1px 5px; border-radius: 2px;
-    border: 1px solid currentColor; white-space: nowrap;
-  }
-  .r-fighter { color: var(--fighter); }
-  .r-caster { color: var(--caster); }
-  .r-protector { color: var(--protector); }
-
-  /* ---------- portrait + placeholder ---------- */
-
-  .portrait {
+  .arena {
     position: relative;
-    width: clamp(60px, 15vw, 100px);
-    height: clamp(60px, 15vw, 100px);
-    margin: 7px auto 0;
-    border-radius: var(--r-sm);
-    overflow: hidden; background: var(--surface-3);
-    display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0;
+    background:
+      radial-gradient(120% 78% at 50% 50%, #22303d 0%, #161d26 72%, #121820 100%);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 20px 14px 18px;
+    display: flex; flex-direction: column; gap: 10px;
+    overflow: hidden;
   }
-  .portrait img { width: 100%; height: 100%; object-fit: cover; display: block; }
-  .portrait-ph {
-    width: 100%; height: 100%;
-    display: flex; align-items: center; justify-content: center;
-    font-family: var(--display); font-size: clamp(20px, 5vw, 31px);
-    letter-spacing: 0.04em; color: #0e1218;
+  .arena::after {
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    box-shadow: inset 0 0 60px rgba(0, 0, 0, 0.55); border-radius: 8px;
   }
-  .ph-fighter { background: linear-gradient(155deg, #8d5333 0%, #5a3521 62%, #3a2317 100%); }
-  .ph-caster { background: linear-gradient(155deg, #3f5d8c 0%, #2a3d5c 62%, #1c2a3f 100%); }
-  .ph-protector { background: linear-gradient(155deg, #6a5688 0%, #473a5c 62%, #2f273d 100%); }
+  .arena.resolving .rank { pointer-events: none; }
 
-  .stat-badge {
-    position: absolute; bottom: 3px;
-    font-family: var(--mono); font-size: 11.5px; font-weight: 600;
-    min-width: 21px; text-align: center; padding: 1px 4px;
-    border-radius: 2px; color: #f3f4f5; text-shadow: 0 1px 2px rgba(0,0,0,0.75);
-    border: 1px solid rgba(0,0,0,0.4);
-  }
-  .stat-atk { left: 3px; background: var(--atk); }
-  .stat-hp { right: 3px; background: var(--hp); }
+  .rank { display: flex; justify-content: center; gap: clamp(8px, 2.4vw, 26px); position: relative; z-index: 2; }
 
-  /* ---------- the field ---------- */
-
-  .field { position: relative; display: flex; flex-direction: column; gap: 7px; }
-  #arrows {
-    position: absolute; inset: 0; width: 100%; height: 100%;
-    pointer-events: none; overflow: visible; z-index: 1;
-  }
-
-  .row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
-
-  .side-head {
-    display: flex; align-items: baseline; gap: 10px; justify-content: space-between; flex-wrap: wrap;
-  }
-  .side-label {
-    font-family: var(--mono); font-size: 10.5px; text-transform: uppercase;
-    letter-spacing: 0.14em; color: var(--ink-faint);
-  }
-  .bench-pips { display: flex; gap: 4px; align-items: center; font-family: var(--mono); font-size: 10.5px; color: var(--ink-faint); }
-  .pip { width: 6px; height: 6px; border-radius: 50%; background: var(--line); }
-  .pip.alive { background: var(--ink-faint); }
-
-  /* ---------- unit ---------- */
+  /* ---- unit ---- */
 
   .unit {
-    position: relative; padding: 0; width: 100%; text-align: left;
-    background: var(--surface); border: 1px solid var(--line-soft);
-    border-radius: var(--r-md); overflow: visible;
+    position: relative; width: clamp(74px, 18vw, 116px);
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    background: none; border: none; padding: 0; margin-top: 15px;
     font-family: var(--sans); color: var(--ink);
-    display: flex; flex-direction: column;
-    margin-top: 11px; z-index: 2;
   }
-  .unit-body { padding: 6px 7px 7px; display: flex; flex-direction: column; gap: 4px; }
-  .unit-name {
-    font-family: var(--display); font-size: clamp(12px, 2.4vw, 15px);
-    line-height: 1.12; letter-spacing: 0.02em;
-  }
-  .unit-sub { display: flex; align-items: center; justify-content: space-between; gap: 5px; }
-  .unit-pantheon {
-    font-family: var(--mono); font-size: 9px; color: var(--ink-faint);
-    letter-spacing: 0.06em; text-transform: uppercase;
-    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-  }
-  .hp-bar { height: 4px; background: var(--surface-3); border-radius: 2px; overflow: hidden; }
-  .hp-fill { height: 100%; background: var(--mend); transition: width 300ms ease; }
-  .hp-fill.hurt { background: var(--warn); }
-  .hp-fill.critical { background: var(--harm); }
-  .status-row { display: flex; gap: 3px; flex-wrap: wrap; min-height: 14px; }
-  .status {
-    font-family: var(--mono); font-size: 8.5px; letter-spacing: 0.04em;
-    padding: 0 3px; border-radius: 2px; text-transform: uppercase;
-    border: 1px solid currentColor;
-  }
-  .s-taunt { color: var(--protector); }
-  .s-shield, .s-divine-shield, .s-immune { color: var(--caster); }
-  .s-dot { color: var(--harm); }
-  .s-regen { color: var(--mend); }
-  .s-stun { color: var(--warn); }
-  .s-attack-buff { color: var(--fighter); }
+  .unit.slot-empty { opacity: 0.22; }
+  .unit.pickable { cursor: pointer; }
 
-  .unit.empty {
-    border-style: dashed; background: transparent; justify-content: center; align-items: center;
-    min-height: 118px; color: var(--ink-faint); font-family: var(--mono); font-size: 11px;
+  .medal {
+    position: relative; width: 100%; aspect-ratio: 1;
+    border-radius: 50%; overflow: visible;
   }
-  .unit.fallen { opacity: 0.3; }
-  .unit.mine { cursor: pointer; }
-  .unit.open { border-color: var(--gold); background: #22211a; }
-  .unit.targetable { cursor: pointer; border-color: var(--verdigris); }
-  .unit.targetable:hover { background: var(--surface-2); }
-  .unit.targetable::after {
-    content: ""; position: absolute; inset: -3px; border-radius: 7px;
-    border: 1px dashed var(--verdigris); pointer-events: none;
+  .medal-art {
+    position: absolute; inset: 0; border-radius: 50%; overflow: hidden;
+    background: var(--surface-3);
+    display: flex; align-items: center; justify-content: center;
+    transition: filter 300ms ease;
   }
-  .unit.acting {
-    border-color: var(--gold);
-    box-shadow: 0 0 0 2px var(--gold-dim), 0 0 22px rgba(201, 162, 39, 0.28);
+  .medal-art img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .monogram {
+    font-family: var(--display); font-size: clamp(22px, 5.6vw, 36px);
+    color: rgba(10, 14, 19, 0.82); letter-spacing: 0.03em; user-select: none;
   }
-  .unit.struck { animation: struck 360ms ease; }
-  @keyframes struck {
-    0%, 100% { transform: translateX(0); }
-    22% { transform: translateX(-3px); }
-    58% { transform: translateX(3px); }
+  .ph-fighter { background: linear-gradient(158deg, #58873f 0%, #35522a 60%, #21331b 100%); }
+  .ph-caster { background: linear-gradient(158deg, #4a6da3 0%, #2d4364 60%, #1d2c42 100%); }
+  .ph-protector { background: linear-gradient(158deg, #ae8534 0%, #6d5320 60%, #3f3115 100%); }
+
+  /* role lives in the frame, not in a text chip */
+  .medal-ring {
+    position: absolute; inset: -3px; border-radius: 50%;
+    border: 3px solid var(--role); pointer-events: none;
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.55), inset 0 0 0 1px rgba(0,0,0,0.45);
+  }
+  .unit.r-fighter { --role: var(--fighter); }
+  .unit.r-caster { --role: var(--caster); }
+  .unit.r-protector { --role: var(--protector); }
+
+  .unit.pickable:hover .medal-ring { box-shadow: 0 0 0 2px #fff6, 0 0 14px var(--role); }
+  .unit.chosen .medal-ring { border-color: #fff; box-shadow: 0 0 0 2px #ffffff88, 0 0 20px #ffffffb0; }
+  .unit.targetable { cursor: crosshair; }
+  .unit.targetable .medal-ring {
+    border-color: var(--harm);
+    animation: seek 1.15s ease-in-out infinite;
+  }
+  @keyframes seek {
+    0%, 100% { box-shadow: 0 0 0 1px #0008, 0 0 0 0 rgba(194, 86, 74, 0.55); }
+    50% { box-shadow: 0 0 0 1px #0008, 0 0 0 7px rgba(194, 86, 74, 0); }
+  }
+  .unit.acting .medal-ring { border-color: #fff; box-shadow: 0 0 22px 4px rgba(255, 244, 196, 0.6); }
+  .unit.dead .medal-art { filter: grayscale(1) brightness(0.42); }
+  .unit.dead .medal-ring { border-color: #3a4450; }
+  .unit.dead .nameplate { opacity: 0.4; }
+
+  .pip {
+    position: absolute; bottom: -2px; z-index: 3;
+    min-width: 22px; height: 20px; padding: 0 4px;
+    border-radius: 4px; border: 1px solid rgba(0,0,0,0.6);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--mono); font-size: 12px; font-weight: 600;
+    color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+  }
+  .pip-atk { left: -3px; background: var(--atk); }
+  .pip-hp { right: -3px; background: var(--hp); }
+  .pip-hp.low { background: #e0503f; box-shadow: 0 0 9px rgba(224, 80, 63, 0.75); }
+
+  .nameplate {
+    font-family: var(--display); font-size: clamp(10px, 2.2vw, 12.5px);
+    letter-spacing: 0.02em; text-align: center; line-height: 1.15;
+    max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    color: var(--ink-dim); margin-top: 2px;
   }
 
-  /* ordinal badge — "who acts when", read straight off the unit */
-  .ord {
-    position: absolute; top: -11px; left: 50%; transform: translateX(-50%);
-    z-index: 4; font-family: var(--mono); font-size: 10px; font-weight: 600;
-    letter-spacing: 0.04em; min-width: 30px; text-align: center;
-    padding: 1px 6px; border-radius: 9px;
-    background: var(--surface-3); border: 1px solid var(--line);
-    color: var(--ink-dim); white-space: nowrap;
+  /* ---- speech-bubble ordinal ---- */
+
+  .bubble {
+    position: absolute; top: -17px; left: 50%; transform: translateX(-50%);
+    z-index: 5; background: #f2ece0; color: #20242b;
+    font-family: var(--mono); font-size: 10.5px; font-weight: 600;
+    padding: 1px 7px; border-radius: 9px; white-space: nowrap;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.45);
   }
-  .ord.mine { background: #27240f; border-color: var(--gold-dim); color: var(--gold); }
-  .ord.theirs { background: #13241f; border-color: var(--verdigris-dim); color: var(--verdigris); }
-  .ord.unknown { color: var(--ink-faint); border-style: dashed; }
-  .ord.done { opacity: 0.35; }
-  .ord.now { background: var(--gold); border-color: var(--gold); color: #1a1607; }
+  .bubble::after {
+    content: ""; position: absolute; bottom: -4px; left: 50%; transform: translateX(-50%);
+    border-left: 4px solid transparent; border-right: 4px solid transparent;
+    border-top: 4px solid #f2ece0;
+  }
+  .bubble.spent { opacity: 0.35; }
+  .bubble.now { background: var(--gold); box-shadow: 0 0 14px rgba(201, 162, 39, 0.8); }
+  .bubble.sealed { background: #3a4450; color: var(--ink-dim); }
+  .bubble.sealed::after { border-top-color: #3a4450; }
 
-  /* ---------- queued ability slot ---------- */
+  /* ---- committed order badge ---- */
 
-  .slot {
+  .queued {
+    position: absolute; top: -8px; right: -6px; z-index: 4;
+    width: 26px; height: 26px; border-radius: 50%;
+    background: #141a22; border: 2px solid var(--gold);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--mono); font-size: 11px; font-weight: 600; color: var(--gold);
+    overflow: hidden;
+  }
+  .queued.theirs { border-color: var(--verdigris); color: var(--verdigris); }
+  .queued img { width: 100%; height: 100%; object-fit: cover; }
+  .queued.sealed { border-color: #4a5462; color: var(--ink-faint); }
+
+  /* ---- status glyphs ---- */
+
+  .glyphs { display: flex; gap: 2px; flex-wrap: wrap; justify-content: center; min-height: 12px; }
+  .glyph {
+    width: 15px; height: 15px; border-radius: 3px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 9px; font-family: var(--mono); font-weight: 600;
+    border: 1px solid currentColor; background: #0f141b;
+  }
+  .g-taunt { color: var(--protector); }
+  .g-shield, .g-divine-shield, .g-immune { color: var(--caster); }
+  .g-dot { color: var(--harm); }
+  .g-regen { color: var(--mend); }
+  .g-stun { color: var(--warn); }
+  .g-attack-buff { color: var(--fighter); }
+
+  /* ---- the ability tray ---- */
+
+  .tray {
     position: relative; z-index: 2;
-    display: grid; grid-template-columns: 26px minmax(0, 1fr) 24px;
-    gap: 6px; align-items: center;
-    background: var(--surface); border: 1px solid var(--line-soft);
-    border-radius: var(--r-md); padding: 5px 6px; min-height: 40px;
+    min-height: 92px; border-radius: 7px;
+    background: linear-gradient(180deg, #1f3a30 0%, #16281f 100%);
+    border: 1px solid #2c5347;
+    box-shadow: inset 0 1px 0 #3d6d5d, 0 2px 8px rgba(0,0,0,0.4);
+    display: flex; align-items: center; justify-content: center;
+    gap: clamp(10px, 3vw, 34px); padding: 9px 14px;
   }
-  .slot.mine { border-color: var(--gold-dim); background: #1f1e16; }
-  .slot.theirs { border-color: var(--verdigris-dim); background: #16201f; }
-  .slot.blank { border-style: dashed; background: transparent; }
-  .slot.hidden-pick { border-style: dashed; background: transparent; }
-  .slot.acting { box-shadow: 0 0 0 2px var(--gold-dim); }
-  .slot.spent { opacity: 0.38; }
+  .tray.waiting { background: linear-gradient(180deg, #232b35 0%, #1a2028 100%); border-color: var(--line); }
+  .tray-hint {
+    font-family: var(--mono); font-size: 11px; color: var(--ink-faint);
+    text-align: center; line-height: 1.7; max-width: 46ch;
+  }
 
-  .slot-icon {
-    width: 26px; height: 26px; border-radius: 2px; overflow: hidden;
-    background: var(--surface-3); display: flex; align-items: center; justify-content: center;
-    font-family: var(--mono); font-size: 13px; color: var(--ink-faint);
+  .orb-wrap { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+  .orb {
+    position: relative; width: clamp(48px, 11vw, 62px); aspect-ratio: 1;
+    border-radius: 50%; padding: 0; border: 3px solid #b9963a;
+    background: radial-gradient(circle at 34% 28%, #3c5a72 0%, #1d2b38 72%);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; overflow: visible;
+    transition: transform 130ms ease, box-shadow 130ms ease;
   }
-  .slot-icon img { width: 100%; height: 100%; object-fit: cover; }
-  .slot-name {
-    font-size: 11.5px; line-height: 1.25; overflow: hidden;
-    text-overflow: ellipsis; white-space: nowrap;
-  }
-  .slot-who { font-family: var(--mono); font-size: 9px; color: var(--ink-faint); text-transform: uppercase; letter-spacing: 0.06em; }
-  .slot-speed {
-    font-family: var(--mono); font-size: 14px; font-weight: 600; text-align: center;
-    color: var(--verdigris); line-height: 1;
-  }
-  .slot-speed small { display: block; font-size: 7px; letter-spacing: 0.1em; color: var(--ink-faint); }
-  .slot.blank .slot-name { color: var(--ink-faint); font-family: var(--mono); font-size: 10.5px; }
+  .orb img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+  .orb-mark { font-size: clamp(17px, 4vw, 22px); color: #d8e4ee; text-shadow: 0 1px 3px #000; }
+  .orb.ready { box-shadow: 0 0 0 2px #7ce0b5, 0 0 16px rgba(124, 224, 181, 0.45); }
+  .orb.ready:hover:not(:disabled) { transform: translateY(-3px) scale(1.06); box-shadow: 0 0 0 2px #fff, 0 0 22px rgba(124, 224, 181, 0.7); }
+  .orb[aria-pressed="true"] { transform: translateY(-4px) scale(1.08); box-shadow: 0 0 0 3px var(--gold), 0 0 24px var(--gold); }
+  .orb:disabled { cursor: not-allowed; border-color: #5a5f66; filter: grayscale(0.75) brightness(0.62); }
 
-  /* ---------- centre line ---------- */
+  .orb-speed {
+    font-family: var(--mono); font-size: clamp(14px, 3.4vw, 18px); font-weight: 600;
+    color: #f0e2b6; text-shadow: 0 1px 3px #000; line-height: 1;
+  }
+  .orb-speed.muted { color: var(--ink-faint); }
+  .cd {
+    position: absolute; top: -5px; right: -5px;
+    min-width: 20px; height: 20px; padding: 0 3px; border-radius: 4px;
+    background: #1b222b; border: 1px solid #8c93a0;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--mono); font-size: 11px; font-weight: 600; color: #cdd5de;
+  }
 
-  .centre {
-    position: relative; z-index: 2;
-    display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;
+  /* ---- edge strips ---- */
+
+  .strip {
     background: var(--surface); border: 1px solid var(--line);
-    border-radius: var(--r-md); padding: 8px 11px; margin-block: 3px;
+    border-radius: 7px; display: flex; flex-direction: column; align-items: center;
+    padding: 8px 0; gap: 7px;
   }
-  .centre-label {
-    font-family: var(--mono); font-size: 9.5px; text-transform: uppercase;
-    letter-spacing: 0.13em; color: var(--ink-faint); white-space: nowrap; flex-shrink: 0;
+  .history-strip { cursor: pointer; justify-content: flex-start; }
+  .history-strip:hover { background: var(--surface-2); }
+  .history-glyph { font-size: 15px; color: var(--ink-faint); }
+  .history-label {
+    font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--ink-faint);
+    writing-mode: vertical-rl; text-orientation: mixed;
   }
-  .order-chain { display: flex; align-items: center; gap: 5px 4px; flex-wrap: wrap; }
-  .chain-step {
-    display: flex; align-items: center; gap: 5px;
-    font-family: var(--mono); font-size: 10.5px; white-space: nowrap;
-    padding: 2px 7px; border-radius: 10px; border: 1px solid var(--line);
-    background: var(--surface-2); color: var(--ink-dim);
-  }
-  .chain-step.mine { border-color: var(--gold-dim); color: var(--gold); background: #201e12; }
-  .chain-step.theirs { border-color: var(--verdigris-dim); color: var(--verdigris); background: #142320; }
-  .chain-step.unknown { border-style: dashed; color: var(--ink-faint); }
-  .chain-step.done { opacity: 0.33; }
-  .chain-step.now { box-shadow: 0 0 0 2px var(--gold); }
-  .chain-step b { font-weight: 600; }
-  .chain-sep { color: var(--ink-faint); font-family: var(--mono); font-size: 9px; }
+  .history-strip.open { border-color: var(--verdigris); }
+  .history-strip.unread .history-glyph { color: var(--gold); }
 
-  /* ---------- command deck ---------- */
-
-  .deck {
-    display: grid; grid-template-columns: 252px minmax(0, 1fr); gap: 12px;
-    margin-top: 14px; align-items: start;
+  .flank { display: flex; flex-direction: column; gap: 8px; }
+  .ready-btn {
+    font-family: var(--display); font-size: 14px; letter-spacing: 0.08em;
+    text-transform: uppercase; padding: 14px 6px; line-height: 1.15;
+    background: linear-gradient(180deg, #d8b53f 0%, #a8821c 100%);
+    border: 1px solid #f0d97a; color: #22190a; font-weight: 600;
+    border-radius: 7px; cursor: pointer;
   }
-
-  .detail {
-    background: var(--surface); border: 1px solid var(--gold-dim);
-    border-radius: var(--r-md); overflow: hidden;
-    display: flex; flex-direction: column;
-  }
-  .detail-art { position: relative; width: 100%; height: 96px; margin: 0; border-radius: 0; }
-  .detail-speed {
-    position: absolute; top: 7px; right: 7px;
-    width: 34px; height: 34px; border-radius: 50%;
-    background: #101820; border: 2px solid var(--verdigris);
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    font-family: var(--mono); font-size: 15px; font-weight: 600; color: var(--verdigris);
-    line-height: 1;
-  }
-  .detail-speed small { font-size: 6px; letter-spacing: 0.08em; color: var(--ink-faint); }
-  .detail-body { padding: 9px 11px 11px; display: flex; flex-direction: column; gap: 6px; }
-  .detail-name { font-family: var(--display); font-size: 16px; letter-spacing: 0.02em; line-height: 1.2; }
-  .detail-caster { font-family: var(--mono); font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-faint); }
-  .detail-text { font-size: 12.5px; color: var(--ink-dim); line-height: 1.45; }
-  .detail-foot {
-    display: flex; gap: 9px; flex-wrap: wrap;
-    font-family: var(--mono); font-size: 9.5px; color: var(--ink-faint);
-    text-transform: uppercase; letter-spacing: 0.06em;
-    border-top: 1px solid var(--line-soft); padding-top: 7px;
-  }
-  .forecast {
-    font-family: var(--mono); font-size: 11px; line-height: 1.5;
-    border-top: 1px solid var(--line-soft); padding-top: 7px; color: var(--ink-dim);
-  }
-  .forecast b { color: var(--harm); font-weight: 600; }
-  .forecast .bonus { color: var(--warn); }
-  .detail.idle { border-color: var(--line); }
-  .detail-empty {
-    padding: 22px 14px; text-align: center;
-    font-family: var(--mono); font-size: 11px; color: var(--ink-faint); line-height: 1.7;
+  .ready-btn:hover:not(:disabled) { background: linear-gradient(180deg, #ecc94f 0%, #bd9422 100%); }
+  .ready-btn:disabled {
+    background: var(--surface-2); border-color: var(--line); color: var(--ink-faint); opacity: 1;
   }
 
-  .command { display: flex; flex-direction: column; gap: 9px; }
-  .command-head { display: flex; align-items: baseline; gap: 9px; flex-wrap: wrap; }
-  .command-who { font-family: var(--display); font-size: 17px; letter-spacing: 0.03em; }
-  .command-hint { font-family: var(--mono); font-size: 11px; color: var(--verdigris); }
-
-  .ability-list { display: grid; gap: 5px; }
-  .ability {
-    display: grid; grid-template-columns: 34px minmax(0, 1fr) auto; gap: 10px;
-    align-items: start; text-align: left; padding: 7px 10px; width: 100%;
-    background: var(--surface-2); border: 1px solid var(--line-soft); border-radius: var(--r-sm);
+  .bench-strip { flex: 1; }
+  .bench-title {
+    font-family: var(--mono); font-size: 8.5px; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--ink-faint);
   }
-  .ability:hover:not(:disabled) { background: var(--surface-3); }
-  .ability[aria-pressed="true"] { border-color: var(--gold); background: #22211a; }
-  .ability-speed { font-family: var(--mono); font-size: 16px; color: var(--verdigris); text-align: center; line-height: 1; }
-  .ability-speed small { display: block; font-size: 7.5px; color: var(--ink-faint); letter-spacing: 0.1em; margin-top: 3px; }
-  .ability-name { font-family: var(--display); font-size: 14px; letter-spacing: 0.02em; }
-  .ability-text { font-size: 11.5px; color: var(--ink-dim); line-height: 1.4; }
-  .ability-meta { font-family: var(--mono); font-size: 9.5px; color: var(--ink-faint); text-align: right; white-space: nowrap; }
-  .ability:disabled .ability-speed { color: var(--ink-faint); }
-
-  .control-bar {
-    display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: space-between;
-    background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-md);
-    padding: 9px 12px; margin-top: 12px;
+  .bench-medal {
+    width: 36px; height: 36px; border-radius: 50%; overflow: hidden;
+    border: 2px solid var(--role, var(--line)); position: relative;
   }
-  .control-status { font-family: var(--mono); font-size: 11.5px; color: var(--ink-dim); }
-  .control-actions { display: flex; gap: 7px; align-items: center; flex-wrap: wrap; }
+  .bench-medal .monogram { font-size: 14px; }
+  .bench-medal.fallen { filter: grayscale(1) brightness(0.4); border-color: #3a4450; }
+  .bench-medal.r-fighter { --role: var(--fighter); }
+  .bench-medal.r-caster { --role: var(--caster); }
+  .bench-medal.r-protector { --role: var(--protector); }
 
-  .mode-toggle { display: flex; gap: 0; border: 1px solid var(--line); border-radius: var(--r-sm); overflow: hidden; }
+  /* ---- secondary controls ---- */
+
+  .under-table {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 10px; flex-wrap: wrap; margin-top: 9px;
+  }
+  .turn-note { font-family: var(--mono); font-size: 11.5px; color: var(--ink-dim); }
+  .mini-actions { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+  .mini-actions button { font-size: 11.5px; padding: 4px 9px; }
+  .mode-toggle { display: flex; border: 1px solid var(--line); border-radius: 3px; overflow: hidden; }
   .mode-toggle button {
-    border: none; border-radius: 0; font-family: var(--mono); font-size: 10.5px;
-    text-transform: uppercase; letter-spacing: 0.08em; padding: 5px 9px; background: transparent;
-    color: var(--ink-faint);
+    border: none; border-radius: 0; font-family: var(--mono); font-size: 10px;
+    text-transform: uppercase; letter-spacing: 0.08em; padding: 5px 8px;
+    background: transparent; color: var(--ink-faint);
   }
   .mode-toggle button[aria-pressed="true"] { background: var(--surface-3); color: var(--ink); }
 
-  /* ---------- effects overlay ---------- */
+  /* ---- tooltip ---- */
 
-  #fx { position: fixed; inset: 0; pointer-events: none; z-index: 60; overflow: hidden; }
-  .floater {
-    position: absolute; transform: translate(-50%, 0);
-    font-family: var(--mono); font-size: 19px; font-weight: 600;
-    text-shadow: 0 2px 5px rgba(0,0,0,0.85);
-    animation: rise 1000ms cubic-bezier(0.2, 0.7, 0.3, 1) forwards;
+  #tip {
+    position: fixed; z-index: 90; max-width: 264px; pointer-events: none;
+    background: #10151c; border: 1px solid var(--gold-dim); border-radius: 5px;
+    padding: 9px 11px; box-shadow: 0 8px 26px rgba(0,0,0,0.6);
+    opacity: 0; transition: opacity 110ms ease;
   }
-  .floater.dmg { color: #ff8a7a; }
-  .floater.heal { color: #7ddba2; }
-  .floater.blocked { color: #9fc4e8; font-size: 14px; }
-  .floater.note { color: var(--warn); font-size: 13px; }
-  @keyframes rise {
-    0% { opacity: 0; transform: translate(-50%, 6px) scale(0.85); }
-    18% { opacity: 1; transform: translate(-50%, -2px) scale(1.1); }
-    100% { opacity: 0; transform: translate(-50%, -42px) scale(1); }
+  #tip.on { opacity: 1; }
+  .tip-head { display: flex; align-items: baseline; gap: 7px; margin-bottom: 4px; }
+  .tip-name { font-family: var(--display); font-size: 14.5px; letter-spacing: 0.02em; }
+  .tip-speed { font-family: var(--mono); font-size: 11px; color: var(--verdigris); margin-left: auto; }
+  .tip-text { font-size: 12px; color: var(--ink-dim); line-height: 1.45; }
+  .tip-meta {
+    font-family: var(--mono); font-size: 9.5px; color: var(--ink-faint);
+    text-transform: uppercase; letter-spacing: 0.06em; margin-top: 5px;
+    padding-top: 5px; border-top: 1px solid var(--line-soft);
+    display: flex; gap: 8px; flex-wrap: wrap;
   }
+  .tip-fore { font-family: var(--mono); font-size: 11px; margin-top: 5px; color: var(--ink-dim); }
+  .tip-fore b { color: #e0776a; }
+  .tip-fore i { color: var(--warn); font-style: normal; }
 
-  /* ---------- chronicle ---------- */
+  /* ---- history drawer ---- */
 
-  .chronicle {
-    background: var(--surface); border: 1px solid var(--line);
-    border-radius: var(--r-md); padding: 11px 13px; margin-top: 12px;
+  #drawer {
+    position: fixed; top: 0; left: 0; bottom: 0; width: min(330px, 86vw);
+    background: #131920; border-right: 1px solid var(--line); z-index: 80;
+    padding: 16px 15px; overflow-y: auto;
+    transform: translateX(-102%); transition: transform 220ms ease;
+    padding-top: calc(16px + env(safe-area-inset-top, 0px));
   }
-  .chron-lines {
-    font-family: var(--mono); font-size: 11.5px; line-height: 1.7;
-    max-height: 168px; overflow-y: auto; margin: 0; padding: 0; list-style: none;
+  #drawer.open { transform: translateX(0); }
+  .drawer-head {
+    display: flex; align-items: baseline; justify-content: space-between;
+    gap: 10px; margin-bottom: 11px;
   }
-  .chron-lines li { display: flex; gap: 9px; color: var(--ink-dim); }
-  .chron-lines .rd { color: var(--ink-faint); flex-shrink: 0; }
+  .drawer-title {
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--ink-faint);
+  }
+  .round-block { margin-bottom: 13px; }
+  .round-tag {
+    font-family: var(--mono); font-size: 10px; color: var(--gold);
+    letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 4px;
+  }
+  .round-lines { margin: 0; padding: 0; list-style: none; font-family: var(--mono); font-size: 11px; line-height: 1.65; }
+  .round-lines li { color: var(--ink-dim); }
   .c-damage { color: #d98077; }
-  .c-death { color: var(--harm); font-weight: 500; }
+  .c-death { color: var(--harm); font-weight: 600; }
   .c-heal, .c-status { color: var(--mend); }
   .c-denied, .c-fizzle { color: var(--warn); }
   .c-taunt { color: var(--protector); }
   .c-cast { color: var(--ink); }
-  .c-deploy, .c-dot { color: var(--ink-dim); }
 
-  /* ---------- draft ---------- */
+  /* ---- effects ---- */
 
-  .draft-grid { display: grid; grid-template-columns: minmax(0, 1fr) 312px; gap: 24px; align-items: start; }
-  .triangle {
-    display: flex; gap: 7px; flex-wrap: wrap; align-items: center;
+  #fx { position: fixed; inset: 0; pointer-events: none; z-index: 70; overflow: hidden; }
+  .num {
+    position: absolute; transform: translate(-50%, -50%);
+    font-family: var(--mono); font-weight: 600; font-size: 25px;
+    text-shadow: 0 2px 6px #000, 0 0 12px rgba(0,0,0,0.8);
+  }
+  .num.dmg { color: #ff8f7d; }
+  .num.crit { color: #ffd166; font-size: 31px; }
+  .num.heal { color: #86e0ab; }
+  .num.word { font-size: 14px; color: #cfd8e2; letter-spacing: 0.06em; text-transform: uppercase; }
+  .bolt { position: absolute; border-radius: 50%; transform: translate(-50%, -50%); }
+  .ripple {
+    position: absolute; border-radius: 50%; transform: translate(-50%, -50%);
+    border: 2px solid currentColor; pointer-events: none;
+  }
+
+  /* ================= draft ================= */
+
+  .draft-grid { display: grid; grid-template-columns: minmax(0, 1fr) 306px; gap: 22px; align-items: start; }
+  .eyebrow {
+    font-family: var(--mono); font-size: 10.5px; text-transform: uppercase;
+    letter-spacing: 0.14em; color: var(--ink-faint); margin: 0 0 9px;
+  }
+  .legend {
+    display: flex; gap: 14px; flex-wrap: wrap; align-items: center;
     font-family: var(--mono); font-size: 11px; color: var(--ink-dim);
     background: var(--surface); border: 1px solid var(--line-soft);
-    border-radius: var(--r-md); padding: 9px 11px; margin-bottom: 16px;
+    border-radius: 5px; padding: 9px 11px; margin-bottom: 15px;
   }
-  .triangle .beats { color: var(--ink-faint); }
+  .legend-item { display: flex; align-items: center; gap: 6px; }
+  .legend-dot { width: 11px; height: 11px; border-radius: 50%; border: 2px solid currentColor; }
+  .l-fighter { color: var(--fighter); }
+  .l-caster { color: var(--caster); }
+  .l-protector { color: var(--protector); }
+  .legend-note { color: var(--ink-faint); }
 
-  .pantheon-block { margin-bottom: 18px; }
+  .pantheon-block { margin-bottom: 16px; }
   .pantheon-name {
-    font-family: var(--display); font-size: 14px; letter-spacing: 0.06em;
+    font-family: var(--display); font-size: 13.5px; letter-spacing: 0.07em;
     text-transform: uppercase; color: var(--ink-dim); margin: 0 0 8px;
-    padding-bottom: 5px; border-bottom: 1px solid var(--line-soft);
+    padding-bottom: 4px; border-bottom: 1px solid var(--line-soft);
   }
-  .god-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(172px, 1fr)); gap: 6px; }
+  .god-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px; }
   .god-pick {
-    display: grid; grid-template-columns: 36px minmax(0, 1fr); gap: 8px; align-items: center;
+    display: grid; grid-template-columns: 38px minmax(0, 1fr); gap: 9px; align-items: center;
     text-align: left; padding: 6px 8px; background: var(--surface);
-    border: 1px solid var(--line-soft); border-radius: var(--r-md);
+    border: 1px solid var(--line-soft); border-radius: 5px;
   }
   .god-pick:hover:not(:disabled) { background: var(--surface-2); }
-  .god-pick:disabled { opacity: 0.66; }
+  .god-pick:disabled { opacity: 0.62; }
   .god-pick[aria-pressed="true"] { border-color: var(--gold); background: #23231a; }
-  .thumb { width: 36px; height: 36px; border-radius: 2px; overflow: hidden; flex-shrink: 0; }
-  .thumb img { width: 100%; height: 100%; object-fit: cover; }
-  .thumb .portrait-ph { font-size: 15px; }
-  .god-pick-name { font-family: var(--display); font-size: 14px; letter-spacing: 0.02em; }
-  .god-pick-line { display: flex; align-items: center; gap: 6px; justify-content: space-between; }
+  .disc {
+    width: 38px; height: 38px; border-radius: 50%; overflow: hidden;
+    border: 2px solid var(--role, var(--line)); position: relative; flex-shrink: 0;
+  }
+  .disc.r-fighter { --role: var(--fighter); }
+  .disc.r-caster { --role: var(--caster); }
+  .disc.r-protector { --role: var(--protector); }
+  .disc .monogram { font-size: 15px; }
+  .god-pick-name { font-family: var(--display); font-size: 13.5px; }
   .god-pick-stats { font-family: var(--mono); font-size: 10px; color: var(--ink-faint); display: flex; gap: 8px; }
   .god-pick-stats b { color: var(--ink-dim); font-weight: 500; }
 
   .roster-panel {
-    background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-md);
-    padding: 14px; position: sticky; top: calc(env(safe-area-inset-top, 0px) + 12px);
+    background: var(--surface); border: 1px solid var(--line); border-radius: 5px;
+    padding: 13px; position: sticky; top: calc(env(safe-area-inset-top, 0px) + 12px);
   }
-  .slot-list { display: flex; flex-direction: column; gap: 4px; margin: 0 0 12px; padding: 0; list-style: none; }
+  .slot-list { display: flex; flex-direction: column; gap: 4px; margin: 0 0 11px; padding: 0; list-style: none; }
   .party-slot {
-    display: grid; grid-template-columns: 20px 28px minmax(0, 1fr) auto; gap: 7px; align-items: center;
-    background: var(--surface-2); border: 1px solid var(--line-soft);
-    border-radius: var(--r-sm); padding: 5px 7px;
+    display: grid; grid-template-columns: 18px 30px minmax(0, 1fr) auto; gap: 7px; align-items: center;
+    background: var(--surface-2); border: 1px solid var(--line-soft); border-radius: 3px; padding: 4px 7px;
   }
   .party-slot.bench { background: transparent; border-style: dashed; }
-  .party-slot .thumb { width: 28px; height: 28px; }
-  .party-slot .thumb .portrait-ph { font-size: 12px; }
+  .party-slot .disc { width: 30px; height: 30px; }
+  .party-slot .disc .monogram { font-size: 12px; }
   .slot-index { font-family: var(--mono); font-size: 10px; color: var(--ink-faint); text-align: center; }
-  .slot-name-d { font-family: var(--display); font-size: 13.5px; }
+  .slot-name-d { font-family: var(--display); font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .slot-empty { color: var(--ink-faint); font-family: var(--mono); font-size: 11px; grid-column: 2 / 4; }
   .slot-actions { display: flex; gap: 2px; }
-  .icon-btn {
-    padding: 2px 5px; font-family: var(--mono); font-size: 11px; line-height: 1.3;
-    background: transparent; border-color: transparent; color: var(--ink-faint);
-  }
+  .icon-btn { padding: 1px 5px; font-family: var(--mono); font-size: 11px; background: transparent; border-color: transparent; color: var(--ink-faint); }
   .icon-btn:hover:not(:disabled) { color: var(--ink); background: var(--surface-3); }
   .board-divider {
     font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.12em; text-transform: uppercase;
     color: var(--ink-faint); display: flex; align-items: center; gap: 8px; margin: 2px 0;
   }
   .board-divider::after { content: ""; flex: 1; height: 1px; background: var(--line-soft); }
-  .equip-row { display: flex; gap: 4px; flex-wrap: wrap; padding: 4px 8px 2px 55px; }
-  .equip-btn {
-    font-family: var(--mono); font-size: 10px; padding: 2px 6px;
-    background: transparent; border-color: var(--line); color: var(--ink-faint);
-  }
+  .equip-row { display: flex; gap: 4px; flex-wrap: wrap; padding: 3px 6px 2px 54px; }
+  .equip-btn { font-family: var(--mono); font-size: 10px; padding: 1px 6px; background: transparent; border-color: var(--line); color: var(--ink-faint); }
   .equip-btn[aria-pressed="true"] { border-color: var(--gold-dim); color: var(--gold); background: #201d11; }
-  .presets { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 11px; }
-  .presets button { font-size: 11.5px; padding: 5px 9px; }
-  .opposition { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line-soft); }
+  .presets { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 10px; }
+  .presets button { font-size: 11.5px; padding: 4px 9px; }
+  .opposition { margin-top: 13px; padding-top: 11px; border-top: 1px solid var(--line-soft); }
   .opp-list { display: flex; flex-direction: column; gap: 3px; margin: 0; padding: 0; list-style: none; }
-  .opp-row { display: grid; grid-template-columns: 26px minmax(0,1fr) auto; gap: 7px; align-items: center; }
-  .opp-row .thumb { width: 26px; height: 26px; }
-  .opp-row .thumb .portrait-ph { font-size: 11px; }
+  .opp-row { display: grid; grid-template-columns: 28px minmax(0,1fr); gap: 8px; align-items: center; }
+  .opp-row .disc { width: 28px; height: 28px; }
+  .opp-row .disc .monogram { font-size: 11px; }
   .opp-row .nm { font-family: var(--display); font-size: 13px; }
-
-  /* ---------- verdict ---------- */
 
   .verdict {
     background: var(--surface); border: 1px solid var(--line);
-    border-left: 3px solid var(--verdigris); border-radius: var(--r-md);
-    padding: 18px 20px; display: flex; flex-direction: column; gap: 9px; margin-bottom: 12px;
+    border-left: 3px solid var(--verdigris); border-radius: 5px;
+    padding: 17px 19px; display: flex; flex-direction: column; gap: 8px; margin-bottom: 11px;
   }
   .verdict.lost { border-left-color: var(--harm); }
   .verdict.drawn { border-left-color: var(--warn); }
-  .verdict h2 {
-    font-family: var(--display); font-size: 25px; letter-spacing: 0.05em;
-    text-transform: uppercase; margin: 0;
-  }
-  .verdict p { margin: 0; color: var(--ink-dim); max-width: 62ch; }
+  .verdict h2 { font-family: var(--display); font-size: 24px; letter-spacing: 0.05em; text-transform: uppercase; margin: 0; }
+  .verdict p { margin: 0; color: var(--ink-dim); max-width: 60ch; }
   .verdict-actions { display: flex; gap: 8px; margin-top: 3px; flex-wrap: wrap; }
 
   .footnote {
-    margin-top: 22px; padding-top: 13px; border-top: 1px solid var(--line-soft);
+    margin-top: 18px; padding-top: 12px; border-top: 1px solid var(--line-soft);
     font-family: var(--mono); font-size: 10.5px; color: var(--ink-faint);
     line-height: 1.7; max-width: 78ch;
   }
@@ -519,39 +502,31 @@
   @media (max-width: 900px) {
     .draft-grid { grid-template-columns: minmax(0, 1fr); }
     .roster-panel { position: static; }
-    .deck { grid-template-columns: minmax(0, 1fr); }
-    .detail-art { height: 78px; }
   }
-  @media (max-width: 560px) {
-    .row { gap: 5px; }
-    .unit-pantheon { display: none; }
-    .slot { grid-template-columns: 22px minmax(0, 1fr) 20px; gap: 4px; padding: 4px; min-height: 36px; }
-    .slot-icon { width: 22px; height: 22px; }
-    .slot-name { font-size: 10.5px; }
-    .ability { grid-template-columns: 28px minmax(0, 1fr); }
-    .ability-meta { grid-column: 1 / -1; text-align: left; padding-left: 38px; }
-    .god-row { grid-template-columns: repeat(auto-fill, minmax(148px, 1fr)); }
-    .ord { font-size: 9px; min-width: 26px; padding: 1px 4px; }
+  @media (max-width: 620px) {
+    .table { grid-template-columns: 24px minmax(0, 1fr) 56px; gap: 6px; }
+    .arena { padding: 18px 6px 14px; }
+    .bench-medal { width: 28px; height: 28px; }
+    .ready-btn { font-size: 11.5px; padding: 11px 4px; letter-spacing: 0.05em; }
+    .god-row { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+    .nameplate { font-size: 9.5px; }
   }
 
   @media (prefers-reduced-motion: reduce) {
-    * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+    *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
   }
 </style>
 
 <div class="shell">
   <header class="masthead">
-    <div>
-      <h1 class="wordmark">Theo<span>machy</span></h1>
-      <p class="tagline">Six gods. Orders resolve by speed, lowest first.</p>
-    </div>
+    <h1 class="wordmark">Theo<span>machy</span></h1>
     <div class="masthead-meta" id="meta"></div>
   </header>
-
   <main id="stage"></main>
-
   <p class="footnote" id="footnote"></p>
 </div>
+<div id="drawer" hidden></div>
+<div id="tip" hidden></div>
 <div id="fx"></div>
 
 <script type="module">
@@ -562,35 +537,29 @@ import * as E from './engine.js';
  *
  * Drop images into web/art/ and list them here. Anything without an
  * entry renders a monogram placeholder in its role colour, so the
- * board stays readable while the art is still being made. The manifest
- * is explicit rather than convention-based on purpose: a missing file
- * costs a placeholder, not a failed request on every card.
+ * board stays readable while art is still being made. Explicit rather
+ * than convention-based on purpose: a missing file costs a
+ * placeholder, not a failed request per card.
  *
- *   PORTRAITS.zeus = 'art/zeus.webp';            // 512x512, 1:1
- *   ABILITY_ICONS.thunderbolt = 'art/ability/thunderbolt.webp';  // 96x96
+ *   PORTRAITS.zeus = 'art/zeus.webp';                          // 512x512
+ *   ABILITY_ICONS.thunderbolt = 'art/ability/thunderbolt.webp'; //  96x96
  *
- * See web/art/README.md for sizes and the full id list.
+ * Portraits are masked to a circle. See web/art/README.md.
  * ================================================================== */
 
 const PORTRAITS = {};
 const ABILITY_ICONS = {};
 
-/* ==================================================================
- * The page is a view over the engine and holds no rules of its own.
- * Legal orders come from optionsForMerc, the resolution order from
- * buildQueue, resolution from resolveRound, the opponent from
- * greedyPolicy, damage forecasts from rawDamage.
- * ================================================================== */
+/* The page is a view over the engine and holds no rules of its own. */
 
 const stage = document.getElementById('stage');
 const meta = document.getElementById('meta');
 const footnote = document.getElementById('footnote');
 const fx = document.getElementById('fx');
+const tip = document.getElementById('tip');
+const drawer = document.getElementById('drawer');
 
-const PANTHEON_ORDER = [
-  'Greek', 'Egyptian', 'Norse', 'Celtic', 'Aztec',
-  'Japanese', 'Chinese', 'Hindu', 'Mesopotamian', 'Yoruba',
-];
+const PANTHEON_ORDER = ['Greek', 'Egyptian', 'Norse', 'Celtic', 'Aztec', 'Japanese', 'Chinese', 'Hindu', 'Mesopotamian', 'Yoruba'];
 
 const PRESETS = {
   Olympians: ['atlas', 'ares', 'zeus', 'gaia', 'hecate', 'poseidon'],
@@ -598,20 +567,18 @@ const PRESETS = {
   Aesir: ['tyr', 'thor', 'odin', 'heimdall', 'loki', 'skadi'],
 };
 
-/**
- * Mercenaries drew this line, so this does too: a Bounty telegraphs the
- * enemy's picks, a Fighting Pit keeps both sides blind until they commit.
- */
+/** Mercenaries' own split: a Bounty telegraphs enemy picks, a Pit does not. */
 const MODES = {
-  bounty: {
-    name: 'Bounty',
-    blurb: 'The opposition has already chosen. You can see every pick and the exact order before you commit.',
-  },
-  pit: {
-    name: 'Fighting Pit',
-    blurb: 'Neither side sees the other’s orders. You know your own speeds; theirs stay hidden until both commit.',
-  },
+  bounty: { name: 'Bounty', blurb: 'The opposition has already chosen, and you can see it.' },
+  pit: { name: 'Fighting Pit', blurb: 'Neither side sees the other’s orders until both commit.' },
 };
+
+const GLYPHS = {
+  taunt: '◈', shield: '■', 'divine-shield': '◇', immune: '⬟',
+  dot: '☠', regen: '✚', stun: '✳', 'attack-buff': '↑',
+};
+
+const ORDINALS = ['1st', '2nd', '3rd', '4th', '5th', '6th', '7th', '8th', '9th'];
 
 const state = {
   phase: 'draft',
@@ -620,52 +587,62 @@ const state = {
   foe: [],
   seed: '',
   battle: null,
-  orders: {},       // actorUid -> { abilityId, targetUid? }
-  foeOrders: [],    // the opponent's committed orders for this round
-  pending: null,    // { actorUid, abilityId } awaiting a target
-  openUid: null,    // whose ability list is showing
-  inspect: null,    // { uid, abilityId } shown in the detail card
+  orders: {},
+  foeOrders: [],
+  chosenUid: null,      // whose abilities fill the tray
+  pending: null,        // { actorUid, abilityId } awaiting a target
   shownHp: {},
-  queue: [],        // resolution order being played out
+  queue: [],
   nowIndex: -1,
-  chronicle: [],
+  rounds: [],           // [{ round, lines: [] }] for the drawer
   resolving: false,
+  drawerOpen: false,
+  unread: false,
 };
 
-const cardEls = new Map();   // uid -> unit element, for floaters and shakes
-let detailHost = null;       // stable wrapper so inspecting never re-renders the deck
+/** Live element handles, so resolution can animate without re-rendering. */
+const ui = { units: new Map(), orbs: new Map() };
 
-/* ---------- art ---------- */
+/* ---------- small helpers ---------- */
 
-const initials = (name) => name
-  .replace(/^The\s+/i, '')
-  .split(/[\s-]+/)
-  .slice(0, 2)
-  .map((w) => w[0])
-  .join('')
-  .toUpperCase();
+function el(tag, className, text) {
+  const node = document.createElement(tag);
+  if (className) node.className = className;
+  if (text !== undefined) node.textContent = text;
+  return node;
+}
 
-function portraitInto(host, def, role, name) {
-  const src = PORTRAITS[def];
+const initials = (name) => name.replace(/^The\s+/i, '').split(/[\s-]+/).slice(0, 2).map((w) => w[0]).join('').toUpperCase();
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+function artInto(host, id, role, name, map = PORTRAITS) {
+  const src = map[id];
   if (src) {
     const img = document.createElement('img');
     img.src = src;
-    img.alt = name;
-    // A broken path must not leave a blank frame.
-    img.addEventListener('error', () => {
-      img.remove();
-      host.append(placeholder(role, name));
-    }, { once: true });
+    img.alt = '';
+    img.addEventListener('error', () => { img.remove(); host.append(mono(role, name)); }, { once: true });
     host.append(img);
   } else {
-    host.append(placeholder(role, name));
+    host.append(mono(role, name));
   }
 }
 
-function placeholder(role, name) {
-  const ph = el('div', `portrait-ph ph-${role}`, initials(name));
-  ph.setAttribute('aria-hidden', 'true');
-  return ph;
+function mono(role, name) {
+  const node = el('div', `monogram`, initials(name));
+  node.setAttribute('aria-hidden', 'true');
+  const host = el('div');
+  host.className = `ph-${role}`;
+  host.style.cssText = 'position:absolute;inset:0;display:flex;align-items:center;justify-content:center;';
+  host.append(node);
+  return host;
+}
+
+function disc(def, extraClass = 'disc') {
+  const box = el('div', `${extraClass} r-${def.role}`);
+  artInto(box, def.id, def.role, def.name);
+  return box;
 }
 
 /* ---------- setup ---------- */
@@ -674,17 +651,15 @@ function newRun() {
   state.seed = `run-${Math.floor(Math.random() * 1e9)}`;
   const rng = E.makeRng(`${state.seed}-foe`);
   const pick = (role, n) => rng.shuffled(E.mercsByRole(role)).slice(0, n);
-  state.foe = rng
-    .shuffled([...pick('protector', 2), ...pick('fighter', 2), ...pick('caster', 2)])
+  state.foe = rng.shuffled([...pick('protector', 2), ...pick('fighter', 2), ...pick('caster', 2)])
     .map((def) => ({ id: def.id, equippedId: def.equipment[0]?.id ?? null }));
   state.phase = 'draft';
   state.battle = null;
+  state.rounds = [];
   render();
 }
 
-const toEntries = (list) => list.map(({ id, equippedId }) => ({
-  def: E.mercById(id), level: 30, equippedId,
-}));
+const toEntries = (list) => list.map(({ id, equippedId }) => ({ def: E.mercById(id), level: 30, equippedId }));
 
 function beginBattle() {
   state.battle = E.createBattle({
@@ -693,23 +668,18 @@ function beginBattle() {
     partyB: toEntries(state.foe),
   });
   state.phase = 'battle';
-  state.chronicle = [];
+  state.rounds = [];
   snapshotHp();
   beginCommandPhase();
 }
 
-/** Fresh round: the opponent locks its orders in now, so a Bounty can show them. */
 function beginCommandPhase() {
   state.orders = {};
   state.pending = null;
-  state.openUid = null;
   state.queue = [];
   state.nowIndex = -1;
   state.foeOrders = E.greedyPolicy(state.battle, 'b');
-
-  const first = myBoard().find((m) => optionsFor(m).length > 0);
-  state.openUid = first ? first.uid : null;
-  state.inspect = first ? { uid: first.uid, abilityId: readyAbilities(first)[0]?.id ?? null } : null;
+  state.chosenUid = actableMine()[0]?.uid ?? null;
   render();
 }
 
@@ -724,42 +694,23 @@ function snapshotHp() {
 
 const myBoard = () => E.boardMercs(state.battle, 'a');
 const foeBoard = () => E.boardMercs(state.battle, 'b');
-const optionsFor = (merc) => E.optionsForMerc(state.battle, 'a', merc);
+const optionsFor = (m) => E.optionsForMerc(state.battle, 'a', m);
 const actableMine = () => myBoard().filter((m) => optionsFor(m).length > 0);
 const ordersComplete = () => actableMine().every((m) => state.orders[m.uid]);
 
-function readyAbilities(merc) {
-  const legal = new Set(optionsFor(merc).map((o) => o.abilityId));
-  return merc.abilities.filter((a) => legal.has(a.id));
-}
+const myOrderList = () => actableMine().filter((m) => state.orders[m.uid]).map((m) => ({
+  actorUid: m.uid,
+  abilityId: state.orders[m.uid].abilityId,
+  ...(state.orders[m.uid].targetUid !== undefined ? { targetUid: state.orders[m.uid].targetUid } : {}),
+}));
 
-const myOrderList = () => actableMine()
-  .filter((m) => state.orders[m.uid])
-  .map((m) => ({
-    actorUid: m.uid,
-    abilityId: state.orders[m.uid].abilityId,
-    ...(state.orders[m.uid].targetUid !== undefined ? { targetUid: state.orders[m.uid].targetUid } : {}),
-  }));
-
-/**
- * The exact resolution order for the orders committed so far, tie-breaks
- * included: the same buildQueue and the same seeded round stream the
- * resolver itself will use. In a Fighting Pit the opponent's orders are
- * withheld, so the order shown covers only your own.
- */
+/** The resolver's own queue, tie-breaks included, for the orders so far. */
 function previewQueue() {
-  const orders = {
-    a: myOrderList(),
-    b: state.mode === 'bounty' ? state.foeOrders : [],
-  };
+  const orders = { a: myOrderList(), b: state.mode === 'bounty' ? state.foeOrders : [] };
   if (orders.a.length === 0 && orders.b.length === 0) return [];
-  const rng = E.roundRng(state.battle.seed, state.battle.round + 1);
-  return E.buildQueue(state.battle, orders, rng);
+  return E.buildQueue(state.battle, orders, E.roundRng(state.battle.seed, state.battle.round + 1));
 }
 
-const ORDINALS = ['1st', '2nd', '3rd', '4th', '5th', '6th', '7th', '8th', '9th'];
-
-/** Damage forecast for an ability against a target, role bonus included. */
 function forecast(actor, ability, target) {
   let raw = 0;
   for (const eff of ability.effects) {
@@ -772,12 +723,99 @@ function forecast(actor, ability, target) {
   return { amount: bonus ? raw * E.ROLE_BONUS_MULTIPLIER : raw, raw, bonus };
 }
 
-const needsTarget = (ability) => ability.targeting === 'enemy' || ability.targeting === 'ally';
+const needsTarget = (a) => a.targeting === 'enemy' || a.targeting === 'ally';
+
+/* ---------- tooltip ---------- */
+
+/**
+ * `below` is for anchors inside the tray: opening upward from there would
+ * cover the enemy rank, which is exactly where the next click has to land.
+ * Nothing opens at all while a target is pending - the board has to be clear.
+ */
+function showTip(anchor, build, below = false) {
+  if (state.pending || state.resolving) return;
+  tip.replaceChildren();
+  build(tip);
+  tip.hidden = false;
+  const a = anchor.getBoundingClientRect();
+  const t = tip.getBoundingClientRect();
+
+  let left = a.left + a.width / 2 - t.width / 2;
+  left = Math.max(8, Math.min(left, window.innerWidth - t.width - 8));
+
+  let top = below ? a.bottom + 10 : a.top - t.height - 10;
+  if (top + t.height > window.innerHeight - 8) top = a.top - t.height - 10;
+  if (top < 8) top = a.bottom + 10;
+
+  tip.style.left = `${left}px`;
+  tip.style.top = `${top}px`;
+  tip.classList.add('on');
+}
+
+function hideTip() {
+  tip.classList.remove('on');
+  tip.hidden = true;
+}
+
+function abilityTip(host, merc, ability, target) {
+  const head = el('div', 'tip-head');
+  head.append(el('span', 'tip-name', ability.name));
+  head.append(el('span', 'tip-speed tnum', `speed ${ability.speed}`));
+  host.append(head);
+  host.append(el('div', 'tip-text', ability.text));
+
+  const metaRow = el('div', 'tip-meta');
+  metaRow.append(el('span', null, merc.name));
+  metaRow.append(el('span', null, ability.cooldown > 0 ? `cooldown ${ability.cooldown}` : 'no cooldown'));
+  metaRow.append(el('span', null, ability.targeting));
+  host.append(metaRow);
+
+  const f = forecast(merc, ability, target ?? null);
+  if (f) {
+    const line = el('div', 'tip-fore');
+    if (target) {
+      line.append(document.createTextNode(`vs ${target.name}: `));
+      line.append(el('b', null, `${f.amount} damage`));
+      if (f.bonus) line.append(document.createTextNode(' '), el('i', null, `×2 — ${merc.role} beats ${target.role}`));
+    } else {
+      line.append(document.createTextNode(`about ${f.raw}, doubled against `));
+      line.append(el('i', null, E.ROLE_COUNTERS[merc.role]));
+    }
+    host.append(line);
+  }
+}
+
+function unitTip(host, merc) {
+  const head = el('div', 'tip-head');
+  head.append(el('span', 'tip-name', merc.name));
+  head.append(el('span', 'tip-speed', merc.role));
+  host.append(head);
+  host.append(el('div', 'tip-text',
+    `${merc.pantheon} · ${merc.attack} attack · ${state.shownHp[merc.uid] ?? merc.health} of ${merc.maxHealth} health`));
+
+  if (merc.statuses.length > 0) {
+    const metaRow = el('div', 'tip-meta');
+    for (const s of merc.statuses) {
+      const label = s.kind === 'attack-buff' ? `+${s.magnitude} attack`
+        : s.kind === 'shield' ? `shield ${s.magnitude}`
+        : s.kind === 'dot' ? `${s.magnitude} damage a round`
+        : s.kind === 'regen' ? `${s.magnitude} healing a round`
+        : s.kind === 'divine-shield' ? 'next hit negated'
+        : s.kind;
+      metaRow.append(el('span', null, label));
+    }
+    host.append(metaRow);
+  }
+
+  const beats = E.ROLE_COUNTERS[merc.role];
+  host.append(el('div', 'tip-fore', `${merc.role} deals double to ${beats}`));
+}
 
 /* ---------- interaction ---------- */
 
 function onUnitClick(merc, side) {
   if (state.resolving) return;
+  hideTip();
 
   if (state.pending) {
     const actor = E.findMerc(state.battle, state.pending.actorUid);
@@ -786,112 +824,232 @@ function onUnitClick(merc, side) {
     if (side === wants && merc.alive) {
       state.orders[actor.uid] = { abilityId: ability.id, targetUid: merc.uid };
       state.pending = null;
-      advanceToNextUnordered();
+      state.chosenUid = actableMine().find((m) => !state.orders[m.uid])?.uid ?? null;
       render();
     }
     return;
   }
 
   if (side !== 'a' || optionsFor(merc).length === 0) return;
-  state.openUid = merc.uid;
-  state.inspect = { uid: merc.uid, abilityId: readyAbilities(merc)[0]?.id ?? null };
+  state.chosenUid = merc.uid;
   render();
 }
 
-function onAbilityPick(merc, ability) {
+function onOrbClick(merc, ability) {
+  hideTip();
   if (needsTarget(ability)) {
     state.pending = { actorUid: merc.uid, abilityId: ability.id };
-    state.inspect = { uid: merc.uid, abilityId: ability.id };
   } else {
     state.orders[merc.uid] = { abilityId: ability.id };
     state.pending = null;
-    advanceToNextUnordered();
+    state.chosenUid = actableMine().find((m) => !state.orders[m.uid])?.uid ?? null;
   }
   render();
 }
 
-/** Move the command deck to the next god still awaiting an order. */
-function advanceToNextUnordered() {
-  const next = actableMine().find((m) => !state.orders[m.uid]);
-  state.openUid = next ? next.uid : null;
-  // With nothing left to order, hold the last card rather than blanking the
-  // panel - an empty deck reads as a dead end just as Ready becomes available.
-  if (next) state.inspect = { uid: next.uid, abilityId: readyAbilities(next)[0]?.id ?? null };
+/* ---------- animation ---------- */
+
+const centreOf = (elm) => {
+  const r = elm.getBoundingClientRect();
+  return { x: r.left + r.width / 2, y: r.top + r.height / 2, r };
+};
+
+function popNumber(uid, text, kind) {
+  const handle = ui.units.get(uid);
+  if (!handle) return;
+  const c = centreOf(handle.medal);
+  const node = el('div', `num ${kind}`, text);
+  node.style.left = `${c.x}px`;
+  node.style.top = `${c.y}px`;
+  fx.append(node);
+  node.animate(
+    [
+      { transform: 'translate(-50%, -50%) scale(0.5)', opacity: 0 },
+      { transform: 'translate(-50%, -76%) scale(1.18)', opacity: 1, offset: 0.24 },
+      { transform: 'translate(-50%, -132%) scale(1)', opacity: 0 },
+    ],
+    { duration: 950, easing: 'cubic-bezier(0.2,0.8,0.3,1)' },
+  ).finished.then(() => node.remove()).catch(() => node.remove());
 }
 
-function setMode(mode) {
-  state.mode = mode;
-  render();
+function ripple(uid, colour, size = 120) {
+  const handle = ui.units.get(uid);
+  if (!handle) return;
+  const c = centreOf(handle.medal);
+  const node = el('div', 'ripple');
+  node.style.color = colour;
+  node.style.left = `${c.x}px`;
+  node.style.top = `${c.y}px`;
+  node.style.width = node.style.height = '20px';
+  fx.append(node);
+  node.animate(
+    [
+      { width: '20px', height: '20px', opacity: 0.95 },
+      { width: `${size}px`, height: `${size}px`, opacity: 0 },
+    ],
+    { duration: 520, easing: 'ease-out' },
+  ).finished.then(() => node.remove()).catch(() => node.remove());
 }
 
-function clearOrders() {
-  state.orders = {};
-  state.pending = null;
-  advanceToNextUnordered();
-  render();
+async function lunge(actorUid, targetUid) {
+  const a = ui.units.get(actorUid);
+  const b = ui.units.get(targetUid);
+  if (!a) return;
+  if (!b) { await sleep(120); return; }
+
+  const from = centreOf(a.medal);
+  const to = centreOf(b.medal);
+  const dx = to.x - from.x;
+  const dy = to.y - from.y;
+  const dist = Math.hypot(dx, dy) || 1;
+  const reach = Math.min(dist * 0.52, 62);
+
+  await a.medal.animate(
+    [
+      { transform: 'translate(0,0) scale(1)' },
+      { transform: `translate(${(dx / dist) * -7}px, ${(dy / dist) * -7}px) scale(1.04)`, offset: 0.22 },
+      { transform: `translate(${(dx / dist) * reach}px, ${(dy / dist) * reach}px) scale(1.09)`, offset: 0.52 },
+      { transform: 'translate(0,0) scale(1)' },
+    ],
+    { duration: 470, easing: 'cubic-bezier(0.34,0.1,0.2,1)' },
+  ).finished.catch(() => {});
 }
 
-function suggestOrders() {
-  for (const order of E.greedyPolicy(state.battle, 'a')) {
-    state.orders[order.actorUid] = order.targetUid === undefined
-      ? { abilityId: order.abilityId }
-      : { abilityId: order.abilityId, targetUid: order.targetUid };
-  }
-  state.pending = null;
-  state.openUid = null;
-  state.inspect = null;
-  render();
+async function bolt(actorUid, targetUid, colour) {
+  const a = ui.units.get(actorUid);
+  const b = ui.units.get(targetUid);
+  if (!a || !b) { await sleep(120); return; }
+
+  const from = centreOf(a.medal);
+  const to = centreOf(b.medal);
+
+  await a.medal.animate(
+    [{ transform: 'scale(1)' }, { transform: 'scale(1.09)', offset: 0.4 }, { transform: 'scale(1)' }],
+    { duration: 300, easing: 'ease-out' },
+  ).finished.catch(() => {});
+
+  const node = el('div', 'bolt');
+  node.style.cssText = `left:${from.x}px;top:${from.y}px;width:15px;height:15px;` +
+    `background:radial-gradient(circle,#fff 0%,${colour} 55%,transparent 72%);` +
+    `box-shadow:0 0 18px ${colour};`;
+  fx.append(node);
+
+  await node.animate(
+    [
+      { left: `${from.x}px`, top: `${from.y}px`, opacity: 0.2, width: '9px', height: '9px' },
+      { opacity: 1, offset: 0.2 },
+      { left: `${to.x}px`, top: `${to.y}px`, opacity: 1, width: '19px', height: '19px' },
+    ],
+    { duration: 340, easing: 'cubic-bezier(0.4,0,0.7,0.2)' },
+  ).finished.catch(() => {});
+  node.remove();
+}
+
+async function struck(uid) {
+  const handle = ui.units.get(uid);
+  if (!handle) return;
+  ripple(uid, '#ff9b88', 104);
+  handle.medal.animate(
+    [
+      { transform: 'translate(0,0)' }, { transform: 'translate(-5px,2px)' },
+      { transform: 'translate(5px,-2px)' }, { transform: 'translate(-3px,1px)' },
+      { transform: 'translate(0,0)' },
+    ],
+    { duration: 300, easing: 'ease-in-out' },
+  );
+  handle.art.animate(
+    [{ filter: 'brightness(1)' }, { filter: 'brightness(2.6) saturate(0.4)', offset: 0.18 }, { filter: 'brightness(1)' }],
+    { duration: 300 },
+  );
+}
+
+async function perish(uid) {
+  const handle = ui.units.get(uid);
+  if (!handle) return;
+  handle.card.classList.add('dead');
+  await handle.medal.animate(
+    [
+      { transform: 'scale(1) rotate(0deg)', opacity: 1 },
+      { transform: 'scale(1.1)', opacity: 1, offset: 0.2 },
+      { transform: 'scale(0.82) rotate(-7deg)', opacity: 0.35 },
+    ],
+    { duration: 520, easing: 'ease-in' },
+  ).finished.catch(() => {});
+}
+
+function setHp(uid, value) {
+  state.shownHp[uid] = value;
+  const handle = ui.units.get(uid);
+  if (!handle) return;
+  handle.hp.textContent = String(value);
+  handle.hp.classList.toggle('low', value > 0 && value <= handle.maxHealth * 0.3);
+  handle.hp.animate(
+    [{ transform: 'scale(1)' }, { transform: 'scale(1.32)', offset: 0.3 }, { transform: 'scale(1)' }],
+    { duration: 280, easing: 'ease-out' },
+  );
+}
+
+function spotlight(uid, on) {
+  const handle = ui.units.get(uid);
+  if (!handle) return;
+  handle.card.classList.toggle('acting', on);
+  const bubble = handle.card.querySelector('.bubble');
+  if (bubble) bubble.classList.toggle('now', on);
 }
 
 /* ---------- resolution ---------- */
 
 async function commit() {
   if (!ordersComplete() || state.resolving) return;
+
   state.resolving = true;
   state.pending = null;
-  state.openUid = null;
-  state.inspect = null;
+  hideTip();
 
   const before = state.battle;
   const orders = { a: myOrderList(), b: state.foeOrders };
-
-  // Same queue the resolver will build, so the order shown is the order played.
   state.queue = E.buildQueue(before, orders, E.roundRng(before.seed, before.round + 1));
 
-  let next;
+  let after;
   try {
-    next = E.resolveRound(before, orders);
+    after = E.resolveRound(before, orders);
   } catch (err) {
     state.resolving = false;
-    state.chronicle.push({ round: before.round + 1, kind: 'denied', message: String(err?.message ?? err) });
+    pushRound(before.round + 1, [{ kind: 'denied', message: String(err?.message ?? err) }]);
     render();
     return;
   }
 
-  const roundLog = next.log.slice(before.log.length);
-  state.battle = next;
+  const roundLog = after.log.slice(before.log.length);
 
-  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const beat = reduced ? 0 : 1;
+  // Redraw once with every order revealed, then animate against that DOM.
+  // Re-rendering per entry would tear out anything mid-flight.
+  state.nowIndex = -1;
+  render();
+  document.querySelector('.arena')?.classList.add('resolving');
+  await sleep(reducedMotion() ? 0 : 260);
 
+  let acting = null;
   for (const entry of roundLog) {
     if (entry.kind === 'cast' || entry.kind === 'denied') {
-      const idx = state.queue.findIndex((q, i) => i > state.nowIndex && q.actorUid === entry.data?.uid);
+      if (acting) spotlight(acting, false);
+      acting = entry.data?.uid ?? null;
+      const idx = state.queue.findIndex((q, i) => i > state.nowIndex && q.actorUid === acting);
       if (idx !== -1) state.nowIndex = idx;
+      if (acting) spotlight(acting, true);
+      narrate(acting, before);
     }
-    state.chronicle.push(entry);
-    applyToShownHp(entry);
-    render();
-    spawnEffect(entry);
-    if (beat) await sleep(pauseFor(entry.kind));
+    await playEntry(entry, before);
   }
+  if (acting) spotlight(acting, false);
 
-  state.nowIndex = state.queue.length;
+  pushRound(after.round, roundLog);
+  state.battle = after;
   snapshotHp();
-  render();
-  if (beat) await sleep(420);
 
+  await sleep(reducedMotion() ? 0 : 420);
   state.resolving = false;
+
   if (state.battle.winner !== null) {
     state.phase = 'over';
     render();
@@ -900,547 +1058,423 @@ async function commit() {
   }
 }
 
-const pauseFor = (kind) => ({
-  cast: 430, damage: 320, death: 520, heal: 260,
-  taunt: 300, denied: 460, fizzle: 460, deploy: 340,
-}[kind] ?? 150);
-
-function applyToShownHp(entry) {
-  const d = entry.data;
-  if (!d) return;
-  if (entry.kind === 'damage' && typeof d.target === 'string') {
-    state.shownHp[d.target] = Math.max(0, (state.shownHp[d.target] ?? 0) - (d.amount ?? 0));
-  } else if (entry.kind === 'heal' && typeof d.target === 'string') {
-    const merc = E.findMerc(state.battle, d.target);
-    state.shownHp[d.target] = Math.min(merc?.maxHealth ?? Infinity, (state.shownHp[d.target] ?? 0) + (d.amount ?? 0));
-  } else if (entry.kind === 'dot' && typeof d.uid === 'string') {
-    state.shownHp[d.uid] = Math.max(0, (state.shownHp[d.uid] ?? 0) - (d.amount ?? 0));
-  } else if (entry.kind === 'death' && typeof d.uid === 'string') {
-    state.shownHp[d.uid] = 0;
-  }
-}
-
-/** Floating numbers over the unit, the job an animation would otherwise do. */
-function spawnEffect(entry) {
+async function playEntry(entry, battleForLookup) {
   const d = entry.data ?? {};
-  const uid = typeof d.target === 'string' ? d.target : typeof d.uid === 'string' ? d.uid : null;
-  if (!uid) return;
+  const fast = reducedMotion();
+  const wait = (ms) => (fast ? Promise.resolve() : sleep(ms));
 
-  if (entry.kind === 'damage' && (d.amount ?? 0) > 0) {
-    floater(uid, `-${d.amount}${d.roleBonus ? ' ×2' : ''}`, 'dmg');
-    shake(uid);
-  } else if (entry.kind === 'damage' && (d.absorbed ?? 0) > 0) {
-    floater(uid, 'absorbed', 'blocked');
-  } else if (entry.kind === 'heal' && (d.amount ?? 0) > 0) {
-    floater(uid, `+${d.amount}`, 'heal');
-  } else if (entry.kind === 'dot' && (d.amount ?? 0) > 0) {
-    floater(uid, `-${d.amount}`, 'dmg');
-  } else if (entry.kind === 'immune' || entry.kind === 'divine-shield') {
-    floater(uid, 'blocked', 'blocked');
-  } else if (entry.kind === 'denied') {
-    floater(uid, 'denied', 'note');
-  } else if (entry.kind === 'fizzle') {
-    floater(uid, 'no target', 'note');
+  switch (entry.kind) {
+    case 'cast': {
+      const actor = E.findMerc(battleForLookup, d.uid);
+      const order = state.queue.find((q) => q.actorUid === d.uid);
+      if (!fast && actor && order?.targetUid && order.targetUid !== d.uid) {
+        if (actor.role === 'caster') {
+          await bolt(d.uid, order.targetUid, actor.role === 'caster' ? '#7fb2ff' : '#ffcf7f');
+        } else {
+          await lunge(d.uid, order.targetUid);
+        }
+      } else if (!fast) {
+        const handle = ui.units.get(d.uid);
+        handle?.medal.animate(
+          [{ transform: 'scale(1)' }, { transform: 'scale(1.1)', offset: 0.4 }, { transform: 'scale(1)' }],
+          { duration: 340, easing: 'ease-out' },
+        );
+        ripple(d.uid, '#ffe08a', 96);
+        await wait(300);
+      }
+      return wait(90);
+    }
+
+    case 'damage': {
+      const uid = d.target;
+      if (!uid) return wait(60);
+      if ((d.amount ?? 0) > 0) {
+        struck(uid);
+        popNumber(uid, `-${d.amount}`, d.roleBonus ? 'crit' : 'dmg');
+        setHp(uid, Math.max(0, (state.shownHp[uid] ?? 0) - d.amount));
+      } else if ((d.absorbed ?? 0) > 0) {
+        ripple(uid, '#9fc4e8', 96);
+        popNumber(uid, 'absorbed', 'word');
+      }
+      return wait(300);
+    }
+
+    case 'heal': {
+      const uid = d.target;
+      if (!uid || !(d.amount > 0)) return wait(60);
+      const merc = E.findMerc(battleForLookup, uid);
+      ripple(uid, '#86e0ab', 104);
+      popNumber(uid, `+${d.amount}`, 'heal');
+      setHp(uid, Math.min(merc?.maxHealth ?? Infinity, (state.shownHp[uid] ?? 0) + d.amount));
+      return wait(260);
+    }
+
+    case 'dot': {
+      if (!d.uid || !(d.amount > 0)) return wait(40);
+      popNumber(d.uid, `-${d.amount}`, 'dmg');
+      setHp(d.uid, Math.max(0, (state.shownHp[d.uid] ?? 0) - d.amount));
+      return wait(220);
+    }
+
+    case 'death':
+      if (d.uid) { setHp(d.uid, 0); await perish(d.uid); }
+      return wait(140);
+
+    case 'immune':
+    case 'divine-shield': {
+      const uid = d.uid ?? d.target;
+      if (uid) { ripple(uid, '#9fc4e8', 110); popNumber(uid, 'blocked', 'word'); }
+      return wait(250);
+    }
+
+    case 'taunt':
+      if (d.to) { ripple(d.to, '#c9a227', 108); popNumber(d.to, 'intercept', 'word'); }
+      return wait(280);
+
+    case 'denied':
+      if (d.uid) popNumber(d.uid, 'denied', 'word');
+      return wait(340);
+
+    case 'fizzle':
+      if (d.actor) popNumber(d.actor, 'no target', 'word');
+      return wait(340);
+
+    case 'status':
+      if (d.target) ripple(d.target, '#86e0ab', 78);
+      return wait(130);
+
+    case 'revive':
+      if (d.target) { ripple(d.target, '#ffe08a', 130); popNumber(d.target, 'returns', 'word'); }
+      return wait(400);
+
+    default:
+      return wait(50);
   }
 }
 
-function floater(uid, text, kind) {
-  const card = cardEls.get(uid);
-  if (!card) return;
-  const r = card.getBoundingClientRect();
-  if (r.width === 0) return;
-  const node = el('div', `floater ${kind}`, text);
-  node.style.left = `${r.left + r.width / 2}px`;
-  node.style.top = `${r.top + r.height * 0.34}px`;
-  fx.append(node);
-  setTimeout(() => node.remove(), 1100);
+/** Name the acting god in the tray, in place, as its turn comes up. */
+function narrate(uid, battleForLookup) {
+  if (!ui.trayHint || !uid) return;
+  const step = state.queue[state.nowIndex];
+  const actor = E.findMerc(battleForLookup, uid);
+  const ability = actor && step ? E.abilityOf(actor, step.abilityId) : null;
+  if (!actor || !ability) return;
+
+  const target = step?.targetUid ? E.findMerc(battleForLookup, step.targetUid) : null;
+  const aimed = target && target.uid !== uid ? ` → ${target.name}` : '';
+  ui.trayHint.textContent =
+    `${ORDINALS[state.nowIndex] ?? ''} · ${actor.name} — ${ability.name}` +
+    ` (speed ${ability.speed})${aimed}`;
+  ui.trayHint.animate(
+    [{ opacity: 0.25, transform: 'translateY(3px)' }, { opacity: 1, transform: 'translateY(0)' }],
+    { duration: 220, easing: 'ease-out' },
+  );
 }
 
-function shake(uid) {
-  const card = cardEls.get(uid);
-  if (!card) return;
-  card.classList.remove('struck');
-  void card.offsetWidth;
-  card.classList.add('struck');
+function pushRound(round, lines) {
+  state.rounds.push({ round, lines });
+  if (!state.drawerOpen) state.unread = true;
 }
 
-const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+/* ---------- board rendering ---------- */
 
-/* ---------- element helpers ---------- */
+function bubbleFor(merc, side) {
+  const playing = state.queue.length > 0;
+  const queue = playing ? state.queue : previewQueue();
+  const idx = queue.findIndex((q) => q.actorUid === merc.uid);
 
-function el(tag, className, text) {
-  const node = document.createElement(tag);
-  if (className) node.className = className;
-  if (text !== undefined) node.textContent = text;
+  if (idx === -1) {
+    if (side === 'b' && state.mode === 'pit' && !playing && merc.alive) {
+      return el('div', 'bubble sealed', '?');
+    }
+    return null;
+  }
+
+  // Only a tie that crosses sides is uncertain: same-side ties resolve in the
+  // order you committed them. Mercenaries marked the uncertain ones with a
+  // question mark, which is what this reproduces.
+  const step = queue[idx];
+  const contested = queue.some((q, i) =>
+    i !== idx && q.speed === step.speed && q.side !== step.side);
+  const label = `${ORDINALS[idx] ?? `${idx + 1}th`}${contested ? '?' : ''}`;
+
+  const node = el('div', 'bubble', label);
+  if (playing && state.nowIndex > idx) node.classList.add('spent');
   return node;
 }
 
-const roleChip = (role) => el('span', `role-chip r-${role}`, role);
-
-function thumb(def) {
-  const box = el('div', 'thumb');
-  portraitInto(box, def.id, def.role, def.name);
-  return box;
-}
-
-/* ---------- units ---------- */
-
-function ordinalBadge(merc, side) {
+function queuedBadge(merc, side) {
   const isMine = side === 'a';
-
-  if (state.queue.length > 0) {
-    const idx = state.queue.findIndex((q) => q.actorUid === merc.uid);
-    if (idx === -1) return null;
-    const badge = el('div', `ord ${isMine ? 'mine' : 'theirs'}`, ORDINALS[idx] ?? `${idx + 1}th`);
-    if (state.nowIndex > idx) badge.classList.add('done');
-    else if (state.nowIndex === idx) badge.classList.add('now');
-    return badge;
-  }
-
-  const queue = previewQueue();
-  const idx = queue.findIndex((q) => q.actorUid === merc.uid);
-
-  if (idx !== -1) {
-    // Order is only truly knowable when both sides' picks are on the table.
-    if (state.mode === 'bounty') {
-      return el('div', `ord ${isMine ? 'mine' : 'theirs'}`, ORDINALS[idx] ?? `${idx + 1}th`);
-    }
-    const order = state.orders[merc.uid];
-    const ability = order ? E.abilityOf(merc, order.abilityId) : null;
-    return el('div', 'ord mine', ability ? `sp ${ability.speed}` : ORDINALS[idx]);
-  }
-
-  if (!isMine && state.mode === 'pit') return el('div', 'ord unknown', '?');
-  return null;
-}
-
-function unitCard(merc, side) {
-  const isMine = side === 'a';
-  const card = el(isMine && !state.resolving ? 'button' : 'div', 'unit');
-  if (card.tagName === 'BUTTON') card.type = 'button';
-  if (isMine) card.classList.add('mine');
-  if (!merc.alive) card.classList.add('fallen');
-  if (state.openUid === merc.uid) card.classList.add('open');
-
-  if (state.queue.length > 0 && state.nowIndex >= 0 && state.nowIndex < state.queue.length) {
-    if (state.queue[state.nowIndex].actorUid === merc.uid) card.classList.add('acting');
-  }
-
-  let targetHint = null;
-  if (state.pending && !state.resolving) {
-    const actor = E.findMerc(state.battle, state.pending.actorUid);
-    const ability = E.abilityOf(actor, state.pending.abilityId);
-    const wants = ability.targeting === 'enemy' ? 'b' : 'a';
-    if (side === wants && merc.alive) {
-      card.classList.add('targetable');
-      const f = forecast(actor, ability, merc);
-      if (f) targetHint = f;
-    }
-  }
-
-  const badge = ordinalBadge(merc, side);
-  if (badge) card.append(badge);
-
-  const shown = state.shownHp[merc.uid] ?? merc.health;
-
-  const art = el('div', 'portrait');
-  portraitInto(art, merc.defId, merc.role, merc.name);
-  art.append(el('span', 'stat-badge stat-atk tnum', String(merc.attack)));
-  art.append(el('span', 'stat-badge stat-hp tnum', String(shown)));
-  card.append(art);
-
-  const body = el('div', 'unit-body');
-  body.append(el('div', 'unit-name', merc.name));
-
-  const sub = el('div', 'unit-sub');
-  sub.append(el('span', 'unit-pantheon', merc.pantheon));
-  sub.append(roleChip(merc.role));
-  body.append(sub);
-
-  const bar = el('div', 'hp-bar');
-  const pct = merc.maxHealth > 0 ? Math.max(0, Math.min(100, (shown / merc.maxHealth) * 100)) : 0;
-  const fill = el('div', 'hp-fill');
-  if (pct <= 25) fill.classList.add('critical');
-  else if (pct <= 55) fill.classList.add('hurt');
-  fill.style.width = `${pct}%`;
-  bar.append(fill);
-  body.append(bar);
-
-  const statuses = el('div', 'status-row');
-  for (const s of merc.statuses) {
-    const label = s.kind === 'attack-buff' ? `+${s.magnitude} atk`
-      : s.kind === 'shield' ? `shield ${s.magnitude}`
-      : s.kind === 'dot' ? `bleed ${s.magnitude}`
-      : s.kind === 'regen' ? `mend ${s.magnitude}`
-      : s.kind === 'divine-shield' ? 'warded'
-      : s.kind === 'stun' ? 'stunned'
-      : s.kind;
-    statuses.append(el('span', `status s-${s.kind}`, label));
-  }
-  if (targetHint) {
-    const hint = el('span', 'status s-dot', targetHint.bonus ? `${targetHint.amount} ×2` : `~${targetHint.amount}`);
-    statuses.append(hint);
-  }
-  body.append(statuses);
-  card.append(body);
-
-  if (card.tagName === 'BUTTON' || state.pending) {
-    card.addEventListener('click', () => onUnitClick(merc, side));
-  }
-  cardEls.set(merc.uid, card);
-  return card;
-}
-
-function unitRow(side) {
-  const row = el('div', 'row');
-  for (const uid of state.battle.sides[side].board) {
-    if (uid === null) { row.append(el('div', 'unit empty', 'empty')); continue; }
-    row.append(unitCard(E.findMerc(state.battle, uid), side));
-  }
-  return row;
-}
-
-/* ---------- queued ability slots ---------- */
-
-function slotCard(merc, side) {
-  const isMine = side === 'a';
-  const order = isMine
-    ? state.orders[merc.uid]
-    : state.foeOrders.find((o) => o.actorUid === merc.uid);
+  const order = isMine ? state.orders[merc.uid] : state.foeOrders.find((o) => o.actorUid === merc.uid);
+  if (!order) return null;
 
   const revealed = isMine || state.mode === 'bounty' || state.queue.length > 0;
-
-  if (!order) {
-    const blank = el('div', 'slot blank');
-    blank.append(el('div', 'slot-icon', '·'));
-    blank.append(el('div', 'slot-name',
-      !merc.alive ? 'fallen'
-        : isMine && E.hasStatus(merc, 'stun') ? 'stunned'
-        : isMine ? 'no order yet' : 'no order'));
-    blank.append(el('div'));
-    return blank;
-  }
-
   if (!revealed) {
-    const hidden = el('div', 'slot hidden-pick');
-    hidden.append(el('div', 'slot-icon', '?'));
-    const body = el('div');
-    body.append(el('div', 'slot-name', 'Order sealed'));
-    body.append(el('div', 'slot-who', merc.name));
-    hidden.append(body);
-    const sp = el('div', 'slot-speed', '?');
-    sp.append(el('small', null, 'speed'));
-    hidden.append(sp);
-    return hidden;
+    const sealed = el('div', 'queued theirs sealed', '?');
+    sealed.title = 'Order sealed until both sides commit';
+    return sealed;
   }
 
   const ability = E.abilityOf(merc, order.abilityId);
-  const slot = el('div', `slot ${isMine ? 'mine' : 'theirs'}`);
-
-  const icon = el('div', 'slot-icon');
+  const badge = el('div', `queued${isMine ? '' : ' theirs'}`);
   const src = ABILITY_ICONS[ability.id];
   if (src) {
     const img = document.createElement('img');
     img.src = src;
     img.alt = '';
-    img.addEventListener('error', () => { img.remove(); icon.textContent = '✦'; }, { once: true });
-    icon.append(img);
+    img.addEventListener('error', () => { img.remove(); badge.textContent = String(ability.speed); }, { once: true });
+    badge.append(img);
   } else {
-    icon.textContent = '✦';
+    badge.textContent = String(ability.speed);
   }
-  slot.append(icon);
 
-  const body = el('div');
-  body.append(el('div', 'slot-name', ability.name));
-  const who = el('div', 'slot-who');
-  who.textContent = merc.name;
-  if (order.targetUid) {
-    const target = E.findMerc(state.battle, order.targetUid);
-    if (target) who.textContent = `${merc.name} → ${target.name}`;
-  }
-  body.append(who);
-  slot.append(body);
-
-  const sp = el('div', 'slot-speed tnum', String(ability.speed));
-  sp.append(el('small', null, 'speed'));
-  slot.append(sp);
-
-  if (state.queue.length > 0) {
-    const idx = state.queue.findIndex((q) => q.actorUid === merc.uid);
-    if (idx !== -1 && state.nowIndex > idx) slot.classList.add('spent');
-    if (idx !== -1 && state.nowIndex === idx) slot.classList.add('acting');
-  }
-  return slot;
+  const target = order.targetUid ? E.findMerc(state.battle, order.targetUid) : null;
+  badge.addEventListener('mouseenter', () => showTip(badge, (host) => abilityTip(host, merc, ability, target)));
+  badge.addEventListener('mouseleave', hideTip);
+  return badge;
 }
 
-function slotRow(side) {
-  const row = el('div', 'row');
+function unitNode(merc, side) {
+  const isMine = side === 'a';
+  const interactive = !state.resolving && (isMine || state.pending);
+  const card = el(interactive ? 'button' : 'div', `unit r-${merc.role}`);
+  if (interactive) card.type = 'button';
+  if (!merc.alive) card.classList.add('dead');
+  if (state.chosenUid === merc.uid) card.classList.add('chosen');
+
+  if (state.pending && !state.resolving) {
+    const actor = E.findMerc(state.battle, state.pending.actorUid);
+    const ability = E.abilityOf(actor, state.pending.abilityId);
+    const wants = ability.targeting === 'enemy' ? 'b' : 'a';
+    if (side === wants && merc.alive) card.classList.add('targetable');
+  } else if (isMine && merc.alive && optionsFor(merc).length > 0 && !state.resolving) {
+    card.classList.add('pickable');
+  }
+
+  const bubble = bubbleFor(merc, side);
+  if (bubble) card.append(bubble);
+
+  const medal = el('div', 'medal');
+  const art = el('div', 'medal-art');
+  artInto(art, merc.defId, merc.role, merc.name);
+  medal.append(art);
+  medal.append(el('div', 'medal-ring'));
+
+  const hp = state.shownHp[merc.uid] ?? merc.health;
+  medal.append(el('div', 'pip pip-atk tnum', String(merc.attack)));
+  const hpPip = el('div', 'pip pip-hp tnum', String(hp));
+  if (hp > 0 && hp <= merc.maxHealth * 0.3) hpPip.classList.add('low');
+  medal.append(hpPip);
+
+  const badge = queuedBadge(merc, side);
+  if (badge) medal.append(badge);
+  card.append(medal);
+
+  card.append(el('div', 'nameplate', merc.name));
+
+  const glyphs = el('div', 'glyphs');
+  for (const s of merc.statuses) {
+    const g = el('div', `glyph g-${s.kind}`, GLYPHS[s.kind] ?? '•');
+    g.title = `${s.kind}${s.magnitude ? ` ${s.magnitude}` : ''}`;
+    glyphs.append(g);
+  }
+  card.append(glyphs);
+
+  if (interactive) card.addEventListener('click', () => onUnitClick(merc, side));
+  card.addEventListener('mouseenter', () => { if (!state.resolving) showTip(medal, (host) => unitTip(host, merc)); });
+  card.addEventListener('mouseleave', hideTip);
+
+  ui.units.set(merc.uid, { card, medal, art, hp: hpPip, maxHealth: merc.maxHealth });
+  return card;
+}
+
+function rankNode(side) {
+  const rank = el('div', `rank ${side === 'a' ? 'mine' : 'enemy'}`);
   for (const uid of state.battle.sides[side].board) {
-    if (uid === null) { row.append(el('div')); continue; }
-    row.append(slotCard(E.findMerc(state.battle, uid), side));
+    if (uid === null) {
+      const gap = el('div', 'unit slot-empty');
+      gap.append(el('div', 'medal'));
+      rank.append(gap);
+      continue;
+    }
+    rank.append(unitNode(E.findMerc(state.battle, uid), side));
   }
-  return row;
+  return rank;
 }
 
-/* ---------- centre line ---------- */
+/* ---------- the tray ---------- */
 
-function centreLine() {
-  const bar = el('div', 'centre');
-  const playing = state.queue.length > 0;
-  const queue = playing ? state.queue : previewQueue();
+function trayNode() {
+  const tray = el('div', 'tray');
+  const merc = state.chosenUid ? E.findMerc(state.battle, state.chosenUid) : null;
 
-  bar.append(el('span', 'centre-label',
-    playing ? 'resolving' : state.mode === 'bounty' ? 'resolution order' : 'your order'));
-
-  const chain = el('div', 'order-chain');
-
-  if (queue.length === 0) {
-    chain.append(el('span', 'chain-step unknown', 'give an order to build the sequence'));
-  } else {
-    queue.forEach((step, i) => {
-      if (i > 0) chain.append(el('span', 'chain-sep', '›'));
-      const merc = E.findMerc(state.battle, step.actorUid);
-      const ability = merc ? E.abilityOf(merc, step.abilityId) : null;
-      const node = el('div', `chain-step ${step.side === 'a' ? 'mine' : 'theirs'}`);
-      node.append(el('b', null, ORDINALS[i] ?? `${i + 1}th`));
-      node.append(document.createTextNode(`${merc ? merc.name : '?'} · ${ability ? ability.name : '?'} · sp${step.speed}`));
-      if (playing) {
-        if (state.nowIndex > i) node.classList.add('done');
-        else if (state.nowIndex === i) node.classList.add('now');
-      }
-      chain.append(node);
-    });
-
-    if (!playing && state.mode === 'pit') {
-      const unknown = foeBoard().length;
-      if (unknown > 0) {
-        chain.append(el('span', 'chain-sep', '·'));
-        chain.append(el('span', 'chain-step unknown', `${unknown} enemy orders sealed`));
-      }
-    }
+  if (state.resolving) {
+    tray.classList.add('waiting');
+    const hint = el('div', 'tray-hint', 'Resolving in speed order…');
+    ui.trayHint = hint;
+    tray.append(hint);
+    return tray;
   }
 
-  bar.append(chain);
-  return bar;
-}
-
-/* ---------- target arrows ---------- */
-
-function drawArrows(field) {
-  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-  svg.id = 'arrows';
-  field.append(svg);
-
-  requestAnimationFrame(() => {
-    const base = field.getBoundingClientRect();
-    if (base.width === 0) return;
-    svg.setAttribute('viewBox', `0 0 ${base.width} ${base.height}`);
-
-    const links = [];
-    for (const merc of myBoard()) {
-      const order = state.orders[merc.uid];
-      if (order?.targetUid) links.push({ from: merc.uid, to: order.targetUid, mine: true });
-    }
-    if (state.mode === 'bounty' || state.queue.length > 0) {
-      for (const order of state.foeOrders) {
-        if (order.targetUid) links.push({ from: order.actorUid, to: order.targetUid, mine: false });
-      }
-    }
-
-    for (const link of links) {
-      const a = cardEls.get(link.from)?.getBoundingClientRect();
-      const b = cardEls.get(link.to)?.getBoundingClientRect();
-      if (!a || !b || a.width === 0 || b.width === 0) continue;
-
-      const x1 = a.left + a.width / 2 - base.left;
-      const y1 = a.top + a.height / 2 - base.top;
-      const x2 = b.left + b.width / 2 - base.left;
-      const y2 = b.top + b.height / 2 - base.top;
-      const mx = (x1 + x2) / 2 + (link.mine ? 26 : -26);
-
-      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-      path.setAttribute('d', `M ${x1} ${y1} Q ${mx} ${(y1 + y2) / 2} ${x2} ${y2}`);
-      path.setAttribute('fill', 'none');
-      path.setAttribute('stroke', link.mine ? '#c9a227' : '#4fa89b');
-      path.setAttribute('stroke-width', '1.5');
-      path.setAttribute('stroke-dasharray', '4 4');
-      path.setAttribute('opacity', '0.75');
-      svg.append(path);
-
-      const head = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-      head.setAttribute('cx', String(x2));
-      head.setAttribute('cy', String(y2));
-      head.setAttribute('r', '3.5');
-      head.setAttribute('fill', link.mine ? '#c9a227' : '#4fa89b');
-      svg.append(head);
-    }
-  });
-}
-
-/* ---------- command deck ---------- */
-
-function detailCard() {
-  const box = el('div', 'detail');
-  const ins = state.inspect;
-  const merc = ins?.uid ? E.findMerc(state.battle, ins.uid) : null;
-  const ability = merc && ins.abilityId ? E.abilityOf(merc, ins.abilityId) : null;
-
-  if (!merc || !ability) {
-    box.classList.add('idle');
-    box.append(el('div', 'detail-empty',
-      state.resolving ? 'Resolving…' : 'Choose a god below to see its abilities.'));
-    return box;
+  if (!merc || optionsFor(merc).length === 0) {
+    tray.classList.add('waiting');
+    tray.append(el('div', 'tray-hint', ordersComplete()
+      ? 'Every order is in. Press Ready.'
+      : 'Choose one of your gods to see its abilities.'));
+    return tray;
   }
 
-  const art = el('div', 'detail-art portrait');
-  portraitInto(art, merc.defId, merc.role, merc.name);
-  const speed = el('div', 'detail-speed tnum', String(ability.speed));
-  speed.append(el('small', null, 'SPD'));
-  art.append(speed);
-  box.append(art);
-
-  const body = el('div', 'detail-body');
-  body.append(el('div', 'detail-name', ability.name));
-  body.append(el('div', 'detail-caster', `${merc.name} · ${merc.role}`));
-  body.append(el('div', 'detail-text', ability.text));
-
-  const foot = el('div', 'detail-foot');
-  foot.append(el('span', null, ability.cooldown > 0 ? `cooldown ${ability.cooldown}` : 'no cooldown'));
-  foot.append(el('span', null, `targets ${ability.targeting}`));
-  foot.append(el('span', null, `unlocks lv ${ability.unlockLevel}`));
-  body.append(foot);
-
-  // What the order will actually do, named in the game's own terms.
-  const order = state.orders[merc.uid];
-  const targetUid = state.pending?.actorUid === merc.uid ? null : order?.targetUid;
-  const target = targetUid ? E.findMerc(state.battle, targetUid) : null;
-  const f = forecast(merc, ability, target);
-
-  if (f) {
-    const line = el('div', 'forecast');
-    if (target) {
-      line.append(document.createTextNode(`vs ${target.name}: `));
-      line.append(el('b', null, `${f.amount} damage`));
-      if (f.bonus) {
-        line.append(document.createTextNode(' '));
-        line.append(el('span', 'bonus', `×2 — ${merc.role} beats ${target.role}`));
-      }
-    } else {
-      line.append(document.createTextNode('base damage '));
-      line.append(el('b', null, String(f.raw)));
-      line.append(document.createTextNode(', doubled against '));
-      line.append(el('span', 'bonus', E.ROLE_COUNTERS[merc.role]));
-    }
-    body.append(line);
-  }
-
-  box.append(body);
-  return box;
-}
-
-/**
- * Swap only the detail card.
- *
- * Inspecting happens on hover, and a full render would detach the very button
- * the pointer is over - the hover state flickers and the click is lost.
- */
-function refreshDetail() {
-  if (detailHost) detailHost.replaceChildren(detailCard());
-}
-
-function commandDeck() {
-  const deck = el('div', 'deck');
-  detailHost = el('div');
-  detailHost.append(detailCard());
-  deck.append(detailHost);
-
-  const right = el('div', 'command');
-  const merc = state.openUid ? E.findMerc(state.battle, state.openUid) : null;
-
-  if (!merc) {
-    const note = el('div', 'detail-empty');
-    note.textContent = state.resolving
-      ? 'Orders are resolving in speed sequence.'
-      : ordersComplete()
-        ? 'All orders given. Press Ready to resolve the round.'
-        : 'Pick a god on your side of the field.';
-    right.append(note);
-    deck.append(right);
-    return deck;
-  }
-
-  const head = el('div', 'command-head');
-  head.append(el('span', 'command-who', merc.name));
-  head.append(roleChip(merc.role));
-  if (state.pending?.actorUid === merc.uid) {
-    const ability = E.abilityOf(merc, state.pending.abilityId);
-    head.append(el('span', 'command-hint',
-      ability.targeting === 'enemy' ? '→ now click an enemy' : '→ now click an ally'));
-  }
-  right.append(head);
-
-  const list = el('div', 'ability-list');
   const legal = new Set(optionsFor(merc).map((o) => o.abilityId));
 
   for (const ability of merc.abilities) {
-    const btn = el('button', 'ability');
-    btn.type = 'button';
+    const wrap = el('div', 'orb-wrap');
+    const orb = el('button', 'orb');
+    orb.type = 'button';
     const ready = legal.has(ability.id);
-    btn.disabled = !ready || state.resolving;
-    btn.setAttribute('aria-pressed',
+    orb.disabled = !ready;
+    if (ready) orb.classList.add('ready');
+    orb.setAttribute('aria-pressed',
       String(state.pending?.abilityId === ability.id && state.pending?.actorUid === merc.uid));
+    orb.setAttribute('aria-label', `${ability.name}, speed ${ability.speed}`);
 
-    const sp = el('div', 'ability-speed tnum', String(ability.speed));
-    sp.append(el('small', null, 'SPD'));
-    btn.append(sp);
-
-    const mid = el('div');
-    mid.append(el('div', 'ability-name', ability.name));
-    mid.append(el('div', 'ability-text', ability.text));
-    btn.append(mid);
+    const src = ABILITY_ICONS[ability.id];
+    if (src) {
+      const img = document.createElement('img');
+      img.src = src;
+      img.alt = '';
+      img.addEventListener('error', () => { img.remove(); orb.append(el('span', 'orb-mark', '✦')); }, { once: true });
+      orb.append(img);
+    } else {
+      orb.append(el('span', 'orb-mark', '✦'));
+    }
 
     const cd = merc.cooldowns[ability.id] ?? 0;
-    const bits = [];
-    if (!ready && cd > 0) bits.push(`ready in ${cd}`);
-    else if (ability.cooldown > 0) bits.push(`cd ${ability.cooldown}`);
-    bits.push(ability.targeting);
-    btn.append(el('div', 'ability-meta', bits.join(' · ')));
+    if (cd > 0) orb.append(el('div', 'cd tnum', String(cd)));
 
-    const inspect = () => {
-      state.inspect = { uid: merc.uid, abilityId: ability.id };
-      refreshDetail();
-    };
-    btn.addEventListener('mouseenter', () => { if (!state.resolving) inspect(); });
-    btn.addEventListener('focus', () => { if (!state.resolving) inspect(); });
-    btn.addEventListener('click', () => onAbilityPick(merc, ability));
-    list.append(btn);
+    orb.addEventListener('click', () => { if (ready) onOrbClick(merc, ability); });
+    const openTip = () => showTip(orb, (host) => abilityTip(host, merc, ability, null), true);
+    orb.addEventListener('mouseenter', openTip);
+    orb.addEventListener('mouseleave', hideTip);
+    orb.addEventListener('focus', openTip);
+    orb.addEventListener('blur', hideTip);
+
+    wrap.append(orb);
+    const speed = el('div', 'orb-speed tnum', String(ability.speed));
+    if (!ready) speed.classList.add('muted');
+    wrap.append(speed);
+    tray.append(wrap);
+    ui.orbs.set(ability.id, orb);
   }
-  right.append(list);
-  deck.append(right);
-  return deck;
+  return tray;
 }
 
-function controlBar() {
-  const bar = el('div', 'control-bar');
+/* ---------- edge strips ---------- */
+
+function historyStrip() {
+  const strip = el('button', 'strip history-strip');
+  strip.type = 'button';
+  strip.title = 'Battle history';
+  if (state.drawerOpen) strip.classList.add('open');
+  if (state.unread) strip.classList.add('unread');
+  strip.append(el('div', 'history-glyph', '☷'));
+  strip.append(el('div', 'history-label', 'History'));
+  strip.addEventListener('click', () => {
+    state.drawerOpen = !state.drawerOpen;
+    if (state.drawerOpen) state.unread = false;
+    renderDrawer();
+    render();
+  });
+  return strip;
+}
+
+function flankNode() {
+  const flank = el('div', 'flank');
+
+  const ready = el('button', 'ready-btn', state.resolving ? '…' : 'Ready');
+  ready.type = 'button';
+  ready.disabled = state.resolving || !ordersComplete();
+  ready.addEventListener('click', commit);
+  flank.append(ready);
+
+  const bench = el('div', 'strip bench-strip');
+  bench.append(el('div', 'bench-title', 'Bench'));
+  const party = state.battle.sides.a.party;
+  const onBoard = new Set(state.battle.sides.a.board.filter(Boolean));
+  for (const merc of party) {
+    if (onBoard.has(merc.uid)) continue;
+    const def = E.mercById(merc.defId);
+    const medal = el('div', `bench-medal r-${merc.role}`);
+    artInto(medal, def.id, merc.role, merc.name);
+    if (!merc.alive) medal.classList.add('fallen');
+    medal.title = `${merc.name} · ${merc.alive ? `${merc.health}/${merc.maxHealth}` : 'fallen'}`;
+    bench.append(medal);
+  }
+  flank.append(bench);
+  return flank;
+}
+
+/* ---------- drawer ---------- */
+
+function renderDrawer() {
+  drawer.replaceChildren();
+  drawer.hidden = !state.drawerOpen;
+  drawer.classList.toggle('open', state.drawerOpen);
+  if (!state.drawerOpen) return;
+
+  const head = el('div', 'drawer-head');
+  head.append(el('span', 'drawer-title', 'Battle history'));
+  const close = el('button', 'icon-btn', '×');
+  close.type = 'button';
+  close.addEventListener('click', () => { state.drawerOpen = false; renderDrawer(); render(); });
+  head.append(close);
+  drawer.append(head);
+
+  if (state.rounds.length === 0) {
+    drawer.append(el('div', 'tray-hint', 'Nothing has happened yet.'));
+    return;
+  }
+
+  for (const block of [...state.rounds].reverse()) {
+    const wrap = el('div', 'round-block');
+    wrap.append(el('div', 'round-tag', `Round ${block.round}`));
+    const list = el('ul', 'round-lines');
+    for (const line of block.lines) {
+      list.append(el('li', `c-${line.kind}`, line.message));
+    }
+    wrap.append(list);
+    drawer.append(wrap);
+  }
+}
+
+/* ---------- screens ---------- */
+
+function renderBattle() {
+  ui.units.clear();
+  ui.orbs.clear();
+  const wrap = el('div');
+
+  const table = el('div', 'table');
+  table.append(historyStrip());
+
+  const arena = el('div', 'arena');
+  arena.append(rankNode('b'));
+  arena.append(trayNode());
+  arena.append(rankNode('a'));
+  table.append(arena);
+
+  table.append(flankNode());
+  wrap.append(table);
+
+  const under = el('div', 'under-table');
+  const note = el('div', 'turn-note');
   const actable = actableMine();
   const given = actable.filter((m) => state.orders[m.uid]).length;
+  note.textContent = state.resolving ? 'Resolving…'
+    : state.pending ? 'Now click a target on the board.'
+    : `Round ${state.battle.round + 1} · ${given} of ${actable.length} orders given`;
+  under.append(note);
 
-  const status = el('div', 'control-status');
-  if (state.resolving) {
-    const step = state.queue[state.nowIndex];
-    const merc = step ? E.findMerc(state.battle, step.actorUid) : null;
-    status.textContent = merc
-      ? `${ORDINALS[state.nowIndex] ?? ''} · ${merc.name} acting…`
-      : 'Resolving…';
-  } else if (state.pending) {
-    status.textContent = 'Choose a target on the field.';
-  } else {
-    status.textContent = `${given} of ${actable.length} orders given.`;
-  }
-  bar.append(status);
-
-  const actions = el('div', 'control-actions');
-
+  const actions = el('div', 'mini-actions');
   const toggle = el('div', 'mode-toggle');
   for (const [key, cfg] of Object.entries(MODES)) {
     const b = el('button', null, cfg.name);
@@ -1448,107 +1482,49 @@ function controlBar() {
     b.title = cfg.blurb;
     b.disabled = state.resolving;
     b.setAttribute('aria-pressed', String(state.mode === key));
-    b.addEventListener('click', () => setMode(key));
+    b.addEventListener('click', () => { state.mode = key; render(); });
     toggle.append(b);
   }
   actions.append(toggle);
 
-  const hint = el('button', null, 'Suggest');
-  hint.type = 'button';
-  hint.disabled = state.resolving;
-  hint.title = 'Fill your orders with the same greedy policy the opponent uses';
-  hint.addEventListener('click', suggestOrders);
+  const suggest = el('button', null, 'Suggest');
+  suggest.type = 'button';
+  suggest.disabled = state.resolving;
+  suggest.title = 'Fill your orders with the same policy the opponent uses';
+  suggest.addEventListener('click', () => {
+    for (const o of E.greedyPolicy(state.battle, 'a')) {
+      state.orders[o.actorUid] = o.targetUid === undefined
+        ? { abilityId: o.abilityId } : { abilityId: o.abilityId, targetUid: o.targetUid };
+    }
+    state.pending = null;
+    state.chosenUid = null;
+    render();
+  });
 
   const clear = el('button', null, 'Clear');
   clear.type = 'button';
   clear.disabled = state.resolving || given === 0;
-  clear.addEventListener('click', clearOrders);
+  clear.addEventListener('click', () => {
+    state.orders = {};
+    state.pending = null;
+    state.chosenUid = actableMine()[0]?.uid ?? null;
+    render();
+  });
 
-  const ready = el('button', 'btn-primary btn-ready', 'Ready');
-  ready.type = 'button';
-  ready.disabled = state.resolving || !ordersComplete();
-  ready.addEventListener('click', commit);
-
-  actions.append(hint, clear, ready);
-  bar.append(actions);
-  return bar;
-}
-
-/* ---------- chronicle ---------- */
-
-function chronicle() {
-  if (state.chronicle.length === 0) return null;
-  const wrap = el('div', 'chronicle');
-  wrap.append(el('p', 'eyebrow', 'Chronicle'));
-  const list = el('ul', 'chron-lines');
-  for (const entry of state.chronicle.slice(-70)) {
-    const li = el('li');
-    li.append(el('span', 'rd tnum', `r${entry.round}`));
-    li.append(el('span', `c-${entry.kind}`, entry.message));
-    list.append(li);
-  }
-  wrap.append(list);
-  requestAnimationFrame(() => { list.scrollTop = list.scrollHeight; });
-  return wrap;
-}
-
-function benchPips(side) {
-  const bench = E.benchMercs(state.battle, side);
-  const party = state.battle.sides[side].party;
-  const pips = el('div', 'bench-pips');
-  pips.append(el('span', null, 'reserve'));
-  for (let i = 3; i < party.length; i++) {
-    const pip = el('span', 'pip');
-    if (bench.some((m) => m.uid === party[i].uid)) pip.classList.add('alive');
-    pips.append(pip);
-  }
-  pips.append(el('span', null, `· ${party.filter((m) => !m.alive).length} fallen`));
-  return pips;
-}
-
-function sideHead(side, label) {
-  const head = el('div', 'side-head');
-  head.append(el('span', 'side-label', label));
-  head.append(benchPips(side));
-  return head;
-}
-
-/* ---------- screens ---------- */
-
-function renderBattle() {
-  cardEls.clear();
-  const wrap = el('div');
-
-  wrap.append(sideHead('b', 'Opposition'));
-
-  const field = el('div', 'field');
-  field.append(unitRow('b'));
-  field.append(slotRow('b'));
-  field.append(centreLine());
-  field.append(slotRow('a'));
-  field.append(unitRow('a'));
-  wrap.append(field);
-
-  wrap.append(sideHead('a', 'Your pantheon'));
-  wrap.append(commandDeck());
-  wrap.append(controlBar());
-
-  const chron = chronicle();
-  if (chron) wrap.append(chron);
-
-  drawArrows(field);
+  actions.append(suggest, clear);
+  under.append(actions);
+  wrap.append(under);
   return wrap;
 }
 
 function renderVerdict() {
-  cardEls.clear();
+  ui.units.clear();
   const wrap = el('div');
   const winner = state.battle.winner;
 
   const verdict = el('div', `verdict${winner === 'b' ? ' lost' : winner === 'draw' ? ' drawn' : ''}`);
   verdict.append(el('h2', null,
     winner === 'a' ? 'The field is yours' : winner === 'b' ? 'Your pantheon falls' : 'Neither side yields'));
-
   const mine = state.battle.sides.a.party.filter((m) => m.alive).length;
   const theirs = state.battle.sides.b.party.filter((m) => m.alive).length;
   verdict.append(el('p', null,
@@ -1561,19 +1537,21 @@ function renderVerdict() {
   const redraft = el('button', null, 'Redraft against the same six');
   redraft.type = 'button';
   redraft.addEventListener('click', () => { state.phase = 'draft'; render(); });
-  actions.append(again, redraft);
+  const hist = el('button', null, 'Read the history');
+  hist.type = 'button';
+  hist.addEventListener('click', () => { state.drawerOpen = true; state.unread = false; renderDrawer(); render(); });
+  actions.append(again, redraft, hist);
   verdict.append(actions);
   wrap.append(verdict);
 
-  wrap.append(sideHead('b', 'Opposition'));
-  const field = el('div', 'field');
-  field.append(unitRow('b'));
-  field.append(unitRow('a'));
-  wrap.append(field);
-  wrap.append(sideHead('a', 'Your pantheon'));
-
-  const chron = chronicle();
-  if (chron) wrap.append(chron);
+  const table = el('div', 'table');
+  table.append(historyStrip());
+  const arena = el('div', 'arena');
+  arena.append(rankNode('b'));
+  arena.append(rankNode('a'));
+  table.append(arena);
+  table.append(el('div'));
+  wrap.append(table);
   return wrap;
 }
 
@@ -1582,13 +1560,15 @@ function renderDraft() {
   const left = el('div');
   left.append(el('p', 'eyebrow', 'Assemble a pantheon of six'));
 
-  const tri = el('div', 'triangle');
-  const pairs = [['protector', 'fighter'], ['fighter', 'caster'], ['caster', 'protector']];
-  pairs.forEach(([a, b], i) => {
-    tri.append(roleChip(a), el('span', 'beats', 'doubles'), roleChip(b));
-    if (i < pairs.length - 1) tri.append(el('span', 'beats', '·'));
-  });
-  left.append(tri);
+  const legend = el('div', 'legend');
+  for (const [role, beats] of Object.entries(E.ROLE_COUNTERS)) {
+    const item = el('div', `legend-item l-${role}`);
+    item.append(el('span', 'legend-dot'));
+    item.append(el('span', null, role));
+    item.append(el('span', 'legend-note', `doubles vs ${beats}`));
+    legend.append(item);
+  }
+  left.append(legend);
 
   const chosen = new Set(state.party.map((p) => p.id));
   const byPantheon = new Map();
@@ -1610,13 +1590,10 @@ function renderDraft() {
       btn.setAttribute('aria-pressed', String(picked));
       btn.disabled = !picked && state.party.length >= 6;
       if (btn.disabled) btn.title = 'Remove one of your six to pick this god';
+      btn.append(disc(def));
 
-      btn.append(thumb(def));
       const info = el('div');
-      const line = el('div', 'god-pick-line');
-      line.append(el('span', 'god-pick-name', def.name), roleChip(def.role));
-      info.append(line);
-
+      info.append(el('div', 'god-pick-name', def.name));
       const stats = el('div', 'god-pick-stats');
       const atk = el('span', 'tnum');
       atk.append(el('b', null, String(E.attackAtLevel(def, 30))), document.createTextNode(' atk'));
@@ -1644,10 +1621,7 @@ function renderDraft() {
   for (const [name, ids] of Object.entries(PRESETS)) {
     const b = el('button', null, name);
     b.type = 'button';
-    b.addEventListener('click', () => {
-      state.party = ids.map((id) => ({ id, equippedId: null }));
-      render();
-    });
+    b.addEventListener('click', () => { state.party = ids.map((id) => ({ id, equippedId: null })); render(); });
     presets.append(b);
   }
   const randomBtn = el('button', null, 'Random');
@@ -1655,8 +1629,7 @@ function renderDraft() {
   randomBtn.addEventListener('click', () => {
     const rng = E.makeRng(`draft-${Math.random()}`);
     const pick = (role, n) => rng.shuffled(E.mercsByRole(role)).slice(0, n);
-    state.party = rng
-      .shuffled([...pick('protector', 2), ...pick('fighter', 2), ...pick('caster', 2)])
+    state.party = rng.shuffled([...pick('protector', 2), ...pick('fighter', 2), ...pick('caster', 2)])
       .map((def) => ({ id: def.id, equippedId: null }));
     render();
   });
@@ -1671,23 +1644,15 @@ function renderDraft() {
     const entry = state.party[i];
     const li = el('li', `party-slot${i >= 3 ? ' bench' : ''}`);
     li.append(el('span', 'slot-index tnum', String(i + 1)));
-
     if (!entry) {
-      li.append(el('span', 'slot-empty', 'empty'));
-      li.append(el('span'));
+      li.append(el('span', 'slot-empty', 'empty'), el('span'));
       list.append(li);
       continue;
     }
 
     const def = E.mercById(entry.id);
-    li.append(thumb(def));
-    const nameCell = el('div');
-    nameCell.style.display = 'flex';
-    nameCell.style.alignItems = 'center';
-    nameCell.style.gap = '6px';
-    nameCell.style.minWidth = '0';
-    nameCell.append(el('span', 'slot-name-d', def.name), roleChip(def.role));
-    li.append(nameCell);
+    li.append(disc(def));
+    li.append(el('div', 'slot-name-d', def.name));
 
     const actions = el('div', 'slot-actions');
     const up = el('button', 'icon-btn', '↑');
@@ -1744,7 +1709,7 @@ function renderDraft() {
   for (const { id } of state.foe) {
     const def = E.mercById(id);
     const row = el('li', 'opp-row');
-    row.append(thumb(def), el('span', 'nm', def.name), roleChip(def.role));
+    row.append(disc(def), el('span', 'nm', def.name));
     oppList.append(row);
   }
   opp.append(oppList);
@@ -1765,32 +1730,25 @@ function render() {
 
   meta.replaceChildren();
   if (state.phase === 'draft') {
-    meta.append(el('div', null,
-      `${E.ROSTER.length} gods · ${new Set(E.ROSTER.map((d) => d.pantheon)).size} pantheons`));
+    meta.append(el('div', null, `${E.ROSTER.length} gods · ${new Set(E.ROSTER.map((d) => d.pantheon)).size} pantheons`));
   } else {
-    const round = el('div');
-    round.append(document.createTextNode('round '),
-      el('b', 'tnum', String(state.battle.round + (state.phase === 'over' ? 0 : 1))));
-    meta.append(round);
-    meta.append(el('div', null, MODES[state.mode].name));
+    const line = el('div');
+    line.append(document.createTextNode('round '));
+    line.append(el('b', 'tnum', String(state.battle.round + (state.phase === 'over' ? 0 : 1))));
+    line.append(document.createTextNode(` · ${MODES[state.mode].name}`));
+    meta.append(line);
   }
 
   footnote.replaceChildren();
-  if (state.phase === 'draft') {
-    footnote.append(el('b', null, 'How it works. '));
-    footnote.append(document.createTextNode(
-      'Each round every god on the board takes one ability. Everything then resolves from the ' +
-      'lowest speed to the highest, so a fast kill denies a slow ability outright — the victim ' +
-      'dies before acting, and any single-target ability aimed at the dead fizzles. Protector ' +
-      'beats Fighter beats Caster beats Protector, at double damage. Cooldowns start spent, so ' +
-      'round one is the narrowest round of the fight.'));
-  } else {
-    footnote.append(el('b', null, `${MODES[state.mode].name}. `));
-    footnote.append(document.createTextNode(`${MODES[state.mode].blurb} `));
-    footnote.append(document.createTextNode(
-      'Ordinal badges above each god are its place in the resolution order; the slot beside it is ' +
-      'the ability it will use, with that ability’s speed. Dashed arrows show who is aimed at whom.'));
-  }
+  footnote.append(el('b', null, state.phase === 'draft' ? 'How it works. ' : `${MODES[state.mode].name}. `));
+  footnote.append(document.createTextNode(state.phase === 'draft'
+    ? 'Each round every god on the board takes one ability, then everything resolves from the ' +
+      'lowest speed to the highest — a fast kill denies a slow ability outright. The ring ' +
+      'colour is the role: Protector doubles against Fighter, Fighter against Caster, Caster ' +
+      'against Protector. Cooldowns start spent, so round one is the narrowest of the fight.'
+    : `${MODES[state.mode].blurb} The bubble above each god is its place in the resolution ` +
+      'order; a question mark means it shares a speed with something else, so the tie breaks at ' +
+      'random. The number under each orb is that ability’s speed.'));
 }
 
 window.claude?.hot?.snapshot?.(() => ({

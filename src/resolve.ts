@@ -125,32 +125,70 @@ export interface QueuedAction {
   abilityId: string;
   targetUid: string | undefined;
   speed: number;
-  /** Random key that breaks speed ties; recorded so a replay can show it. */
+  /** Position of this order within its own side's submission, 0-based. */
+  submitIndex: number;
+  /** Sort key that breaks speed ties; recorded so a replay can show it. */
   tiebreak: number;
 }
 
+/**
+ * Order the round's actions.
+ *
+ * Ascending speed, then a tie-break rule with two halves:
+ *
+ * - **Within one side, ties follow submission order.** Committing a buff
+ *   before the attack that should benefit from it is a real decision, so it
+ *   must not be undone by a coin flip.
+ * - **Across sides, ties are random.** Neither player can know whether their
+ *   speed-5 ability lands before the enemy's, which is what keeps a mirrored
+ *   speed from being a solved race.
+ *
+ * Both hold at once because each speed group draws one sorted key per side and
+ * hands them out in submission order: same-side keys ascend by construction,
+ * while the two sides' keys interleave at random. A single numeric sort key
+ * also keeps the comparator transitive, which a pairwise rule would not be.
+ */
 export function buildQueue(state: BattleState, orders: RoundOrders, rng: Rng): QueuedAction[] {
-  const queue: QueuedAction[] = [];
+  const actions: QueuedAction[] = [];
 
   for (const side of ['a', 'b'] as const) {
-    for (const order of orders[side]) {
+    orders[side].forEach((order, submitIndex) => {
       const actor = state.sides[side].party.find((m) => m.uid === order.actorUid)!;
       const ability = abilityOf(actor, order.abilityId)!;
-      queue.push({
+      actions.push({
         side,
         actorUid: order.actorUid,
         abilityId: order.abilityId,
         targetUid: order.targetUid,
         speed: ability.speed,
-        tiebreak: rng.next(),
+        submitIndex,
+        tiebreak: 0,
       });
-    }
+    });
   }
 
-  // Ascending speed; equal speeds fall to the seeded tiebreak. Sorting on a
-  // pre-drawn key rather than a comparator that calls the RNG keeps the sort
-  // stable and the draw count independent of the sort algorithm.
-  queue.sort((x, y) => x.speed - y.speed || x.tiebreak - y.tiebreak);
+  const speeds = [...new Set(actions.map((a) => a.speed))].sort((x, y) => x - y);
+  const queue: QueuedAction[] = [];
+
+  for (const speed of speeds) {
+    const group = actions.filter((a) => a.speed === speed);
+
+    // Fixed iteration order over speeds and sides keeps the draw sequence
+    // deterministic, so a replay reproduces the same order exactly.
+    for (const side of ['a', 'b'] as const) {
+      const own = group
+        .filter((a) => a.side === side)
+        .sort((x, y) => x.submitIndex - y.submitIndex);
+      if (own.length === 0) continue;
+
+      const keys = Array.from({ length: own.length }, () => rng.next()).sort((x, y) => x - y);
+      own.forEach((action, i) => { action.tiebreak = keys[i]!; });
+    }
+
+    group.sort((x, y) => x.tiebreak - y.tiebreak);
+    queue.push(...group);
+  }
+
   return queue;
 }
 
