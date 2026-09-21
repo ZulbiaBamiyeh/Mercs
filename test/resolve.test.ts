@@ -370,3 +370,28 @@ describe('purity and determinism', () => {
     assert.ok(spreads.size > 1, 'random targeting should vary with the seed');
   });
 });
+
+describe('fizzling', () => {
+  test('a single-target ability whose mark died says so in the log', () => {
+    const sniper = statBlock('fighter', 10, 100, [hit('snipe', 1, 999)]);
+    const slow = statBlock('fighter', 10, 100, [hit('slow', 9, 10)]);
+    const frail = statBlock('fighter', 10, 5, [hit('idle', 5, 0)]);
+    const state = battleOf([{ def: sniper }, { def: slow }], [{ def: frail }, { def: frail }]);
+
+    // Both allies target the same frail enemy; the fast one kills it first.
+    const next = resolveRound(state, {
+      a: [
+        { actorUid: uid(state, 'a', 0), abilityId: 'snipe', targetUid: uid(state, 'b', 0) },
+        { actorUid: uid(state, 'a', 1), abilityId: 'slow', targetUid: uid(state, 'b', 0) },
+      ],
+      b: [],
+    });
+
+    assert.ok(
+      next.log.some((e) => e.kind === 'fizzle'),
+      'the wasted ability should be reported, not silently do nothing',
+    );
+    // The second attacker's damage went nowhere - the other enemy is untouched.
+    assert.equal(findMerc(next, uid(state, 'b', 1))!.health, 5);
+  });
+});

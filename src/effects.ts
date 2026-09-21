@@ -89,7 +89,17 @@ export function selectTargets(ctx: EffectContext, selector: Selector): MercState
       // A single-target ability whose mark died earlier in the round fizzles.
       // That is the whole point of speed: killing the threat first denies it.
       if (ctx.chosenUid === undefined) return [];
-      return single(findMerc(state, ctx.chosenUid));
+      const marked = findMerc(state, ctx.chosenUid);
+      if (marked && !marked.alive) {
+        // Logged explicitly: an ability that resolves into nothing looks like
+        // a bug to a player unless the denial is stated.
+        log(ctx, 'fizzle', `${ctx.ability.name} finds no target - ${marked.name} has already fallen`, {
+          actor: actor.uid,
+          target: marked.uid,
+        });
+        return [];
+      }
+      return single(marked);
     }
     case 'self':
       return actor.alive ? [actor] : [];
