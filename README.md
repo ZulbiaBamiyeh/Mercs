@@ -65,10 +65,17 @@ the full log lives behind the history strip.
 - **Speech-bubble ordinals** above each god for who acts when, with a `?` when
   the placing is genuinely uncertain (see below).
 - **The ability tray** holds the selected god's three abilities as orbs, speed
-  beneath each and a cooldown badge on the ones not ready. During resolution
-  the same tray narrates the acting god.
+  beneath each and a cooldown badge on the ones not ready. Clicking an orb arms
+  it and the tray states what it does, what to click next, and the damage it
+  would land - so nothing depends on hovering, which touch cannot do. An orb on
+  cooldown is still clickable and says when it comes back. During resolution the
+  same tray narrates the acting god.
 - A small badge on each medallion shows the committed ability; on a Bounty the
   opposition's shows too.
+
+Committing an order is one gesture throughout: arm an ability, then click a
+glowing god. Abilities that take no target resolve through a click on their own
+caster rather than a separate confirm button.
 
 ### Animations
 
