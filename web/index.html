@@ -91,12 +91,12 @@
   }
   .arena.resolving .rank { pointer-events: none; }
 
-  .rank { display: flex; justify-content: center; gap: clamp(8px, 2.4vw, 26px); position: relative; z-index: 2; }
+  .rank { display: flex; justify-content: center; gap: clamp(15px, 2.6vw, 30px); position: relative; z-index: 2; }
 
   /* ---- unit ---- */
 
   .unit {
-    position: relative; width: clamp(74px, 18vw, 116px);
+    position: relative; width: clamp(66px, 16.5vw, 112px);
     display: flex; flex-direction: column; align-items: center; gap: 4px;
     background: none; border: none; padding: 0; margin-top: 15px;
     font-family: var(--sans); color: var(--ink);
@@ -108,11 +108,29 @@
     position: relative; width: 100%; aspect-ratio: 1;
     border-radius: 50%; overflow: visible;
   }
+
+  /* A depleting arc outside the portrait rim. A bare number cannot show that
+     22 damage off 28 health is nearly lethal while 22 off 68 is a scratch. */
+  .hp-ring {
+    position: absolute; inset: -7px; transform: rotate(-90deg);
+    pointer-events: none; overflow: visible;
+  }
+  .hp-track { fill: none; stroke: #0c1117; stroke-width: 5.5; }
+  .hp-arc {
+    fill: none; stroke-width: 5.5; stroke-linecap: round;
+    stroke-dasharray: 289.03;
+    transition: stroke-dashoffset 520ms cubic-bezier(0.2, 0.8, 0.3, 1), stroke 320ms ease;
+  }
   .medal-art {
     position: absolute; inset: 0; border-radius: 50%; overflow: hidden;
     background: var(--surface-3);
     display: flex; align-items: center; justify-content: center;
     transition: filter 300ms ease;
+  }
+  .medal-flash {
+    position: absolute; inset: 0; border-radius: 50%; pointer-events: none;
+    background: radial-gradient(circle, rgba(255,120,96,0.92) 0%, rgba(214,60,42,0.55) 70%, transparent 100%);
+    opacity: 0;
   }
   .medal-art img { width: 100%; height: 100%; object-fit: cover; display: block; }
   .monogram {
@@ -125,15 +143,20 @@
 
   /* role lives in the frame, not in a text chip */
   .medal-ring {
-    position: absolute; inset: -3px; border-radius: 50%;
+    position: absolute; inset: 0; border-radius: 50%;
     border: 3px solid var(--role); pointer-events: none;
-    box-shadow: 0 0 0 1px rgba(0,0,0,0.55), inset 0 0 0 1px rgba(0,0,0,0.45);
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,0.5);
   }
   .unit.r-fighter { --role: var(--fighter); }
   .unit.r-caster { --role: var(--caster); }
   .unit.r-protector { --role: var(--protector); }
 
   .unit.pickable:hover .medal-ring { box-shadow: 0 0 0 2px #fff6, 0 0 14px var(--role); }
+  .unit.awaiting .medal-ring { animation: awaiting 2.4s ease-in-out infinite; }
+  @keyframes awaiting {
+    0%, 100% { box-shadow: inset 0 0 0 1px #0008, 0 0 0 0 rgba(255,255,255,0.28); }
+    50% { box-shadow: inset 0 0 0 1px #0008, 0 0 0 5px rgba(255,255,255,0); }
+  }
   .unit.chosen .medal-ring { border-color: #fff; box-shadow: 0 0 0 2px #ffffff88, 0 0 20px #ffffffb0; }
   .unit.targetable { cursor: crosshair; }
   /* The halo marks it as targetable while the border keeps saying its role -
@@ -149,8 +172,8 @@
   .unit.dead .nameplate { opacity: 0.4; }
 
   .pip {
-    position: absolute; bottom: -2px; z-index: 3;
-    min-width: 22px; height: 20px; padding: 0 4px;
+    position: absolute; bottom: -4px; z-index: 4;
+    min-width: 24px; height: 21px; padding: 0 4px;
     border-radius: 4px; border: 1px solid rgba(0,0,0,0.6);
     display: flex; align-items: center; justify-content: center;
     font-family: var(--mono); font-size: 12px; font-weight: 600;
@@ -407,13 +430,14 @@
   #fx { position: fixed; inset: 0; pointer-events: none; z-index: 70; overflow: hidden; }
   .num {
     position: absolute; transform: translate(-50%, -50%);
-    font-family: var(--mono); font-weight: 600; font-size: 25px;
-    text-shadow: 0 2px 6px #000, 0 0 12px rgba(0,0,0,0.8);
+    font-family: var(--mono); font-weight: 600; font-size: 36px;
+    text-shadow: 0 2px 4px #000, 0 0 16px rgba(0,0,0,0.95), 0 0 3px #000;
+    white-space: nowrap;
   }
   .num.dmg { color: #ff8f7d; }
-  .num.crit { color: #ffd166; font-size: 31px; }
+  .num.crit { color: #ffd166; font-size: 46px; }
   .num.heal { color: #86e0ab; }
-  .num.word { font-size: 14px; color: #cfd8e2; letter-spacing: 0.06em; text-transform: uppercase; }
+  .num.word { font-size: 17px; color: #e4ebf2; letter-spacing: 0.08em; text-transform: uppercase; }
   .bolt { position: absolute; border-radius: 50%; transform: translate(-50%, -50%); }
   .ripple {
     position: absolute; border-radius: 50%; transform: translate(-50%, -50%);
@@ -593,6 +617,25 @@ const GLYPHS = {
 
 const ORDINALS = ['1st', '2nd', '3rd', '4th', '5th', '6th', '7th', '8th', '9th'];
 
+/**
+ * Multipliers on every resolution beat. The base timings are deliberately
+ * unhurried - a round is the part of this game worth watching, and a damage
+ * number you cannot read is the same as no number at all.
+ */
+const SPEEDS = { calm: 1.65, steady: 1, brisk: 0.5 };
+
+function loadSpeed() {
+  try {
+    const saved = localStorage.getItem('theomachy.speed');
+    if (saved && saved in SPEEDS) return saved;
+  } catch { /* private window, blocked storage - the default is fine */ }
+  return 'steady';
+}
+
+function saveSpeed(key) {
+  try { localStorage.setItem('theomachy.speed', key); } catch { /* ignore */ }
+}
+
 const state = {
   phase: 'draft',
   mode: 'bounty',
@@ -610,6 +653,7 @@ const state = {
   nowIndex: -1,
   rounds: [],           // [{ round, lines: [] }] for the drawer
   resolving: false,
+  speed: 'steady',
   drawerOpen: false,
   unread: false,
 };
@@ -856,7 +900,8 @@ function onUnitClick(merc, side) {
       : { abilityId: ability.id };
     state.armed = null;
     state.preview = null;
-    state.chosenUid = actableMine().find((m) => !state.orders[m.uid])?.uid ?? null;
+    // The selection stays where you put it. Jumping to the next god without
+    // orders moves the tray out from under your hand mid-thought.
     render();
     return;
   }
@@ -891,11 +936,12 @@ function popNumber(uid, text, kind) {
   fx.append(node);
   node.animate(
     [
-      { transform: 'translate(-50%, -50%) scale(0.5)', opacity: 0 },
-      { transform: 'translate(-50%, -76%) scale(1.18)', opacity: 1, offset: 0.24 },
-      { transform: 'translate(-50%, -132%) scale(1)', opacity: 0 },
+      { transform: 'translate(-50%, -50%) scale(0.45)', opacity: 0 },
+      { transform: 'translate(-50%, -78%) scale(1.3)', opacity: 1, offset: 0.13 },
+      { transform: 'translate(-50%, -86%) scale(1.05)', opacity: 1, offset: 0.62 },
+      { transform: 'translate(-50%, -132%) scale(0.95)', opacity: 0 },
     ],
-    { duration: 950, easing: 'cubic-bezier(0.2,0.8,0.3,1)' },
+    { duration: 1500, easing: 'cubic-bezier(0.2,0.8,0.3,1)' },
   ).finished.then(() => node.remove()).catch(() => node.remove());
 }
 
@@ -975,18 +1021,18 @@ async function bolt(actorUid, targetUid, colour) {
 async function struck(uid) {
   const handle = ui.units.get(uid);
   if (!handle) return;
-  ripple(uid, '#ff9b88', 104);
+  ripple(uid, '#ff9b88', 118);
   handle.medal.animate(
     [
-      { transform: 'translate(0,0)' }, { transform: 'translate(-5px,2px)' },
-      { transform: 'translate(5px,-2px)' }, { transform: 'translate(-3px,1px)' },
-      { transform: 'translate(0,0)' },
+      { transform: 'translate(0,0)' }, { transform: 'translate(-7px,3px)' },
+      { transform: 'translate(7px,-3px)' }, { transform: 'translate(-4px,2px)' },
+      { transform: 'translate(2px,-1px)' }, { transform: 'translate(0,0)' },
     ],
-    { duration: 300, easing: 'ease-in-out' },
+    { duration: 420, easing: 'ease-in-out' },
   );
-  handle.art.animate(
-    [{ filter: 'brightness(1)' }, { filter: 'brightness(2.6) saturate(0.4)', offset: 0.18 }, { filter: 'brightness(1)' }],
-    { duration: 300 },
+  handle.flash.animate(
+    [{ opacity: 0 }, { opacity: 0.85, offset: 0.12 }, { opacity: 0 }],
+    { duration: 480, easing: 'ease-out' },
   );
 }
 
@@ -1005,15 +1051,33 @@ async function perish(uid) {
 }
 
 function setHp(uid, value) {
+  const from = state.shownHp[uid] ?? value;
   state.shownHp[uid] = value;
   const handle = ui.units.get(uid);
   if (!handle) return;
-  handle.hp.textContent = String(value);
+
+  paintArc(handle.arc, value / Math.max(1, handle.maxHealth));
   handle.hp.classList.toggle('low', value > 0 && value <= handle.maxHealth * 0.3);
   handle.hp.animate(
-    [{ transform: 'scale(1)' }, { transform: 'scale(1.32)', offset: 0.3 }, { transform: 'scale(1)' }],
-    { duration: 280, easing: 'ease-out' },
+    [{ transform: 'scale(1)' }, { transform: 'scale(1.4)', offset: 0.3 }, { transform: 'scale(1)' }],
+    { duration: 380, easing: 'ease-out' },
   );
+
+  // Counting rather than snapping makes the size of the hit legible even if
+  // you looked away from the floating number.
+  countTo(handle.hp, from, value, reducedMotion() ? 0 : 460);
+}
+
+function countTo(node, from, to, ms) {
+  if (ms <= 0 || from === to) { node.textContent = String(to); return; }
+  const started = performance.now();
+  const tick = (now) => {
+    const t = Math.min(1, (now - started) / ms);
+    const eased = 1 - (1 - t) * (1 - t);
+    node.textContent = String(Math.round(from + (to - from) * eased));
+    if (t < 1) requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
 }
 
 function spotlight(uid, on) {
@@ -1055,7 +1119,7 @@ async function commit() {
   state.nowIndex = -1;
   render();
   document.querySelector('.arena')?.classList.add('resolving');
-  await sleep(reducedMotion() ? 0 : 260);
+  await sleep(reducedMotion() ? 0 : Math.round(420 * (SPEEDS[state.speed] ?? 1)));
 
   let acting = null;
   for (const entry of roundLog) {
@@ -1075,7 +1139,7 @@ async function commit() {
   state.battle = after;
   snapshotHp();
 
-  await sleep(reducedMotion() ? 0 : 420);
+  await sleep(reducedMotion() ? 0 : Math.round(620 * (SPEEDS[state.speed] ?? 1)));
   state.resolving = false;
 
   if (state.battle.winner !== null) {
@@ -1089,7 +1153,8 @@ async function commit() {
 async function playEntry(entry, battleForLookup) {
   const d = entry.data ?? {};
   const fast = reducedMotion();
-  const wait = (ms) => (fast ? Promise.resolve() : sleep(ms));
+  const factor = SPEEDS[state.speed] ?? 1;
+  const wait = (ms) => (fast ? Promise.resolve() : sleep(Math.round(ms * factor)));
 
   switch (entry.kind) {
     case 'cast': {
@@ -1108,14 +1173,14 @@ async function playEntry(entry, battleForLookup) {
           { duration: 340, easing: 'ease-out' },
         );
         ripple(d.uid, '#ffe08a', 96);
-        await wait(300);
+        await wait(560);
       }
-      return wait(90);
+      return wait(300);
     }
 
     case 'damage': {
       const uid = d.target;
-      if (!uid) return wait(60);
+      if (!uid) return wait(120);
       if ((d.amount ?? 0) > 0) {
         struck(uid);
         popNumber(uid, `-${d.amount}`, d.roleBonus ? 'crit' : 'dmg');
@@ -1124,59 +1189,59 @@ async function playEntry(entry, battleForLookup) {
         ripple(uid, '#9fc4e8', 96);
         popNumber(uid, 'absorbed', 'word');
       }
-      return wait(300);
+      return wait(980);
     }
 
     case 'heal': {
       const uid = d.target;
-      if (!uid || !(d.amount > 0)) return wait(60);
+      if (!uid || !(d.amount > 0)) return wait(120);
       const merc = E.findMerc(battleForLookup, uid);
       ripple(uid, '#86e0ab', 104);
       popNumber(uid, `+${d.amount}`, 'heal');
       setHp(uid, Math.min(merc?.maxHealth ?? Infinity, (state.shownHp[uid] ?? 0) + d.amount));
-      return wait(260);
+      return wait(840);
     }
 
     case 'dot': {
-      if (!d.uid || !(d.amount > 0)) return wait(40);
+      if (!d.uid || !(d.amount > 0)) return wait(90);
       popNumber(d.uid, `-${d.amount}`, 'dmg');
       setHp(d.uid, Math.max(0, (state.shownHp[d.uid] ?? 0) - d.amount));
-      return wait(220);
+      return wait(760);
     }
 
     case 'death':
       if (d.uid) { setHp(d.uid, 0); await perish(d.uid); }
-      return wait(140);
+      return wait(880);
 
     case 'immune':
     case 'divine-shield': {
       const uid = d.uid ?? d.target;
       if (uid) { ripple(uid, '#9fc4e8', 110); popNumber(uid, 'blocked', 'word'); }
-      return wait(250);
+      return wait(880);
     }
 
     case 'taunt':
       if (d.to) { ripple(d.to, '#c9a227', 108); popNumber(d.to, 'intercept', 'word'); }
-      return wait(280);
+      return wait(880);
 
     case 'denied':
       if (d.uid) popNumber(d.uid, 'denied', 'word');
-      return wait(340);
+      return wait(980);
 
     case 'fizzle':
       if (d.actor) popNumber(d.actor, 'no target', 'word');
-      return wait(340);
+      return wait(980);
 
     case 'status':
       if (d.target) ripple(d.target, '#86e0ab', 78);
-      return wait(130);
+      return wait(430);
 
     case 'revive':
       if (d.target) { ripple(d.target, '#ffe08a', 130); popNumber(d.target, 'returns', 'word'); }
-      return wait(400);
+      return wait(1100);
 
     default:
-      return wait(50);
+      return wait(190);
   }
 }
 
@@ -1274,6 +1339,7 @@ function unitNode(merc, side) {
     if (legalTargets().some((t) => t.uid === merc.uid)) card.classList.add('targetable');
   } else if (isMine && merc.alive && optionsFor(merc).length > 0 && !state.resolving) {
     card.classList.add('pickable');
+    if (!state.orders[merc.uid]) card.classList.add('awaiting');
   }
 
   const bubble = bubbleFor(merc, side);
@@ -1283,9 +1349,12 @@ function unitNode(merc, side) {
   const art = el('div', 'medal-art');
   artInto(art, merc.defId, merc.role, merc.name);
   medal.append(art);
+  const flash = el('div', 'medal-flash');
+  medal.append(flash);
   medal.append(el('div', 'medal-ring'));
 
   const hp = state.shownHp[merc.uid] ?? merc.health;
+  const arc = hpRing(medal, hp / Math.max(1, merc.maxHealth));
   medal.append(el('div', 'pip pip-atk tnum', String(merc.attack)));
   const hpPip = el('div', 'pip pip-hp tnum', String(hp));
   if (hp > 0 && hp <= merc.maxHealth * 0.3) hpPip.classList.add('low');
@@ -1309,8 +1378,43 @@ function unitNode(merc, side) {
   card.addEventListener('mouseenter', () => { if (!state.resolving) showTip(medal, (host) => unitTip(host, merc)); });
   card.addEventListener('mouseleave', hideTip);
 
-  ui.units.set(merc.uid, { card, medal, art, hp: hpPip, maxHealth: merc.maxHealth });
+  ui.units.set(merc.uid, { card, medal, art, flash, arc, hp: hpPip, maxHealth: merc.maxHealth });
   return card;
+}
+
+const ARC_LENGTH = 2 * Math.PI * 46;
+
+/** The health arc. Returns the arc path so resolution can animate it. */
+function hpRing(medal, fraction) {
+  const NS = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(NS, 'svg');
+  svg.setAttribute('class', 'hp-ring');
+  svg.setAttribute('viewBox', '0 0 100 100');
+  svg.setAttribute('aria-hidden', 'true');
+
+  const track = document.createElementNS(NS, 'circle');
+  track.setAttribute('class', 'hp-track');
+  track.setAttribute('cx', '50');
+  track.setAttribute('cy', '50');
+  track.setAttribute('r', '46');
+  svg.append(track);
+
+  const arc = document.createElementNS(NS, 'circle');
+  arc.setAttribute('class', 'hp-arc');
+  arc.setAttribute('cx', '50');
+  arc.setAttribute('cy', '50');
+  arc.setAttribute('r', '46');
+  svg.append(arc);
+
+  medal.append(svg);
+  paintArc(arc, fraction);
+  return arc;
+}
+
+function paintArc(arc, fraction) {
+  const f = Math.max(0, Math.min(1, fraction));
+  arc.style.strokeDashoffset = String(ARC_LENGTH * (1 - f));
+  arc.style.stroke = f <= 0.25 ? '#e0503f' : f <= 0.55 ? '#d9a03a' : '#5fa37c';
 }
 
 function rankNode(side) {
@@ -1572,6 +1676,19 @@ function renderBattle() {
   const given = actable.filter((m) => state.orders[m.uid]).length;
 
   const actions = el('div', 'mini-actions');
+
+  const pace = el('div', 'mode-toggle');
+  for (const key of Object.keys(SPEEDS)) {
+    const b = el('button', null, key);
+    b.type = 'button';
+    b.title = `Resolution pace: ${key}`;
+    b.disabled = state.resolving;
+    b.setAttribute('aria-pressed', String(state.speed === key));
+    b.addEventListener('click', () => { state.speed = key; saveSpeed(key); render(); });
+    pace.append(b);
+  }
+  actions.append(pace);
+
   const toggle = el('div', 'mode-toggle');
   for (const [key, cfg] of Object.entries(MODES)) {
     const b = el('button', null, cfg.name);
@@ -1845,6 +1962,7 @@ window.claude?.hot?.snapshot?.(() => ({
 }));
 
 function start(restored) {
+  state.speed = loadSpeed();
   if (restored?.party?.length === 6 && restored?.foe?.length === 6) {
     state.party = restored.party;
     state.foe = restored.foe;
