@@ -1,0 +1,17 @@
+{
+  "name": "mercs-engine",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "description": "Deterministic simultaneous-resolution tactics engine.",
+  "engines": { "node": ">=22.18" },
+  "scripts": {
+    "test": "node --test test/*.test.ts",
+    "typecheck": "tsc --noEmit",
+    "bench": "node bench/resolve.bench.ts"
+  },
+  "devDependencies": {
+    "typescript": "^6.0.2",
+    "@types/node": "^22.9.0"
+  }
+}
