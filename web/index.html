@@ -270,10 +270,37 @@
     display: flex; align-items: center; gap: 5px;
   }
   .info-prompt.blocked { color: #c98b8b; }
+  .info-prompt.set { color: #8fd6b0; }
   .info-fore { font-family: var(--mono); font-size: 11px; color: #a9c4bb; }
   .info-fore b { color: #ff9b88; }
   .info-fore i { color: #ffd166; font-style: normal; }
   .tray.waiting { background: linear-gradient(180deg, #232b35 0%, #1a2028 100%); border-color: var(--line); }
+  .tray.firing { background: linear-gradient(180deg, #232b35 0%, #1a2028 100%); }
+
+  /* What an ability does, as it does it - otherwise a round is a name and a
+     number, which tells you nothing about what the enemy just did to you. */
+  .cast-card {
+    display: grid; grid-template-columns: auto minmax(0, 1fr);
+    gap: 4px 13px; align-items: baseline; width: 100%;
+    padding: 2px 4px; border-left: 3px solid var(--edge); padding-left: 12px;
+  }
+  .cast-card.mine { --edge: var(--gold); }
+  .cast-card.theirs { --edge: var(--verdigris); }
+  .cast-ord {
+    font-family: var(--mono); font-size: 11px; font-weight: 600; color: var(--edge);
+    letter-spacing: 0.08em; text-transform: uppercase; white-space: nowrap;
+  }
+  .cast-line { display: flex; align-items: baseline; gap: 9px; flex-wrap: wrap; min-width: 0; }
+  .cast-name { font-family: var(--display); font-size: 17px; letter-spacing: 0.02em; }
+  .cast-speed {
+    font-family: var(--mono); font-size: 10px; color: var(--ink-faint);
+    text-transform: uppercase; letter-spacing: 0.08em;
+  }
+  .cast-who {
+    grid-column: 2; font-family: var(--mono); font-size: 11px; color: var(--edge);
+    letter-spacing: 0.02em;
+  }
+  .cast-text { grid-column: 2; font-size: 13px; color: #d5e2dc; line-height: 1.4; }
   .tray-hint {
     font-family: var(--mono); font-size: 11px; color: var(--ink-faint);
     text-align: center; line-height: 1.7; max-width: 46ch;
@@ -913,6 +940,18 @@ function onUnitClick(merc, side) {
 
 function onOrbClick(merc, ability) {
   hideTip();
+
+  // An ability that takes no target commits on the click. Any pick can be
+  // changed until Ready, so a confirmation step buys nothing - and the tray
+  // then shows what was just committed, which is the part worth reading.
+  if (!needsTarget(ability)) {
+    state.orders[merc.uid] = { abilityId: ability.id };
+    state.armed = null;
+    state.preview = { actorUid: merc.uid, abilityId: ability.id };
+    render();
+    return;
+  }
+
   const already = state.armed?.actorUid === merc.uid && state.armed?.abilityId === ability.id;
   state.armed = already ? null : { actorUid: merc.uid, abilityId: ability.id };
   state.preview = null;
@@ -1245,22 +1284,38 @@ async function playEntry(entry, battleForLookup) {
   }
 }
 
-/** Name the acting god in the tray, in place, as its turn comes up. */
+/**
+ * Put the firing ability's own card in the tray, in place, as it goes off.
+ * Colour-edged by side so it is obvious at a glance whose turn just landed.
+ */
 function narrate(uid, battleForLookup) {
-  if (!ui.trayHint || !uid) return;
+  const tray = ui.trayHint;
+  if (!tray || !uid) return;
   const step = state.queue[state.nowIndex];
   const actor = E.findMerc(battleForLookup, uid);
   const ability = actor && step ? E.abilityOf(actor, step.abilityId) : null;
   if (!actor || !ability) return;
 
-  const target = step?.targetUid ? E.findMerc(battleForLookup, step.targetUid) : null;
-  const aimed = target && target.uid !== uid ? ` → ${target.name}` : '';
-  ui.trayHint.textContent =
-    `${ORDINALS[state.nowIndex] ?? ''} · ${actor.name} — ${ability.name}` +
-    ` (speed ${ability.speed})${aimed}`;
-  ui.trayHint.animate(
-    [{ opacity: 0.25, transform: 'translateY(3px)' }, { opacity: 1, transform: 'translateY(0)' }],
-    { duration: 220, easing: 'ease-out' },
+  const target = step.targetUid ? E.findMerc(battleForLookup, step.targetUid) : null;
+  const mine = step.side === 'a';
+
+  const card = el('div', `cast-card ${mine ? 'mine' : 'theirs'}`);
+  card.append(el('div', 'cast-ord', `${ORDINALS[state.nowIndex] ?? ''} · ${mine ? 'yours' : 'theirs'}`));
+
+  const line = el('div', 'cast-line');
+  line.append(el('span', 'cast-name', ability.name));
+  line.append(el('span', 'cast-speed', `speed ${ability.speed}`));
+  card.append(line);
+
+  card.append(el('div', 'cast-who',
+    target && target.uid !== uid ? `${actor.name} → ${target.name}` : actor.name));
+  card.append(el('div', 'cast-text', ability.text));
+
+  tray.classList.add('firing');
+  tray.replaceChildren(card);
+  card.animate(
+    [{ opacity: 0, transform: 'translateY(6px)' }, { opacity: 1, transform: 'translateY(0)' }],
+    { duration: 260, easing: 'ease-out' },
   );
 }
 
@@ -1453,9 +1508,9 @@ function infoStrip(merc, ability, armed) {
 
   if (armed) {
     info.append(el('div', 'info-prompt', '→ ' + (
-      ability.targeting === 'enemy' ? 'Click an enemy'
-        : ability.targeting === 'ally' ? 'Click an ally'
-        : `Click ${merc.name} to confirm`)));
+      ability.targeting === 'ally' ? 'Click an ally' : 'Click an enemy')));
+  } else if (state.orders[merc.uid]?.abilityId === ability.id) {
+    info.append(el('div', 'info-prompt set', 'Order given'));
   }
 
   // Against a chosen target the forecast is exact; otherwise name the matchup
@@ -1493,7 +1548,7 @@ function trayNode() {
   if (state.resolving) {
     tray.classList.add('waiting');
     const hint = el('div', 'tray-hint', 'Resolving in speed order…');
-    ui.trayHint = hint;
+    ui.trayHint = tray;
     tray.append(hint);
     return tray;
   }

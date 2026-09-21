@@ -73,9 +73,9 @@ the full log lives behind the history strip.
 - A small badge on each medallion shows the committed ability; on a Bounty the
   opposition's shows too.
 
-Committing an order is one gesture throughout: arm an ability, then click a
-glowing god. Abilities that take no target resolve through a click on their own
-caster rather than a separate confirm button.
+Committing an order takes as few clicks as the ability needs. One that takes no
+target commits on the click; one that does arms first, then takes a click on a
+glowing god. Any pick can be replaced until Ready, so nothing needs confirming.
 
 ### Reading a round
 
@@ -84,13 +84,17 @@ amber to red. A bare number cannot show that 22 damage off 28 health is nearly
 lethal while 22 off 68 is a scratch, and asking someone to compare two-digit
 numbers between frames is not a readable game.
 
+As each ability fires, the tray shows **that ability's own card** - ordinal,
+whose turn it is, name, speed, caster, target and its rules text - edged gold
+for yours and teal for theirs. A name and a number do not tell you what the
+enemy just did to you; the effect text does.
+
 Resolution plays out rather than jumping to the result: fighters and protectors
 lunge at their target, casters throw a bolt, hits land with a shake, a red
 flash across the portrait, an expanding ripple, a damage number held long
 enough to read (gold when a role bonus doubled it) and a health number that
 counts down to its new value rather than snapping. Deaths desaturate and
 collapse; heals pulse green; denials, fizzles and taunt intercepts pop a word.
-The tray names each action as it fires.
 
 Every beat is unhurried by default, because a round is the part of this game
 worth watching. **Calm / Steady / Brisk** scales all of them by 1.65 / 1 / 0.5
