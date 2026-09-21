@@ -47,10 +47,34 @@ python3 -m http.server -d web 8000
 
 Published demo: <https://claude.ai/artifact/9zNA9ffjyNHQ856GTWeZYU>
 
-The centrepiece is the **resolution track**: a 1-9 speed scale where your
-committed orders pin above the line and the opposition's stay unknown below it
-until the commit, then resolve in place so the speed order is legible as it
-happens.
+The board is laid out the way Mercenaries laid its out, because that layout
+answers the two questions a simultaneous-resolution game has to answer at a
+glance:
+
+- **Ordinal badges** (`1st`, `2nd`, ...) sit on each god, so *who acts when*
+  is read straight off the board. They come from `buildQueue` against the same
+  seeded round stream the resolver will use, so the order shown is exact,
+  tie-breaks included.
+- **A queued-ability slot** beside each god, facing the centre line, so *what
+  each unit is doing* and at what speed is visible for all six at once.
+- Dashed arrows for who is aimed at whom, a card-detail panel for the ability
+  under the cursor, and floating damage numbers during resolution - the job
+  Hearthstone's animations do.
+
+Two modes, following the source game's own split:
+
+| Mode | Behaviour |
+|---|---|
+| **Bounty** (default) | The opponent's picks are revealed before you commit, so every unit carries an exact ordinal. This is what Mercenaries' PvE did. |
+| **Fighting Pit** | Neither side sees the other's orders. Your units show their committed speed; true order resolves only after both commit. |
+
+### Art
+
+`web/art/` holds the images and `web/art/README.md` documents the contract.
+Portraits are square (512x512), ability icons are square and small (96x96).
+Anything with no entry in the `PORTRAITS` / `ABILITY_ICONS` manifests at the
+top of the page script renders a monogram placeholder in its role colour, so
+the board stays readable while art is in progress.
 
 ## Architecture
 
