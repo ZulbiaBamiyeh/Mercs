@@ -3,14 +3,17 @@
 /* Tailwind v4 scans source text, so every class in the JSX must appear as a
    literal string there - never assembled from a template. */
 @source "./Board.jsx";
+@source "./portraits.jsx";
 @source "./heroes.jsx";
 @source "./icons.jsx";
 @source "./main.jsx";
 
 @theme {
-  --font-display: "Marcellus", "Palatino Linotype", Palatino, Georgia, serif;
-  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
-  --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  /* High fantasy, not a terminal: inscriptional caps for names and numbers,
+     a book face for rules text. No monospace anywhere. */
+  --font-display: "Cinzel", "Palatino Linotype", Palatino, Georgia, serif;
+  --font-body: "EB Garamond", Georgia, "Times New Roman", serif;
+  --font-sans: "EB Garamond", Georgia, serif;
 
   /* Role identity. Mercenaries' own mapping: Protector red, Fighter green,
      Caster blue. */
@@ -22,16 +25,16 @@
 html, body, #root { height: 100%; }
 
 body {
-  background: #0a0e13;
+  background: #0d0a07;
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
 }
 
 /* The board is a fixed composition; let it scroll rather than squeeze. */
 ::-webkit-scrollbar { width: 10px; height: 10px; }
-::-webkit-scrollbar-track { background: #0a0e13; }
-::-webkit-scrollbar-thumb { background: #27313d; border-radius: 5px; }
-::-webkit-scrollbar-thumb:hover { background: #33404f; }
+::-webkit-scrollbar-track { background: #0d0a07; }
+::-webkit-scrollbar-thumb { background: #3a3327; border-radius: 5px; }
+::-webkit-scrollbar-thumb:hover { background: #4d4433; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

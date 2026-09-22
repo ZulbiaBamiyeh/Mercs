@@ -218,16 +218,41 @@ Fighter green, Caster blue). It is a feel prototype on mock state, not engine
 backed; six heroes, three a side.
 
 ```bash
-npm run build:icons   # lucide-static -> web/react/icons.jsx
-npm run build:board   # esbuild (JSX) + tailwind v4 -> web/react/dist/
+npm run build:icons      # lucide-static -> web/react/icons.jsx
+npm run build:portraits  # painted busts -> web/react/portraits.jsx
+npm run build:board      # esbuild (JSX) + tailwind v4 -> web/react/dist/
 ```
 
 | File | Contents |
 |---|---|
 | `web/react/Board.jsx` | The component. Lift this into a real project as-is. |
 | `web/react/heroes.jsx` | Mock state. Shapes match `src/` so wiring the engine in is mechanical. |
-| `web/react/icons.jsx` | Generated Lucide components. |
+| `web/react/icons.jsx` | Generated Lucide components (skill icons only - never avatars). |
+| `web/react/portraits.jsx` | Generated painted busts, one per hero, as data URIs. |
 | `web/react/input.css` | Tailwind v4 source, `@theme` tokens and `@source` globs. |
+
+### Card anatomy
+
+1. A **strict 1:1 portrait plate** - `border-4 border-slate-700`, `shadow-2xl
+   shadow-black/70`. Role is a coloured gradient wash up from the bottom plus a
+   solid 3px rule, never a glowing outer border.
+2. **Stat gems riveted half-in, half-out** of the plate's bottom corners, which
+   is why they live outside the plate's `overflow-hidden` box rather than
+   inside it.
+3. A **stone skill tray bolted below** the plate with visible iron straps,
+   wider than the plate so skill names wrap instead of truncating.
+
+### Portraits
+
+Each plate stacks two real `<img class="object-cover">`: a generated painted
+bust underneath, and `hero.portrait` (a remote URL) over it. The reason is that
+**the published page's CSP blocks external images silently** - a remote URL on
+its own renders an empty frame. The overlay also carries no `alt` and removes
+itself on error, because a blocked image otherwise paints its alt text straight
+over the card.
+
+So the artifact shows the generated busts; a local dev server shows the remote
+photos on top. Set `hero.portrait` to your own art and it wins in both.
 
 Everything that can be compiled ahead of time is, because the published page
 has a CDN allowlist and anything from the wrong host fails *silently*: JSX
