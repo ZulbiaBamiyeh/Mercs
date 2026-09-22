@@ -325,6 +325,26 @@ Two consequences worth knowing before editing it:
 board resolves with**, so the numbers describe the demo rather than a
 re-implementation of it. That is why the maths lives in its own pure module.
 
+`npm run balance -- --trace` plays a single match and prints every pick, the
+resolved queue, and the board after each round. Reach for it first when a
+summary looks wrong: percentages tell you *that* a side loses, and this tells
+you why, which is the only way to tell a roster problem from a policy problem.
+It has now caught three policy problems masquerading as roster problems:
+
+- The greedy policy never priced **Retaliation**, so it kept swinging into a
+  taunting Protector carrying Retaliation 8. A third of the damage the player
+  team took was self-inflicted.
+- It never valued **Taunt** either. Atlas has a cooldown-0 Attack, so a
+  damage-only policy took it every round and never once put his wall up; Geb's
+  damage abilities both *start* on cooldown, so the same policy was forced to
+  cast his. One Protector walled, the other did not, and the harness reported a
+  100% enemy win rate that was measuring its own blind spot.
+- Both policies were **deterministic**, and a deterministic policy against
+  itself in a fixed 3v3 has exactly one outcome — so 4000 matches were 4000
+  copies of one match, and the sweep could only ever return 0% or 100%. They
+  now break near-ties at random, which is both more realistic and the thing
+  that makes a win rate mean anything.
+
 `npm run balance -- --tune` sweeps parameter combinations and ranks them by how
 close the matchup is under every policy at once. Use it instead of arguing: the
 units are tuned to what it found, not to taste.

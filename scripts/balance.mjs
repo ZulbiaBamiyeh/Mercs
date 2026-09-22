@@ -52,6 +52,9 @@ const seed = () => {
 
 const pick = (xs) => xs[Math.floor(Math.random() * xs.length)];
 
+/** How close two plays have to score before the policy treats them as equal. */
+const GREEDY_EPSILON = 3;
+
 /** Uniformly random legal order. */
 function randomOrder(heroes, hero) {
   const ready = hero.skills.filter((s) => (hero.cooldowns[s.id] ?? 0) <= 0);
@@ -62,11 +65,42 @@ function randomOrder(heroes, hero) {
   return { skillId: skill.id, targetId: needsTarget(skill) && pool.length ? pick(pool).id : null };
 }
 
-/** Greedy: the biggest immediate swing, counting the damage taken back. */
+/**
+ * The best single hit any living enemy could land on `victim` next round.
+ * Used to price protection, which is otherwise invisible to a policy that
+ * only counts damage it deals this turn.
+ */
+function incomingThreat(heroes, victim) {
+  let worst = 0;
+  for (const foe of heroes) {
+    if (foe.side === victim.side || foe.health <= 0) continue;
+    for (const skill of foe.skills) {
+      const { amount } = strikeDamage(foe, skill, victim);
+      if (amount > worst) worst = amount;
+    }
+  }
+  return worst;
+}
+
+/**
+ * Greedy: the biggest immediate swing, counting the damage taken back - plus
+ * what protecting the party is worth.
+ *
+ * That last part was missing, and `--trace` showed what it cost. Atlas has a
+ * cooldown-0 Attack, so a damage-only policy took it every single round and
+ * never once cast his Taunt; Geb's damage abilities both start on cooldown,
+ * so the same policy was *forced* to cast his. The enemy Protector walled and
+ * the player Protector did not, and the harness reported a 100% enemy win
+ * rate that was measuring the policy's blind spot rather than the roster.
+ *
+ * A human plays Taunt on the round their Caster is about to die, so the
+ * policy now prices it that way: what the wall is worth is the damage it
+ * redirects off an ally who would otherwise be killed by it.
+ */
 function greedyOrder(heroes, hero) {
   const ready = hero.skills.filter((s) => (hero.cooldowns[s.id] ?? 0) <= 0);
   if (!ready.length) return null;
-  let best = null;
+  const options = [];
 
   for (const skill of ready) {
     const ids = rangeOf(heroes, hero, skill);
@@ -85,20 +119,62 @@ function greedyOrder(heroes, hero) {
       }
       // An Attack ability pays for the swing.
       if (skill.isAttack && hit[0]) score -= Math.min(hit[0].attack, hero.health) * 0.9;
-      score -= skill.speed * 0.4;
-      if (!best || score > best.score) {
-        best = { score, skillId: skill.id, targetId: target ? target.id : null };
+      // ...and so does hitting anything with Retaliation up, by any means.
+      // Leaving this out was not a small inaccuracy: the harness reported the
+      // enemy side winning 100% of skilled matches, and the per-hero table
+      // showed 42 of the 142 damage the player team took was self-inflicted,
+      // because the policy kept swinging into a taunting Protector carrying
+      // Retaliation 8. A policy blind to the strongest defensive keyword in
+      // the game is not a skilled policy, and it was measuring the keyword
+      // rather than the roster.
+      for (const t of hit) {
+        if (!t || t.side === hero.side) continue;
+        if (t.retaliationRounds > 0 && t.retaliation > 0) {
+          score -= Math.min(t.retaliation, hero.health) * 0.9;
+        }
       }
+      // Protection. Taunt is worth the kill it prevents, not a flat bonus:
+      // pulling a lethal hit off a Caster is the whole reason Protectors are
+      // in the game, and pulling one off a healthy body is worth little.
+      if (skill.taunt && (skill.target === TARGET.self || !needsTarget(skill))) {
+        for (const ally of heroes) {
+          if (ally.side !== hero.side || ally.id === hero.id || ally.health <= 0) continue;
+          const threat = incomingThreat(heroes, ally);
+          if (threat >= ally.health) score += Math.min(threat, ally.health) * 0.9;
+        }
+        // And the wall still has to survive the hits it just invited.
+        score -= Math.max(0, incomingThreat(heroes, hero) - hero.shield - (skill.shield ?? 0)) * 0.3;
+      }
+      if (skill.divineShield && hit[0]) score += incomingThreat(heroes, hit[0]) * 0.7;
+      // Buffs last the battle, so they are worth more than their face value.
+      if (skill.attackBuff) score += skill.attackBuff * 1.6 * hit.filter(Boolean).length;
+      if (skill.healthBuff) score += skill.healthBuff * 1.1 * hit.filter(Boolean).length;
+      score -= skill.speed * 0.4;
+      options.push({ score, skillId: skill.id, targetId: target ? target.id : null });
     }
   }
-  return best ? { skillId: best.skillId, targetId: best.targetId } : null;
+  if (!options.length) return null;
+
+  // Break near-ties at random rather than by declaration order.
+  //
+  // Without this the policy is deterministic, and a deterministic policy
+  // against itself in a fixed 3v3 has exactly *one* outcome - so 4000 matches
+  // were 4000 copies of the same match and the sweep could only ever report
+  // 0% or 100%. Treating choices within a few points of the best as
+  // equivalent turns the matchup into a distribution, which is the thing a
+  // win rate is supposed to describe. It also models a real player, who does
+  // not rank two similar plays to three decimal places.
+  const top = Math.max(...options.map((o) => o.score));
+  const near = options.filter((o) => o.score >= top - GREEDY_EPSILON);
+  const chosen = pick(near);
+  return { skillId: chosen.skillId, targetId: chosen.targetId };
 }
 
 /** Always takes the biggest hit available, whatever it costs. */
 function aggressiveOrder(heroes, hero) {
   const ready = hero.skills.filter((s) => (hero.cooldowns[s.id] ?? 0) <= 0);
   if (!ready.length) return null;
-  let best = null;
+  const options = [];
 
   for (const skill of ready) {
     const ids = rangeOf(heroes, hero, skill);
@@ -112,12 +188,15 @@ function aggressiveOrder(heroes, hero) {
         const { amount } = strikeDamage(hero, skill, t);
         score += Math.min(amount, t.health) + (amount >= t.health ? 25 : 0);
       }
-      if (!best || score > best.score) {
-        best = { score, skillId: skill.id, targetId: target ? target.id : null };
-      }
+      options.push({ score, skillId: skill.id, targetId: target ? target.id : null });
     }
   }
-  return best ? { skillId: best.skillId, targetId: best.targetId } : null;
+  if (!options.length) return null;
+  // Same near-tie randomisation as greedy, for the same reason: otherwise
+  // this policy against itself is one match played 4000 times.
+  const top = Math.max(...options.map((o) => o.score));
+  const chosen = pick(options.filter((o) => o.score >= top - GREEDY_EPSILON));
+  return { skillId: chosen.skillId, targetId: chosen.targetId };
 }
 
 function playMatch(policyA, policyB, maxRounds = 30) {
@@ -190,13 +269,25 @@ function run(label, policyA, policyB, n = 4000) {
  * Hand-tuning this overshot twice - 0% then 100% - because with three units a
  * side a single cooldown flips the whole matchup. Searching beats guessing.
  */
+/**
+ * The knobs, re-picked after `--trace` showed where the matchup actually
+ * turns. Two findings drove them. Under skilled play the game is decided by
+ * whose Protector gets its wall up, so both walls are here. Under a pure
+ * damage race - the aggressive policy, which never defends - it is decided by
+ * **speed**: the enemy's opening attacks all land before the player's, so
+ * Bastet kills Zeus outright before he has acted twice. Hence the speeds of
+ * the three cooldown-0 attacks.
+ *
+ * The two policies pull in opposite directions, which is the useful part: a
+ * knob that fixes one and wrecks the other is not a fix.
+ */
 const KNOBS = [
-  ['geb', 'stonewatch', 'retaliation', [3, 4, 5, 6]],
-  ['geb', 'stonewatch', 'cooldown', [1, 2]],
-  ['geb', 'quake', 'cooldown', [1, 2]],
-  ['geb', 'quake', 'power', [6, 7]],
-  ['isis', 'searing', 'power', [9, 10, 11]],
-  ['atlas', 'backhand', 'bonus', [0, 3]],
+  ['ares', 'spear', 'speed', [3, 4]],
+  ['atlas', 'backhand', 'speed', [4, 5]],
+  ['bastet', 'claws', 'speed', [2, 3]],
+  ['geb', 'stonewatch', 'retaliation', [6, 8]],
+  ['atlas', 'shoulder', 'shield', [10, 14]],
+  ['zeus', 'bolt', 'power', [11, 12]],
 ];
 
 function winRate(policyA, policyB, n) {
@@ -208,6 +299,44 @@ function winRate(policyA, policyB, n) {
     if (r.cappedOut) capped += 1;
   }
   return { win: won / n, heat: heat / n, capped: capped / n };
+}
+
+/**
+ * `--trace` plays one match and prints every pick with its score, the queue,
+ * and the board after each round. Summary percentages tell you *that* a side
+ * loses; this tells you why, which is the only way to tell a roster problem
+ * from a policy problem.
+ */
+if (process.argv.includes('--trace')) {
+  let heroes = seed();
+  for (let round = 1; round <= 12 && !outcomeOf(heroes); round++) {
+    const orders = {};
+    const notes = [];
+    for (const h of heroes) {
+      if (h.health <= 0) continue;
+      const o = greedyOrder(heroes, h);
+      if (o) {
+        orders[h.id] = o;
+        notes.push(`${h.id} -> ${o.skillId}${o.targetId ? '@' + o.targetId : ''}`);
+      } else notes.push(`${h.id} -> nothing ready`);
+    }
+    console.log(`\n--- round ${round} ---`);
+    console.log('  picks  ', notes.join('   '));
+    for (const step of buildQueue(heroes, orders, (Math.random() * 0xffffffff) >>> 0)) {
+      const before = new Map(heroes.map((h) => [h.id, h.health]));
+      const { heroes: next } = applyStep(heroes, step);
+      heroes = next;
+      const delta = heroes.filter((h) => before.get(h.id) !== h.health)
+        .map((h) => `${h.id} ${before.get(h.id)}->${h.health}`).join(', ');
+      console.log(`  s${step.skill.speed} ${step.heroId.padEnd(7)} ${step.skill.name.padEnd(18)} ${delta || '-'}`);
+    }
+    ({ heroes } = endRound(heroes, orders));
+    console.log('  board  ', heroes.map((h) => `${h.id} ${h.health}/${h.maxHealth}`
+      + `${h.shield ? '+' + h.shield : ''}${h.tauntRounds ? ' T' : ''}`
+      + `${h.retaliationRounds ? ' R' + h.retaliation : ''}${h.bleedRounds ? ' B' + h.bleed : ''}`).join('  |  '));
+  }
+  console.log('\noutcome:', outcomeOf(heroes) ?? 'undecided');
+  process.exit(0);
 }
 
 if (process.argv.includes('--tune')) {

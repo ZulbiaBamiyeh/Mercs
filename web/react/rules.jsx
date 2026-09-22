@@ -12,6 +12,9 @@
  * harness found it made both Protectors unkillable and every well-played match
  * a draw.
  *
+ * Also models the buffs the real cards are full of - `attackBuff` and
+ * `healthBuff` both persist for the battle.
+ *
  * Still simplified against `src/`: no bench, no revive, no stealth.
  */
 
@@ -173,6 +176,18 @@ export function applyStep(heroes, step) {
       target.retaliation = Math.max(target.retaliation, step.skill.retaliation);
       target.retaliationRounds = Math.max(target.retaliationRounds, step.skill.retaliationRounds ?? 2);
       say(target.id, `retaliation ${step.skill.retaliation}`, 'word');
+    }
+    // Buffs. Real Mercenaries leans on these heavily (+9/+9, +6 Attack,
+    // +5/+10) and they last the battle, not the round. A Health buff raises
+    // the ceiling as well as the pool, so it is not undone by the next heal.
+    if (step.skill.attackBuff) {
+      target.attack += step.skill.attackBuff;
+      say(target.id, `+${step.skill.attackBuff} atk`, 'buff');
+    }
+    if (step.skill.healthBuff) {
+      target.maxHealth += step.skill.healthBuff;
+      target.health += step.skill.healthBuff;
+      say(target.id, `+${step.skill.healthBuff} hp`, 'heal');
     }
     if (step.skill.cleanse) {
       target.bleed = 0;

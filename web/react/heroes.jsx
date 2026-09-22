@@ -99,62 +99,98 @@ export const RANGE_LABEL = {
 };
 export const ROLE_BONUS = 2;
 
+/**
+ * Stat gems are **role-coloured**, which the reference is explicit about: the
+ * attack icon and the health drop both take their colour from the role
+ * (Caster blue, Fighter green, Protector red) rather than a global
+ * attack-is-gold / health-is-green scheme. The attack icon also changes shape
+ * per role - an orb for a Caster, a bladed orb for a Fighter, a shield for a
+ * Protector - so a glance at the corner tells you the matchup.
+ */
+export const GEMS = {
+  protector: {
+    attack: 'bg-[radial-gradient(circle_at_34%_26%,#ff9a86,#c9382a_50%,#5f150f)] border-red-950/90',
+    health: 'bg-[radial-gradient(circle_at_34%_26%,#ff9a86,#b82f22_50%,#54120d)] border-red-950/90',
+  },
+  fighter: {
+    attack: 'bg-[radial-gradient(circle_at_34%_26%,#a6f0b4,#2f8f4c_50%,#124a28)] border-emerald-950/90',
+    health: 'bg-[radial-gradient(circle_at_34%_26%,#a6f0b4,#2a8446_50%,#0f4426)] border-emerald-950/90',
+  },
+  caster: {
+    attack: 'bg-[radial-gradient(circle_at_34%_26%,#b3b6ff,#3d3fc4_50%,#191a63)] border-indigo-950/90',
+    health: 'bg-[radial-gradient(circle_at_34%_26%,#b3b6ff,#3436b4_50%,#15165a)] border-indigo-950/90',
+  },
+};
+
 const hero = (h) => ({ ...h, portrait: ART[h.id] ?? null });
 
 /**
  * Six units built to docs/mercenaries-reference.md.
  *
- * The structure is faithful - three abilities unlocking at 1 / 5 / 15, a
- * speed and cooldown on each, the Attack keyword carrying mutual damage, and
- * keywords that expire. The numbers are ours: every mercenary database is
- * blocked from this environment, so nothing could be copied. They were tuned
- * with `npm run balance`, not guessed.
+ * The numbers are now calibrated against real level-~22 mercenaries, which
+ * corrects the one thing the demo had structurally wrong. Real Mercenaries
+ * keeps the **Attack stat small and role-shaped** (Protectors and Fighters
+ * 7-8, Casters 3-4) while **ability damage runs 2-4x higher** (8-20). Ours
+ * had Attack and ability power at roughly the same size, which flattened the
+ * whole role triangle: a Caster with Attack 10 punished anyone who Attacked
+ * it, so nobody ever did.
+ *
+ * With Attack 4 on a Caster, Attacking one is nearly free - which is exactly
+ * why Fighters hunt them, why Protectors carry Taunt to intercept, and why
+ * swinging into a Protector's Attack 8 is a bad trade. Cooldowns cap at 2,
+ * the highest the reference shows.
+ *
+ * Abilities carry a **school** tag, as the real cards do, drawn from the
+ * god's domain. Plain weapon work has none, matching Fighters whose Attack
+ * abilities show no school footer.
+ *
+ * Values were then re-tuned with `npm run balance`, not guessed.
  */
 
 export const PLAYER_TEAM = [
   hero({
     id: 'atlas', name: 'Atlas', title: 'Bearer of the Sky', role: 'protector',
-    attack: 9, maxHealth: 54,
+    attack: 8, maxHealth: 58,
     skills: [
-      { id: 'shoulder', name: 'Shoulder Sky', icon: I.Umbrella, unlock: 1, speed: 1, cooldown: 1,
-        target: TARGET.self, shield: 11, shieldRounds: 2, taunt: 2,
-        text: 'Gain an 11-point shield for 2 rounds and draw single attacks for 2 rounds.' },
+      { id: 'shoulder', name: 'Shoulder the Sky', icon: I.Umbrella, unlock: 1, speed: 1, cooldown: 1,
+        school: 'Sky', target: TARGET.self, shield: 14, shieldRounds: 2, taunt: 2,
+        text: 'Gain a 14-point shield for 2 rounds and Taunt for 2 rounds.' },
       { id: 'backhand', name: 'Backhand', icon: I.Hammer, unlock: 5, speed: 5, cooldown: 0,
-        target: TARGET.enemy, isAttack: true, bonus: 3,
-        text: 'Attack an enemy for your Attack plus 3. You take their Attack back.' },
-      { id: 'heavens', name: 'Bear Heavens', icon: I.Shield, unlock: 15, speed: 2, cooldown: 3,
-        target: TARGET.allAllies, shield: 9, shieldRounds: 2,
-        text: 'Give your whole team a 9-point shield for 2 rounds.' },
+        target: TARGET.enemy, isAttack: true, bonus: 4,
+        text: 'Gain +4 Attack this turn and Attack an enemy.' },
+      { id: 'heavens', name: 'Bear the Heavens', icon: I.Shield, unlock: 15, speed: 2, cooldown: 2,
+        school: 'Sky', target: TARGET.allAllies, heal: 12, attackBuff: 3,
+        text: 'Restore 12 Health to your party and give it +3 Attack.' },
     ],
   }),
   hero({
     id: 'ares', name: 'Ares', title: 'War Incarnate', role: 'fighter',
-    attack: 12, maxHealth: 36,
+    attack: 11, maxHealth: 44,
     skills: [
-      { id: 'spear', name: 'Spear Ruin', icon: I.Swords, unlock: 1, speed: 4, cooldown: 0,
+      { id: 'spear', name: 'Spear of Ruin', icon: I.Swords, unlock: 1, speed: 3, cooldown: 0,
         target: TARGET.enemy, isAttack: true,
-        text: 'Attack an enemy for your Attack. You take their Attack back.' },
+        text: 'Attack an enemy.' },
       { id: 'charge', name: 'Reckless Charge', icon: I.Wind, unlock: 5, speed: 6, cooldown: 2,
-        target: TARGET.allEnemies, power: 6,
-        text: 'Deal 6 damage to every enemy. Takes nothing back.' },
-      { id: 'sack', name: 'Sack City', icon: I.Flame, unlock: 15, speed: 7, cooldown: 3,
-        target: TARGET.enemy, isAttack: true, bonus: 7, bleed: 3, bleedRounds: 2,
-        text: 'Attack an enemy for your Attack plus 7 and leave it bleeding for 3. You take their Attack back.' },
+        school: 'War', target: TARGET.allEnemies, power: 8,
+        text: 'Deal 8 damage to all enemies.' },
+      { id: 'sack', name: 'Sack the City', icon: I.Flame, unlock: 15, speed: 7, cooldown: 2,
+        target: TARGET.enemy, isAttack: true, bonus: 8, bleed: 4, bleedRounds: 2,
+        text: 'Gain +8 Attack this turn and Attack an enemy. Leave it Bleeding 4.' },
     ],
   }),
   hero({
     id: 'zeus', name: 'Zeus', title: 'Thrower of Bolts', role: 'caster',
-    attack: 10, maxHealth: 28,
+    attack: 4, maxHealth: 40,
     skills: [
       { id: 'bolt', name: 'Thunderbolt', icon: I.Zap, unlock: 1, speed: 3, cooldown: 0,
-        target: TARGET.enemy, power: 10,
-        text: 'Deal 10 damage to one enemy.' },
+        school: 'Storm', target: TARGET.enemy, power: 12,
+        text: 'Deal 12 damage.' },
       { id: 'judgement', name: 'Judgement', icon: I.Scale, unlock: 5, speed: 2, cooldown: 2,
-        target: TARGET.enemy, power: 5, bleed: 4, bleedRounds: 2,
-        text: 'Deal 5 damage and leave the target bleeding for 4 a round.' },
-      { id: 'wrath', name: 'Wrath', icon: I.CloudLightning, unlock: 15, speed: 8, cooldown: 3,
-        target: TARGET.allEnemies, power: 7,
-        text: 'Call down 7 damage on every enemy.' },
+        school: 'Storm', target: TARGET.enemy, power: 6, bleed: 5, bleedRounds: 2,
+        text: 'Deal 6 damage and leave the target Bleeding 5.' },
+      { id: 'wrath', name: 'Wrath of Olympus', icon: I.CloudLightning, unlock: 15, speed: 8, cooldown: 2,
+        school: 'Storm', target: TARGET.allEnemies, power: 9,
+        text: 'Deal 9 damage to all enemies.' },
     ],
   }),
 ];
@@ -162,47 +198,47 @@ export const PLAYER_TEAM = [
 export const ENEMY_TEAM = [
   hero({
     id: 'geb', name: 'Geb', title: 'The Earth Below', role: 'protector',
-    attack: 7, maxHealth: 50,
+    attack: 8, maxHealth: 58,
     skills: [
       { id: 'stonewatch', name: 'Stone Watch', icon: I.Shield, unlock: 1, speed: 1, cooldown: 1,
-        target: TARGET.self, taunt: 2, retaliation: 6, retaliationRounds: 2,
-        text: 'Draw single attacks for 2 rounds and gain Retaliation 6.' },
+        school: 'Earth', target: TARGET.self, taunt: 2, retaliation: 8, retaliationRounds: 2,
+        text: 'Gain Taunt for 2 rounds and Retaliation 8.' },
       { id: 'quake', name: 'Quake', icon: I.Waves, unlock: 5, speed: 4, cooldown: 2,
-        target: TARGET.allEnemies, power: 7, drain: true,
-        text: 'Deal 7 damage to every enemy and recover half the damage dealt.' },
-      { id: 'reclaims', name: 'Earth Reclaims', icon: I.Sprout, unlock: 15, speed: 2, cooldown: 3,
-        target: TARGET.allAllies, heal: 9, shield: 8, shieldRounds: 2,
-        text: 'Restore 9 health to your team and give it an 8-point shield for 2 rounds.' },
+        school: 'Earth', target: TARGET.allEnemies, power: 8, drain: true,
+        text: 'Deal 8 damage to all enemies. Restore half the damage dealt to this god.' },
+      { id: 'reclaims', name: 'Earth Reclaims', icon: I.Sprout, unlock: 15, speed: 2, cooldown: 2,
+        school: 'Earth', target: TARGET.allAllies, heal: 12, shield: 10, shieldRounds: 2,
+        text: 'Restore 12 Health to your party and give it a 10-point shield for 2 rounds.' },
     ],
   }),
   hero({
     id: 'bastet', name: 'Bastet', title: 'Swift Claw', role: 'fighter',
-    attack: 11, maxHealth: 33,
+    attack: 11, maxHealth: 42,
     skills: [
-      { id: 'claws', name: 'Quick Claws', icon: I.Cat, unlock: 1, speed: 2, cooldown: 0,
+      { id: 'claws', name: 'Quick Claws', icon: I.Cat, unlock: 1, speed: 3, cooldown: 0,
         target: TARGET.enemy, isAttack: true,
-        text: 'Attack an enemy for your Attack. Very fast. You take their Attack back.' },
-      { id: 'ninelives', name: 'Nine Lives', icon: I.Heart, unlock: 5, speed: 1, cooldown: 3,
-        target: TARGET.self, divineShield: true, shield: 8, shieldRounds: 2,
-        text: 'Negate the next damage taken and gain an 8-point shield for 2 rounds.' },
-      { id: 'throat', name: 'Throat', icon: I.Crosshair, unlock: 15, speed: 4, cooldown: 2,
-        target: TARGET.enemy, isAttack: true, bonus: 6,
-        text: 'Attack an enemy for your Attack plus 6. You take their Attack back.' },
+        text: 'Attack an enemy.' },
+      { id: 'ninelives', name: 'Nine Lives', icon: I.Heart, unlock: 5, speed: 1, cooldown: 2,
+        school: 'Beast', target: TARGET.self, divineShield: true, shield: 10, shieldRounds: 2,
+        text: 'Gain Divine Shield and a 10-point shield for 2 rounds.' },
+      { id: 'throat', name: 'For the Throat', icon: I.Crosshair, unlock: 15, speed: 4, cooldown: 2,
+        target: TARGET.enemy, isAttack: true, bonus: 7,
+        text: 'Gain +7 Attack this turn and Attack an enemy.' },
     ],
   }),
   hero({
     id: 'isis', name: 'Isis', title: 'Mother of Magic', role: 'caster',
-    attack: 9, maxHealth: 32,
+    attack: 4, maxHealth: 40,
     skills: [
       { id: 'searing', name: 'Searing Light', icon: I.Sunrise, unlock: 1, speed: 3, cooldown: 0,
-        target: TARGET.enemy, power: 10,
-        text: 'Deal 10 damage to one enemy.' },
-      { id: 'mending', name: 'Mending', icon: I.Activity, unlock: 5, speed: 2, cooldown: 2,
-        target: TARGET.ally, heal: 13, cleanse: true,
-        text: 'Restore 13 health to one ally and clear its bleeding.' },
-      { id: 'wings', name: 'Sheltering Wings', icon: I.Feather, unlock: 15, speed: 1, cooldown: 3,
-        target: TARGET.allAllies, heal: 8, shield: 7, shieldRounds: 2,
-        text: 'Restore 8 health to your team and give it a 7-point shield for 2 rounds.' },
+        school: 'Light', target: TARGET.enemy, power: 12,
+        text: 'Deal 12 damage.' },
+      { id: 'mending', name: 'Mending Word', icon: I.Activity, unlock: 5, speed: 2, cooldown: 2,
+        school: 'Light', target: TARGET.ally, heal: 16, cleanse: true,
+        text: 'Restore 16 Health to a friendly god and clear its Bleeding.' },
+      { id: 'wings', name: 'Sheltering Wings', icon: I.Feather, unlock: 15, speed: 1, cooldown: 2,
+        school: 'Light', target: TARGET.allAllies, heal: 10, attackBuff: 4,
+        text: 'Restore 10 Health to your party and give it +4 Attack.' },
     ],
   }),
 ];
