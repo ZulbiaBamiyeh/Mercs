@@ -1,0 +1,165 @@
+{
+  "_notes": "Hearthstone Mercenaries starter roster at max power: level-30 stats, tier-5 abilities, tier-4 equipment (tier 1 values in *_t1 fields for tuning). One equipment slot per merc. school null = no spell school. cooldown 0 = none. Source: hearthstone.wiki.gg + in-game card screenshots.",
+  "mercs": [
+    {
+      "id": "cariel", "name": "Cariel Roame", "role": "PROTECTOR", "rarity": "Rare",
+      "faction": "Alliance", "types": ["Human"], "attack": 11, "health": 73,
+      "abilities": [
+        { "name": "Crusader's Blow", "speed": 6, "cooldown": 0, "school": "Holy",
+          "text": "Attack an enemy. Deathblow: Restore 60 Health to this Merc.",
+          "text_t1": "Attack an enemy. Deathblow: Restore 10 Health to this Merc." },
+        { "name": "Taunt", "speed": 1, "cooldown": 0, "school": null,
+          "text": "Restore 12 Health to this Merc and gain Taunt for 3 turns.",
+          "text_t1": "Restore 4 Health to this Merc and gain Taunt for 1 turn." },
+        { "name": "Seal of Light", "speed": 4, "cooldown": 1, "school": "Holy",
+          "text": "Restore 15 Health to a friendly character and give it +6 Attack.",
+          "text_t1": "Restore 5 Health to a friendly character and give it +2 Attack." }
+      ],
+      "equipment": [
+        { "name": "Hammer of Dawn", "text": "Crusader's Blow restores Health to your other characters as well." },
+        { "name": "Tome of Judgment", "text": "Seal of Light gives an additional +4 Attack for each of your Alliance characters." },
+        { "name": "Tome of Light", "text": "Passive: While this Merc has Taunt, it has +12 Attack." }
+      ]
+    },
+    {
+      "id": "cornelius", "name": "Cornelius Roame", "role": "PROTECTOR", "rarity": "Rare",
+      "faction": "Alliance", "types": ["Human"], "attack": 12, "health": 79,
+      "abilities": [
+        { "name": "Martial Mastery", "speed": 8, "cooldown": 0, "school": "Holy",
+          "text": "Gain +5 Health and Attack an enemy. If it's a Fighter, gain +10 Health instead.",
+          "text_t1": "Gain +1 Health and Attack an enemy. If it's a Fighter, gain +3 Health instead." },
+        { "name": "Hold the Front", "speed": 2, "cooldown": 0, "school": "Holy",
+          "text": "Gain Taunt for 2 turns. Restore 14 Health to adjacent characters.",
+          "text_t1": "Gain Taunt for 2 turns. Restore 4 Health to adjacent characters." },
+        { "name": "Blessing of Sacrifice", "speed": 2, "cooldown": 1, "school": "Holy",
+          "text": "Restore 10 Health to another friendly Merc. Whenever it takes damage this turn, this Merc takes it instead.",
+          "text_t1": "Restore 2 Health to another friendly Merc. Whenever it takes damage this turn, this Merc takes it instead." }
+      ],
+      "equipment": [
+        { "name": "Striking Gauntlets", "text": "Martial Mastery gives 4 more Health." },
+        { "name": "Band of Enlightenment", "text": "Hold the Front restores 8 more Health." },
+        { "name": "Shield of Dawn", "text": "Passive: Take 3 less damage." }
+      ]
+    },
+    {
+      "id": "grommash", "name": "Grommash Hellscream", "role": "PROTECTOR", "rarity": "Legendary",
+      "faction": "Horde", "types": ["Orc"], "attack": 12, "health": 74,
+      "abilities": [
+        { "name": "Blood Fervor", "speed": 8, "cooldown": 0, "school": null,
+          "text": "Attack an enemy. Deathblow: Give +15 Attack to your Horde characters.",
+          "text_t1": "Attack an enemy. Deathblow: Give +5 Attack to your Horde characters." },
+        { "name": "Staggering Slam", "speed": 2, "cooldown": 0, "school": null,
+          "text": "Deal 10 damage to an enemy. Its next ability is (5) Speed slower.",
+          "text_t1": "Deal 2 damage to an enemy. Its next ability is (2) Speed slower." },
+        { "name": "Battlefury", "speed": 6, "cooldown": 1, "school": null,
+          "text": "Gain +8 Attack. Attack an enemy and one of its neighbors.",
+          "text_t1": "Gain +2 Attack. Attack an enemy and one of its neighbors." }
+      ],
+      "equipment": [
+        { "name": "Gorehowl", "text": "Blood Fervor also restores 20 Health on Deathblow." },
+        { "name": "Halting Sash", "text": "Staggering Slam deals 5 more damage." },
+        { "name": "Bloodthirst Amulet", "text": "Battlefury gives +4 Attack more." }
+      ]
+    },
+    {
+      "id": "tyrande", "name": "Tyrande Whisperwind", "role": "FIGHTER", "rarity": "Epic",
+      "faction": "Alliance", "types": ["Night Elf"], "attack": 7, "health": 81,
+      "abilities": [
+        { "name": "Arcane Shot", "speed": 7, "cooldown": 0, "school": "Arcane",
+          "text": "Deal 14 damage to an enemy.",
+          "text_t1": "Deal 4 damage to an enemy." },
+        { "name": "Arcane Salvo", "speed": 5, "cooldown": 0, "school": "Arcane",
+          "text": "Deal 12 damage to two random enemies. If any die, repeat this.",
+          "text_t1": "Deal 2 damage to two random enemies. If any die, repeat this." },
+        { "name": "Elune's Grace", "speed": 4, "cooldown": 1, "school": "Arcane",
+          "text": "Your next Arcane ability casts twice and is permanently (3) Speed faster.",
+          "text_t1": "Your next Arcane ability casts twice and is permanently (1) Speed faster." }
+      ],
+      "equipment": [
+        { "name": "Elune's Charm", "text": "Arcane Shot deals 15 more damage if the enemy has already acted." },
+        { "name": "Verdant Recurve", "text": "Arcane Salvo deals 4 more damage." },
+        { "name": "Band of the Wilds", "text": "Elune's Grace also affects Nature abilities." }
+      ]
+    },
+    {
+      "id": "samuro", "name": "Blademaster Samuro", "role": "FIGHTER", "rarity": "Rare",
+      "faction": "Horde", "types": ["Orc"], "attack": 10, "health": 66,
+      "abilities": [
+        { "name": "Double Strike", "speed": 4, "cooldown": 0, "school": null,
+          "text": "Attack an enemy. If it was damaged this turn, gain +5 Attack and Attack it again.",
+          "text_t1": "Attack an enemy. If it was damaged this turn, gain +1 Attack and Attack it again." },
+        { "name": "Mirror Image", "speed": 3, "cooldown": 1, "school": null,
+          "text": "Choose an enemy. Summon a copy of this Merc that Attacks it and dies at the end of the turn.",
+          "text_t1": "Choose an enemy. Summon a copy of this Merc that Attacks it and dies at the end of the turn." },
+        { "name": "Whirling Blade", "speed": 5, "cooldown": 1, "school": null,
+          "text": "Deal 11 damage to all enemies. Gain Immune this turn.",
+          "text_t1": "Deal 3 damage to all enemies. Gain Immune this turn." }
+      ],
+      "equipment": [
+        { "name": "Sash of Illusion", "text": "Mirror Image summons an extra copy of this Merc." },
+        { "name": "Honed Blade", "text": "Whirling Blade deals 4 more damage." },
+        { "name": "Burning Blade", "text": "Passive: Whenever this Merc Attacks, gain +2/+2." }
+      ]
+    },
+    {
+      "id": "rokara", "name": "Rokara", "role": "FIGHTER", "rarity": "Rare",
+      "faction": "Horde", "types": ["Orc"], "attack": 9, "health": 74,
+      "abilities": [
+        { "name": "Tribal Warfare", "speed": 6, "cooldown": 0, "school": null,
+          "text": "Attack an enemy. If you control another Orc, gain +5 Attack first.",
+          "text_t1": "Attack an enemy. If you control another Orc, gain +1 Attack first." },
+        { "name": "Offensive Rally", "speed": 2, "cooldown": 1, "school": null,
+          "text": "Whenever a friendly character Attacks this turn, give it +5/+10.",
+          "text_t1": "Whenever a friendly character Attacks this turn, give it +1/+2." },
+        { "name": "Orc Onslaught", "speed": 5, "cooldown": 1, "school": null,
+          "text": "Deal 12 damage. Repeat for each other Orc you control.",
+          "text_t1": "Deal 4 damage. Repeat for each other Orc you control." }
+      ],
+      "equipment": [
+        { "name": "Frostwolf Talisman", "text": "Tribal Warfare gives an additional +4 Attack." },
+        { "name": "Helm of Inspiration", "text": "Offensive Rally gives an additional +2/+4." },
+        { "name": "Ancestral Armor", "text": "Passive: +20 Health." }
+      ]
+    },
+    {
+      "id": "xyrella", "name": "Xyrella", "role": "CASTER", "rarity": "Rare",
+      "faction": "Alliance", "types": ["Draenei"], "attack": 5, "health": 68,
+      "abilities": [
+        { "name": "Blinding Luminance", "speed": 3, "cooldown": 0, "school": "Holy",
+          "text": "Deal 10 damage to an enemy and give it -8 Attack this turn.",
+          "text_t1": "Deal 2 damage to an enemy and give it -2 Attack this turn." },
+        { "name": "Flash Heal", "speed": 4, "cooldown": 0, "school": "Holy",
+          "text": "Restore 15 Health.",
+          "text_t1": "Restore 5 Health." },
+        { "name": "Atonement", "speed": 9, "cooldown": 1, "school": "Holy",
+          "text": "Deal 20 damage. +3 damage each time you restore 20 Health. (20 remaining.)",
+          "text_t1": "Deal 10 damage. +1 damage each time you restore 20 Health. (20 remaining.)" }
+      ],
+      "equipment": [
+        { "name": "Radiant Wand", "text": "Blinding Luminance deals 4 more damage and gives -4 Attack more." },
+        { "name": "Shard of the Naaru", "text": "Flash Heal restores 20 more Health, but has (1) Cooldown." },
+        { "name": "Robes of Purity", "text": "Atonement requires 10 less healing to upgrade." }
+      ]
+    },
+    {
+      "id": "millhouse", "name": "Millhouse Manastorm", "role": "CASTER", "rarity": "Rare",
+      "faction": null, "types": ["Gnome"], "attack": 5, "health": 69,
+      "abilities": [
+        { "name": "Arcane Explosion", "speed": 4, "cooldown": 0, "school": "Arcane",
+          "text": "Deal 8 damage to all enemies.",
+          "text_t1": "Deal 2 damage to all enemies." },
+        { "name": "Arcane Bolt", "speed": 6, "cooldown": 0, "school": "Arcane",
+          "text": "Deal 12 damage. Gain +3 Arcane Damage.",
+          "text_t1": "Deal 4 damage. Gain +1 Arcane Damage." },
+        { "name": "Greater Arcane Missiles", "speed": 9, "cooldown": 2, "school": "Arcane",
+          "text": "Shoot three missiles at random enemies that deal 20 damage each.",
+          "text_t1": "Shoot three missiles at random enemies that deal 5 damage each." }
+      ],
+      "equipment": [
+        { "name": "Arcane Powder", "text": "Arcane Explosion deals 5 more damage and enemies lose Stealth." },
+        { "name": "Mana Rod", "text": "Arcane Bolt gains +4 Arcane Damage more, but has +1 Cooldown." },
+        { "name": "Ley Line Wand", "text": "Greater Arcane Missiles targets the lowest Health enemy." }
+      ]
+    }
+  ]
+}
