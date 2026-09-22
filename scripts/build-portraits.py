@@ -1,15 +1,20 @@
 #!/usr/bin/env python3
 """
-Generate `web/react/portraits.jsx`: one painted bust per hero as a data-URI
+Generate `web/react/portraits.jsx`: one heraldic sigil per god, as a data-URI
 image.
 
-Why this exists: the published page's CSP blocks external images *silently*, so
-a remote portrait URL renders an empty frame. Each card therefore stacks two
-real <img> tags with object-cover - the remote URL on top, this generated
-portrait beneath - so the frame is never empty wherever the page runs.
+Why data URIs: the published page's CSP blocks external images *silently*, so
+a remote portrait URL renders an empty frame. Each card stacks two real <img>
+tags with object-cover - the real art on top, this beneath - so a frame is
+never empty wherever the page runs.
 
-These are lit, textured busts rather than flat vector shapes: a graded sky, a
-rim-lit figure, film grain through feTurbulence and a vignette.
+Why sigils rather than figures: the previous version drew painted busts as
+vector silhouettes, and they read as formless mush. Vectors are bad at
+figurative painting and good at heraldry, so these are heraldry: a bold gold
+device on a deep saturated field, with grain, a rim and a vignette. A crest
+that is obviously a stand-in looks deliberate; a failed portrait looks broken.
+
+Real character art replaces these entirely - see web/react/art/README.md.
 """
 
 import pathlib
@@ -17,100 +22,139 @@ import urllib.parse
 
 OUT = pathlib.Path('web/react/portraits.jsx')
 
-# Bust silhouettes on a 400x400 canvas, framed head-and-shoulders.
-FIGURES = {
-    'protector': '''
-      <ellipse cx="78" cy="330" rx="64" ry="56" fill="url(#body)"/>
-      <ellipse cx="322" cy="330" rx="64" ry="56" fill="url(#body)"/>
-      <path d="M36 400 C56 302 108 266 200 266 C292 266 344 302 364 400 Z" fill="url(#body)"/>
-      <path d="M158 148 Q200 112 242 148 L249 214 Q200 242 151 214 Z" fill="url(#body)"/>
-      <path d="M196 116 L204 116 L208 224 L192 224 Z" fill="url(#rim)" opacity="0.5"/>
-      <path d="M158 186 L242 186 L242 198 L158 198 Z" fill="#05070a" opacity="0.72"/>
-      <path d="M36 400 C56 302 108 266 200 266" fill="none" stroke="url(#rim)" stroke-width="5" opacity="0.62"/>
-      <path d="M158 148 Q200 112 242 148" fill="none" stroke="url(#rim)" stroke-width="4" opacity="0.7"/>
+# Deep saturated fields, so a card stands out against the arena's light stone.
+FIELDS = {
+    'atlas':  ('#1b3b4d', '#0b1a24', 'Sky'),
+    'ares':   ('#5d1519', '#26070a', 'War'),
+    'zeus':   ('#2a1f5e', '#100a28', 'Storm'),
+    'geb':    ('#463a15', '#1c1708', 'Earth'),
+    'bastet': ('#10412f', '#061b13', 'Beast'),
+    'isis':   ('#42184e', '#1a0821', 'Light'),
+}
+
+# Each device is drawn centred on a 400x400 canvas in `gold`, bold enough to
+# survive being scaled down into a 110px card.
+DEVICES = {
+    # a globe borne on an arc - Atlas holding up the sky
+    'atlas': '''
+      <circle cx="200" cy="158" r="62" fill="none" stroke="url(#gold)" stroke-width="13"/>
+      <ellipse cx="200" cy="158" rx="62" ry="24" fill="none" stroke="url(#gold)" stroke-width="8" opacity="0.85"/>
+      <line x1="200" y1="96" x2="200" y2="220" stroke="url(#gold)" stroke-width="8" opacity="0.85"/>
+      <path d="M92 300 C92 214 138 246 200 246 C262 246 308 214 308 300" fill="none" stroke="url(#gold)" stroke-width="17" stroke-linecap="round"/>
+      <path d="M126 316 L274 316" stroke="url(#gold)" stroke-width="13" stroke-linecap="round"/>
     ''',
-    'fighter': '''
-      <path d="M52 400 C70 310 118 280 200 280 C282 280 330 310 348 400 Z" fill="url(#body)"/>
-      <ellipse cx="200" cy="196" rx="45" ry="53" fill="url(#body)"/>
-      <path d="M155 192 C150 132 196 116 224 124 C258 134 252 176 248 196 C240 170 214 156 186 164 C168 170 160 180 155 192 Z" fill="#06080c" opacity="0.8"/>
-      <path d="M143 288 L200 264 L257 288 L236 340 L164 340 Z" fill="url(#rim)" opacity="0.26"/>
-      <path d="M52 400 C70 310 118 280 200 280" fill="none" stroke="url(#rim)" stroke-width="5" opacity="0.58"/>
-      <path d="M176 152 C186 140 214 140 226 154" fill="none" stroke="url(#rim)" stroke-width="3" opacity="0.5"/>
+    # crossed spears
+    'ares': '''
+      <g stroke="url(#gold)" stroke-width="15" stroke-linecap="round">
+        <line x1="112" y1="312" x2="288" y2="104"/>
+        <line x1="288" y1="312" x2="112" y2="104"/>
+      </g>
+      <path d="M288 104 L302 90 L306 128 L272 124 Z" fill="url(#gold)"/>
+      <path d="M112 104 L98 90 L94 128 L128 124 Z" fill="url(#gold)"/>
+      <circle cx="200" cy="208" r="26" fill="none" stroke="url(#gold)" stroke-width="11"/>
     ''',
-    'caster': '''
-      <path d="M58 400 C68 322 120 292 200 292 C280 292 332 322 342 400 Z" fill="url(#body)"/>
-      <path d="M200 112 C270 112 302 186 297 244 L292 306 C250 288 150 288 108 306 L103 244 C98 186 130 112 200 112 Z" fill="url(#body)"/>
-      <path d="M200 150 C244 150 264 198 261 240 C240 224 160 224 139 240 C136 198 156 150 200 150 Z" fill="#04060a" opacity="0.86"/>
-      <ellipse cx="200" cy="228" rx="30" ry="22" fill="#04060a" opacity="0.6"/>
-      <path d="M200 112 C130 112 98 186 103 244" fill="none" stroke="url(#rim)" stroke-width="5" opacity="0.66"/>
-      <circle cx="200" cy="322" r="11" fill="url(#rim)" opacity="0.7"/>
+    # a bolt
+    'zeus': '''
+      <path d="M232 68 L134 214 L188 214 L152 336 L272 176 L212 176 L254 68 Z"
+            fill="url(#gold)" stroke="#2b1c04" stroke-width="5" stroke-linejoin="round"/>
+      <path d="M232 68 L134 214 L188 214" fill="none" stroke="#fff6d8" stroke-width="6" opacity="0.5"/>
+    ''',
+    # mountains over strata
+    'geb': '''
+      <path d="M52 306 L146 150 L214 246 L262 178 L348 306 Z"
+            fill="url(#gold)" stroke="#2b1c04" stroke-width="5" stroke-linejoin="round"/>
+      <path d="M146 150 L184 214 L120 214 Z" fill="#fff6d8" opacity="0.42"/>
+      <g stroke="url(#gold)" stroke-width="10" stroke-linecap="round" opacity="0.8">
+        <line x1="74" y1="336" x2="326" y2="336"/>
+        <line x1="112" y1="362" x2="288" y2="362"/>
+      </g>
+    ''',
+    # a cat's head
+    'bastet': '''
+      <path d="M124 176 L112 96 L176 138 Z" fill="url(#gold)"/>
+      <path d="M276 176 L288 96 L224 138 Z" fill="url(#gold)"/>
+      <path d="M200 124 C262 124 292 174 292 216 C292 274 252 316 200 316
+               C148 316 108 274 108 216 C108 174 138 124 200 124 Z"
+            fill="none" stroke="url(#gold)" stroke-width="15"/>
+      <path d="M156 212 L186 212" stroke="url(#gold)" stroke-width="14" stroke-linecap="round"/>
+      <path d="M214 212 L244 212" stroke="url(#gold)" stroke-width="14" stroke-linecap="round"/>
+      <path d="M200 246 L200 264" stroke="url(#gold)" stroke-width="10" stroke-linecap="round"/>
+      <path d="M170 282 Q200 300 230 282" fill="none" stroke="url(#gold)" stroke-width="10" stroke-linecap="round"/>
+    ''',
+    # spread wings under a sun disc
+    'isis': '''
+      <circle cx="200" cy="120" r="40" fill="url(#gold)"/>
+      <circle cx="200" cy="120" r="40" fill="none" stroke="#2b1c04" stroke-width="4"/>
+      <path d="M192 184 L208 184 L208 322 L192 322 Z" fill="url(#gold)"/>
+      <g fill="url(#gold)" stroke="#2b1c04" stroke-width="4">
+        <path d="M190 188 C140 190 96 212 64 252 C104 246 128 250 150 262 C120 268 100 284 84 306 C130 292 168 292 190 300 Z"/>
+        <path d="M210 188 C260 190 304 212 336 252 C296 246 272 250 250 262 C280 268 300 284 316 306 C270 292 232 292 210 300 Z"/>
+      </g>
     ''',
 }
 
-# skyTop, skyBottom, keyLight, bodyLight, bodyMid, bodyDark, rimLight
-PALETTES = {
-    'atlas':  ('#3b2e22', '#140f0b', '#d9a86a', '#8a7358', '#463829', '#140f0a', '#f0cf9a'),
-    'ares':   ('#43221d', '#170a09', '#e0765a', '#8e4a38', '#4a2118', '#170807', '#f7b493'),
-    'zeus':   ('#2b3550', '#0d1120', '#8fb4e8', '#5a7099', '#2b3752', '#0b0f1c', '#cfe0fa'),
-    'geb':    ('#33301d', '#12110a', '#cbbd6a', '#7d7546', '#3b3822', '#111009', '#ece0a2'),
-    'bastet': ('#3d2b3f', '#140d16', '#c98ad6', '#7c5684', '#3f2b44', '#120b15', '#ecc4f2'),
-    'isis':   ('#1f3b3c', '#0a1616', '#6fc9c0', '#43807c', '#20403d', '#081312', '#b6efe6'),
-}
 
-
-def portrait(hero_id: str, role: str) -> str:
-    sky_a, sky_b, key, body_a, body_b, body_c, rim = PALETTES[hero_id]
-    svg = f'''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
+def svg(hero: str) -> str:
+    base, deep, _ = FIELDS[hero]
+    return f'''<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400">
 <defs>
-<linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
-<stop offset="0" stop-color="{sky_a}"/><stop offset="1" stop-color="{sky_b}"/></linearGradient>
-<radialGradient id="key" cx="50%" cy="30%" r="56%">
-<stop offset="0" stop-color="{key}" stop-opacity="0.72"/><stop offset="1" stop-color="{key}" stop-opacity="0"/></radialGradient>
-<linearGradient id="body" x1="0.15" y1="0" x2="0.85" y2="1">
-<stop offset="0" stop-color="{body_a}"/><stop offset="0.52" stop-color="{body_b}"/><stop offset="1" stop-color="{body_c}"/></linearGradient>
-<linearGradient id="rim" x1="0" y1="0" x2="1" y2="1">
-<stop offset="0" stop-color="{rim}"/><stop offset="1" stop-color="{rim}" stop-opacity="0.25"/></linearGradient>
-<radialGradient id="vig" cx="50%" cy="42%" r="74%">
-<stop offset="0.5" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity="0.82"/></radialGradient>
-<filter id="grain" x="0" y="0" width="100%" height="100%">
-<feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="4" stitchTiles="stitch"/>
-<feColorMatrix type="saturate" values="0"/></filter>
+<radialGradient id="field" cx="38%" cy="28%" r="82%">
+<stop offset="0%" stop-color="{base}"/>
+<stop offset="62%" stop-color="{base}" stop-opacity="0.82"/>
+<stop offset="100%" stop-color="{deep}"/>
+</radialGradient>
+<linearGradient id="gold" x1="0" y1="0" x2="0.35" y2="1">
+<stop offset="0%" stop-color="#ffeeb8"/>
+<stop offset="42%" stop-color="#dcae45"/>
+<stop offset="78%" stop-color="#9a6d1e"/>
+<stop offset="100%" stop-color="#e2c483"/>
+</linearGradient>
+<filter id="grain"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4"/></filter>
+<radialGradient id="vig" cx="50%" cy="42%" r="72%">
+<stop offset="55%" stop-color="#000" stop-opacity="0"/>
+<stop offset="100%" stop-color="#000" stop-opacity="0.62"/>
+</radialGradient>
 </defs>
-<rect width="400" height="400" fill="url(#sky)"/>
-<ellipse cx="200" cy="120" rx="230" ry="190" fill="url(#key)"/>
-<path d="M200 36 C286 36 330 130 326 210 L74 210 C70 130 114 36 200 36 Z" fill="#000" opacity="0.16"/>
-<path d="M200 52 C278 52 318 138 314 210" fill="none" stroke="{rim}" stroke-width="2" opacity="0.14"/>
-<path d="M200 52 C122 52 82 138 86 210" fill="none" stroke="{rim}" stroke-width="2" opacity="0.14"/>
-{FIGURES[role]}
-<rect width="400" height="400" filter="url(#grain)" opacity="0.15"/>
+<rect width="400" height="400" fill="url(#field)"/>
+<!-- a struck roundel behind the device, so the field is not empty -->
+<circle cx="200" cy="204" r="150" fill="none" stroke="#ffffff" stroke-opacity="0.09" stroke-width="26"/>
+<circle cx="200" cy="204" r="168" fill="none" stroke="#000000" stroke-opacity="0.22" stroke-width="10"/>
+{DEVICES[hero]}
+<rect width="400" height="400" filter="url(#grain)" opacity="0.2" style="mix-blend-mode:overlay"/>
 <rect width="400" height="400" fill="url(#vig)"/>
 </svg>'''
-    packed = ' '.join(svg.split())
-    return 'data:image/svg+xml,' + urllib.parse.quote(packed, safe="/:=<>?'()., ")
 
 
-HEROES = [
-    ('atlas', 'protector'), ('ares', 'fighter'), ('zeus', 'caster'),
-    ('geb', 'protector'), ('bastet', 'fighter'), ('isis', 'caster'),
-]
+def data_uri(markup: str) -> str:
+    # `#` MUST be percent-encoded: in a URI it starts a fragment, so leaving it
+    # safe truncates the SVG at the first colour literal and the image fails to
+    # load - silently, as a broken frame showing its alt text. Same for `?`,
+    # `&` and `%`. Everything left safe below is inert inside a data URI and
+    # keeping it readable makes the generated file diffable.
+    return 'data:image/svg+xml;utf8,' + urllib.parse.quote(
+        markup, safe="()*!'-._~:/[]@+,;= <>\"")
 
-entries = ',\n'.join(f"  {hid}: '{portrait(hid, role)}'" for hid, role in HEROES)
+
+entries = '\n'.join(
+    f"  {hero}: '{data_uri(svg(hero))}',"
+    for hero in FIELDS
+)
 
 OUT.write_text(f'''/**
- * Painted bust per hero, as a data-URI image.
+ * GENERATED by scripts/build-portraits.py - do not edit by hand.
  *
- * Generated by `npm run build:portraits`. Do not edit by hand - see
- * scripts/build-portraits.py.
+ * One heraldic sigil per god: a bold gold device on a deep saturated field,
+ * with a struck roundel, grain and a vignette. These are the layer beneath
+ * real art, and they exist because the published page's CSP blocks external
+ * images silently - a card must never render as an empty frame.
  *
- * These are the base layer under each card's remote portrait: the published
- * page's CSP blocks external images silently, so a remote URL alone would
- * leave an empty frame. Both layers are real <img> with object-cover.
+ * They are heraldry rather than figures on purpose. An earlier version drew
+ * painted busts as vector silhouettes and they read as formless mush; a crest
+ * that is plainly a stand-in looks deliberate instead.
  */
 
 export const PORTRAITS = {{
-{entries},
+{entries}
 }};
 ''')
-
-size = OUT.stat().st_size
-print(f'{len(HEROES)} portraits written to {OUT} ({size / 1024:.1f}kb)')
+print(f'wrote {OUT} ({OUT.stat().st_size} bytes)')

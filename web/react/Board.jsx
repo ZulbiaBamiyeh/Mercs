@@ -143,8 +143,8 @@ function SkillCard({ hero, skill, cooldown = 0, byline = null }) {
     <div className="frame-metal relative rounded-xl p-[5px]">
       <div className={`relative rounded-[8px] px-2.5 pb-2.5 pt-3
                        ${mine
-                         ? 'bg-[linear-gradient(180deg,#5c4a23,#2a2010)]'
-                         : 'bg-[linear-gradient(180deg,#5a2a2e,#281014)]'}`}>
+                         ? 'bg-[linear-gradient(180deg,#37280f,#160f06)]'
+                         : 'bg-[linear-gradient(180deg,#39171b,#170608)]'}`}>
         <div className="relative mx-auto w-fit">
           <span className={`frame-well grid h-[74px] w-[74px] place-items-center rounded-full
                             border-[4px] border-amber-500/90
@@ -250,8 +250,8 @@ function MedallionTray({ hero, focusId, chosenSkillId, readOnly, onFocus }) {
     >
       <div className={`flex w-full items-start justify-center gap-3 rounded-[8px] px-3 pb-1 pt-2 sm:gap-6
                        ${hero.side === 'player'
-                         ? 'bg-[linear-gradient(180deg,#4a3418,#241a0b)]'
-                         : 'bg-[linear-gradient(180deg,#4a2024,#240e11)]'}`}>
+                         ? 'bg-[linear-gradient(180deg,#2d1f0c,#150e05)]'
+                         : 'bg-[linear-gradient(180deg,#2f1215,#150507)]'}`}>
         {hero.skills.map((skill) => {
           const Icon = skill.icon;
           const cd = hero.cooldowns[skill.id] ?? 0;
@@ -354,8 +354,8 @@ function UnitTile({
       aria-label={`${hero.name}, ${role.label}, ${hero.health} of ${hero.maxHealth} health`}
       className={`relative block w-full text-left transition-opacity duration-500 focus-visible:outline-none
                   ${dead ? 'opacity-45 saturate-0' : ''}
-                  ${targeting && !isTargetable && !isCaster ? 'opacity-35 grayscale' : ''}
-                  ${dim ? 'opacity-40' : ''}`}
+                  ${targeting && !isTargetable && !isCaster ? 'brightness-[0.45] saturate-[0.35]' : ''}
+                  ${dim ? 'brightness-[0.42] saturate-[0.55]' : ''}`}
     >
       {/* While choosing a target, a legal one pulses and wears a crosshair. */}
       <AnimatePresence>
@@ -492,7 +492,10 @@ function UnitTile({
         </AnimatePresence>
 
         {/* role reads as a wash from the bottom plus a solid rule, not a glow */}
-        <div className={`pointer-events-none absolute inset-x-0 bottom-0 h-[52%] bg-gradient-to-t ${role.wash}`} />
+        {/* The sigil field now carries most of a card's colour, so the role
+            wash only has to tint the name plate's footing - at the old weight
+            it muddied everything below the device. */}
+        <div className={`pointer-events-none absolute inset-x-0 bottom-0 h-[34%] bg-gradient-to-t opacity-70 ${role.wash}`} />
         <div className={`pointer-events-none absolute inset-x-0 bottom-0 h-[3px] ${role.rule}`} />
 
         {hero.shield > 0 && (
@@ -597,15 +600,17 @@ function UnitTile({
 function TurnStrip({ queue, activeIndex, heroesById }) {
   if (queue.length === 0) {
     return (
-      <div className="flex h-[38px] shrink-0 items-center justify-center rounded-lg border-2 border-slate-800
-                      bg-slate-950/50 px-3 font-body text-[12px] italic text-slate-500">
+      <div className="flex h-[38px] shrink-0 items-center justify-center rounded-lg border-2 border-black/60
+                      bg-[linear-gradient(180deg,rgba(14,9,6,0.88),rgba(14,9,6,0.7))] px-3
+                      font-body text-[12px] italic text-amber-200/50 shadow-lg shadow-black/50">
         Tap a hero to choose an ability
       </div>
     );
   }
   return (
-    <div className="flex h-[38px] shrink-0 items-center gap-1.5 overflow-x-auto rounded-lg border-2 border-slate-800
-                    bg-slate-950/50 px-1.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+    <div className="flex h-[38px] shrink-0 items-center gap-1.5 overflow-x-auto rounded-lg border-2 border-black/60
+                    bg-[linear-gradient(180deg,rgba(14,9,6,0.88),rgba(14,9,6,0.7))] px-1.5 shadow-lg shadow-black/50
+                    [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
       {queue.map((step, i) => {
         const hero = heroesById[step.heroId];
         const mine = hero.side === 'player';
@@ -945,21 +950,20 @@ export default function Board() {
 
   return (
     <div
-      className="relative flex h-full flex-col overflow-hidden bg-[#0d0a07]"
+      className="arena grain relative flex h-full flex-col overflow-hidden"
       onClick={(e) => {
         // Aiming at nothing should let go. A tap that misses every tile and
         // every control cancels, so you are never stuck holding an ability.
         if (armed && !e.target.closest('button')) setArmed(null);
       }}
     >
-      <div aria-hidden className="pointer-events-none absolute inset-0">
-        <div className="absolute inset-0 bg-[repeating-linear-gradient(91deg,#1c1409_0px,#241a0c_4px,#160f07_9px,#1f1509_14px)] opacity-70" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_78%_52%_at_50%_44%,rgba(214,166,96,0.22),transparent_70%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_120%_94%_at_50%_50%,transparent_32%,rgba(4,3,2,0.94)_100%)]" />
-      </div>
-
       {/* top bar, deliberately thin */}
-      <header className="relative z-10 flex shrink-0 items-center justify-between gap-3 px-3 pb-1 pt-2">
+      {/* A dark lintel across the top. The board used to be near-black and the
+          header's pale lettering sat on it fine; against lit stone it
+          vanished, so the chrome gets its own dark ground. */}
+      <header className="relative z-10 flex shrink-0 items-center justify-between gap-3
+                         border-b-2 border-black/50 bg-[linear-gradient(180deg,rgba(18,12,9,0.92),rgba(18,12,9,0.62))]
+                         px-3 pb-1.5 pt-2 shadow-lg shadow-black/50">
         <h1 className="font-display text-[15px] font-semibold uppercase tracking-[0.2em] text-amber-100">
           Theo<span className="text-amber-500">machy</span>
         </h1>
@@ -991,8 +995,14 @@ export default function Board() {
       {/* board: two ranks and the turn strip, centred in whatever is left */}
       {/* justify-between, not centre: the ranks push to the edges so a tall
           phone screen is a board rather than a strip floating in black */}
-      <main className="relative z-10 mx-auto my-auto flex max-h-[26rem] min-h-0 w-full flex-1 flex-col
-                       justify-between gap-3 px-3 py-2 sm:max-h-[36rem] sm:max-w-xl sm:gap-8 sm:py-4">
+      {/* On a phone the board sits up under the header rather than centred, so
+          all the vertical slack collects in one band at the bottom - which is
+          where the ability card goes. Centred, the slack split in two and the
+          card had to overlap your own rank. A wide screen keeps it centred,
+          since there the card sits off to the left. */}
+      <main className="relative z-10 mx-auto mb-auto mt-4 flex max-h-[26rem] min-h-0 w-full flex-1 flex-col
+                       justify-between gap-3 px-3 pb-2 pt-1
+                       sm:my-auto sm:max-h-[36rem] sm:max-w-xl sm:gap-8 sm:py-4">
         {rank(enemies)}
         <AnimatePresence mode="wait">
           {openHero ? (
@@ -1015,7 +1025,9 @@ export default function Board() {
       {/* The footer clears out while the round plays: the reference shows a
           bare board during the attack phase, and the button has nothing to
           offer until it is your turn to decide again. */}
-      <footer className={`relative z-10 shrink-0 px-3 pb-[max(0.6rem,env(safe-area-inset-bottom,0px))] pt-2
+      <footer className={`relative z-10 shrink-0 border-t-2 border-black/40
+                          bg-[linear-gradient(0deg,rgba(18,12,9,0.9),transparent)]
+                          px-3 pb-[max(0.6rem,env(safe-area-inset-bottom,0px))] pt-3
                           transition-opacity duration-500
                           ${resolving ? 'pointer-events-none opacity-0' : 'opacity-100'}`}>
         {armed && armedHero && armedSkill ? (

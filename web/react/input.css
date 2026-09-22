@@ -25,10 +25,65 @@
 html, body, #root { height: 100%; }
 
 body {
-  background: #0d0a07;
+  background: #2a211c;
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
 }
+
+/* ---------------------------------------------------------------------- *
+ * The arena
+ *
+ * This was a flat near-black panel, and it was the single biggest reason the
+ * board looked unfinished: dark cards on a dark void have nothing to sit
+ * against, so everything mushed together and the frames read as decoration
+ * floating in space.
+ *
+ * Every frame of the reference has the opposite arrangement - a *light*,
+ * warm stone floor with saturated units standing on it. So: a lit flagstone
+ * arena. Warm stone base, a broad pool of light where the ranks stand,
+ * flagstone seams in perspective, cool shadow pushed into the corners, warm
+ * bounce from the left and right edges, and grain over all of it so it does
+ * not read as a stack of CSS gradients.
+ * ---------------------------------------------------------------------- */
+
+.arena {
+  background-color: #8c6a57;
+  background-image:
+    /* cool shadow in the corners, the last layer you notice and the one
+       that keeps the middle feeling like the lit part of a room */
+    radial-gradient(ellipse 128% 92% at 50% 46%, transparent 46%, rgba(38, 24, 26, 0.42) 84%, rgba(20, 12, 14, 0.78) 100%),
+    /* warm bounce from the side walls */
+    radial-gradient(ellipse 45% 70% at 0% 50%, rgba(214, 138, 86, 0.3), transparent 70%),
+    radial-gradient(ellipse 45% 70% at 100% 50%, rgba(214, 138, 86, 0.26), transparent 70%),
+    /* the pool of light the ranks stand in */
+    radial-gradient(ellipse 82% 66% at 50% 48%, rgba(248, 224, 200, 0.55), transparent 74%),
+    /* mottled stone. Repeating seams were tried here and read as striped
+       fabric, not flagstones - irregular pools of tone read as stone and a
+       regular grid does not. */
+    radial-gradient(circle at 18% 24%, rgba(226, 196, 172, 0.42), transparent 34%),
+    radial-gradient(circle at 78% 70%, rgba(214, 180, 156, 0.36), transparent 36%),
+    radial-gradient(circle at 62% 14%, rgba(232, 204, 180, 0.3), transparent 30%),
+    radial-gradient(circle at 34% 78%, rgba(196, 160, 138, 0.34), transparent 32%),
+    radial-gradient(circle at 88% 34%, rgba(180, 144, 122, 0.3), transparent 28%),
+    linear-gradient(176deg, #a8836c, #8c6a57 58%, #6d5144);
+}
+
+/* Fine grain, from one inline SVG. Real game surfaces are painted and
+   irregular; a pure gradient is the tell that something was generated. This
+   goes over the arena and over every metal frame. */
+.grain::after,
+.frame-metal::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0.2;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/></filter><rect width='140' height='140' filter='url(%23n)'/></svg>");
+  background-size: 140px 140px;
+}
+.arena.grain::after { opacity: 0.32; }
 
 /* The board is a fixed composition; let it scroll rather than squeeze. */
 ::-webkit-scrollbar { width: 10px; height: 10px; }

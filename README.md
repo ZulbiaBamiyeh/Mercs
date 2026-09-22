@@ -335,6 +335,48 @@ Two consequences worth knowing before editing it:
   goes through explicit maps in `heroes.jsx`.
 - `web/react/dist/` is generated and stays out of git.
 
+### The arena, and why the board was the problem
+
+The board was a flat near-black panel with a wood-grain texture and a
+near-opaque vignette over it. That, not the frames, was what made the whole
+thing look unfinished: **dark cards on a dark void have nothing to sit
+against**, so the art, the frames and the background all mushed into one
+brown field and the metal read as decoration floating in space.
+
+Every frame of the reference has the opposite arrangement - a *light*, warm
+stone floor with saturated units standing on it. So `.arena` is a lit
+flagstone floor: warm stone base, a broad pool of light where the ranks stand,
+cool shadow pushed into the corners, warm bounce off the side walls. Regular
+flagstone seams were tried and read as striped fabric; irregular pools of tone
+read as stone and a grid does not.
+
+Inverting the board meant re-grounding everything built for the dark one: the
+header became a dark lintel so its pale lettering still reads, the tray and
+cards went darker so they sit *on* the stone, and dimming switched from
+`opacity` to `brightness` - a unit at 40% opacity over light stone looks
+bleached, not shadowed.
+
+`.grain` puts one inline `feTurbulence` layer over the arena and every metal
+frame. A pure gradient is the tell that a surface was generated; real painted
+surfaces are irregular.
+
+### The sigils, and the limit of doing this in CSS
+
+The placeholder portraits used to be painted busts drawn as vector
+silhouettes, and they read as formless mush - which no amount of frame polish
+fixes. Vectors are bad at figurative painting and good at heraldry, so they
+are heraldry now: a bold gold device on a deep saturated field, one per god,
+with a struck roundel, grain and a vignette. A crest that is plainly a stand-in
+looks deliberate; a failed portrait looks broken. They also give each card its
+own colour, which is most of why the ranks now read apart at a glance.
+
+**Be honest about the ceiling.** This is CSS and inline SVG drawing a fantasy
+game's UI. It can get the composition, the lighting, the pacing and the
+readability right, and it cannot produce hand-painted character art or painted
+ability icons. Those are the remaining gap, and they are a content problem
+rather than a code one: drop files in `web/react/art/` and point the `ART` map
+at them.
+
 ### The metal
 
 Everything framed on the board is cast from the same four CSS pieces, in
