@@ -129,55 +129,63 @@ function CastCard({ cast }) {
 
   return (
     <motion.div
-      initial={{ x: '-104%', opacity: 0, rotate: -6 }}
+      initial={{ x: '-108%', opacity: 0, rotate: -5 }}
       animate={{ x: 0, opacity: 1, rotate: 0 }}
-      exit={{ x: '-104%', opacity: 0, rotate: -6 }}
-      transition={{ type: 'spring', stiffness: 260, damping: 26 }}
-      /* Anchored in the empty band below the ranks rather than over the middle
-         of the board: at phone width a centred card covers the turn order and
-         bleeding it off the left edge cut its own rules text in half. It still
-         arrives from the left, which is the part that reads. */
-      className="pointer-events-none fixed bottom-[4.25rem] left-0 z-40 w-[76vw] max-w-[310px]
-                 sm:bottom-auto sm:top-1/2 sm:w-[300px] sm:-translate-y-1/2"
+      exit={{ x: '-108%', opacity: 0, rotate: -5 }}
+      transition={{ type: 'spring', stiffness: 240, damping: 25 }}
+      /* Left edge, vertically centred, as in the reference. On a phone in
+         portrait a tall card there would sit on top of the ranks, so it goes
+         into the empty band below them instead and keeps the same shape. */
+      className="pointer-events-none fixed bottom-[4.25rem] left-2 z-40 w-[58vw] max-w-[208px]
+                 sm:bottom-auto sm:left-4 sm:top-1/2 sm:w-[224px] sm:-translate-y-1/2"
     >
-      <div className="frame-metal relative rounded-r-xl py-[3px] pl-0 pr-[3px]">
-      <div className={`relative rounded-r-lg pb-2 pl-5 pr-3 pt-3
-                       ${mine
-                         ? 'bg-[linear-gradient(135deg,#6b4a22,#2b1d0f)]'
-                         : 'bg-[linear-gradient(135deg,#63262c,#2a1014)]'}`}>
-        <div className="flex items-center gap-2.5">
-          <span className="relative shrink-0">
-            <span className={`grid h-[52px] w-[52px] place-items-center rounded-full border-[3px]
-                              border-amber-500/90 bg-[radial-gradient(circle_at_36%_28%,#4a5a6e,#141b24_70%)]
-                              ${role.text}`}>
-              <Icon size={24} />
+      <div className="frame-metal relative rounded-xl p-[5px]">
+        {/* The card body is tinted by side rather than by school, so a glance
+            at the left edge tells you whose ability is about to go off. */}
+        <div className={`relative rounded-[8px] px-2.5 pb-2.5 pt-3
+                         ${mine
+                           ? 'bg-[linear-gradient(180deg,#5c4a23,#2a2010)]'
+                           : 'bg-[linear-gradient(180deg,#5a2a2e,#281014)]'}`}>
+          {/* art, in its own heavy ring, with the winged speed plate biting in */}
+          <div className="relative mx-auto w-fit">
+            <span className={`frame-well grid h-[74px] w-[74px] place-items-center rounded-full
+                              border-[4px] border-amber-500/90
+                              bg-[radial-gradient(circle_at_36%_28%,#4d5d72,#141b24_72%)] ${role.text}`}>
+              <Icon size={34} />
             </span>
-            <Winged speed={skill.speed} className="absolute -bottom-1 -left-2 h-[19px] w-[30px]" textClass="text-[11px]" />
-          </span>
-          <span className="min-w-0 flex-1">
-            <span className={`block font-body text-[9px] font-bold uppercase tracking-[0.14em]
-                              ${mine ? 'text-amber-300/70' : 'text-rose-300/70'}`}>
-              {mine ? 'Your god' : 'Enemy'} · {hero.name}
-            </span>
-            <span className="mt-0.5 block border-y border-amber-500/50
-                             bg-[linear-gradient(180deg,#d9b26a,#a87c34)] px-1 py-[2px]
-                             font-display text-[11px] font-bold uppercase leading-tight tracking-tight text-amber-950">
+            <Winged speed={skill.speed} className="absolute -bottom-1.5 -left-3 h-[26px] w-[40px]"
+                    textClass="text-[15px]" />
+          </div>
+
+          {/* who is casting, in small caps above the name plate */}
+          <div className={`mt-2 text-center font-body text-[8.5px] font-bold uppercase tracking-[0.16em]
+                           ${mine ? 'text-amber-300/70' : 'text-rose-300/70'}`}>
+            {mine ? 'Your god' : 'Enemy'} · {hero.name}
+          </div>
+
+          {/* the name plate: a struck brass banner, as on the real card */}
+          <div className="mt-1 rounded-sm border-y-2 border-amber-600/70
+                          bg-[linear-gradient(180deg,#e2bd76,#a87c34)] px-1 py-[3px] text-center">
+            <span className="ink-outline-sm font-display text-[12px] font-bold uppercase leading-tight
+                             tracking-tight text-amber-950">
               {skill.name}
             </span>
-          </span>
-        </div>
-
-        <div className="mt-2 rounded-sm bg-[linear-gradient(180deg,#d8cdb4,#bdb096)] px-2 py-1.5
-                        font-body text-[11.5px] leading-snug text-stone-900">
-          {skill.text}
-        </div>
-        {skill.school && (
-          <div className="mx-auto mt-1 w-fit rounded-sm border border-amber-900/60 bg-stone-300/85 px-2
-                          font-body text-[8.5px] font-bold uppercase tracking-wider text-stone-800">
-            {skill.school}
           </div>
-        )}
-      </div>
+
+          {/* rules text on parchment, centred, never truncated */}
+          <div className="frame-well mt-2 rounded-sm bg-[linear-gradient(180deg,#ddd2b9,#c0b399)] px-2 py-2
+                          text-center font-body text-[12px] leading-snug text-stone-900">
+            {skill.text}
+          </div>
+
+          {skill.school && (
+            <div className="mx-auto mt-1.5 w-fit rounded-sm border border-amber-900/60 bg-stone-300/90 px-2.5
+                            font-body text-[9px] font-bold uppercase tracking-[0.12em] text-stone-800">
+              {skill.school}
+            </div>
+          )}
+        </div>
+        <Bevels size={12} />
       </div>
     </motion.div>
   );
@@ -213,7 +221,7 @@ function PortraitStack({ hero, role }) {
 function UnitTile({
   hero, chosenSkill, isActing, isOpen, floaters, onOpen,
   targeting, isTargetable, isCaster, targetTone,
-  ordinal, lunging, struck,
+  ordinal, lunging, struck, aimed, dim, resolving,
 }) {
   const role = ROLES[hero.role];
   const gem = GEMS[hero.role];
@@ -239,9 +247,10 @@ function UnitTile({
       whileTap={{ scale: 0.97 }}
       transition={struck ? { duration: 0.38 } : SPRING}
       aria-label={`${hero.name}, ${role.label}, ${hero.health} of ${hero.maxHealth} health`}
-      className={`relative block w-full text-left focus-visible:outline-none
+      className={`relative block w-full text-left transition-opacity duration-500 focus-visible:outline-none
                   ${dead ? 'opacity-45 saturate-0' : ''}
-                  ${targeting && !isTargetable && !isCaster ? 'opacity-35 grayscale' : ''}`}
+                  ${targeting && !isTargetable && !isCaster ? 'opacity-35 grayscale' : ''}
+                  ${dim ? 'opacity-40' : ''}`}
     >
       {/* While choosing a target, a legal one pulses and wears a crosshair. */}
       <AnimatePresence>
@@ -279,7 +288,7 @@ function UnitTile({
           puts it - reading the order off the board beats reading it off a
           separate strip. */}
       <AnimatePresence>
-        {ordinal && !isActing && (
+        {ordinal && !isActing && !resolving && (
           <motion.span
             initial={{ opacity: 0, y: 6, scale: 0.8 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -322,6 +331,21 @@ function UnitTile({
                           ${isActing || isCaster
                             ? 'shadow-[0_0_0_3px_rgba(253,230,138,0.95),0_0_26px_4px_rgba(251,191,36,0.6)]'
                             : 'shadow-[0_0_0_2px_rgba(253,230,138,0.65)]'}`}
+            />
+          )}
+        </AnimatePresence>
+
+        {/* The unit about to be hit is ringed red before the blow lands, so you
+            see where an ability is going rather than only where it went. */}
+        <AnimatePresence>
+          {aimed && (
+            <motion.span
+              initial={{ opacity: 0, scale: 1.08 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.22 }}
+              className="pointer-events-none absolute -inset-[4px] z-30 rounded-[16px]
+                         shadow-[0_0_0_4px_rgba(239,68,68,0.95),0_0_24px_5px_rgba(239,68,68,0.55)]"
             />
           )}
         </AnimatePresence>
@@ -438,8 +462,13 @@ function UnitTile({
                     ${hurt ? 'border-slate-900/90 bg-[radial-gradient(circle_at_50%_50%,#ffd3cb,#8d1f16_52%,#3c0a06)]' : gem.health}
                     shadow-[0_3px_8px_rgba(0,0,0,0.85),inset_0_1px_2px_rgba(255,255,255,0.5)]`}
       >
-        <span className="-rotate-45 font-display text-[13px] font-bold leading-none text-white
-                         drop-shadow-[0_1px_1px_rgba(0,0,0,0.9)]">{Math.max(0, hero.health)}</span>
+        {/* White at full health, red the moment it drops. The reference reads
+            the whole board's condition off those two states alone. */}
+        <span className={`-rotate-45 font-display text-[13px] font-bold leading-none
+                          ${hero.health < hero.maxHealth ? 'text-red-300' : 'text-white'}`}
+              style={{ textShadow: '0 1px 2px rgba(0,0,0,0.95), 0 0 4px rgba(0,0,0,0.85)' }}>
+          {Math.max(0, hero.health)}
+        </span>
       </span>
     </motion.button>
   );
@@ -710,6 +739,8 @@ export default function Board() {
   const [lunging, setLunging] = useState(null);// hero id currently swinging
   const [struck, setStruck] = useState([]);    // hero ids taking the hit
   const [flash, setFlash] = useState(null);    // screen tint on a doubled hit
+  const [aiming, setAiming] = useState(null);  // hero id ringed as the target
+  const [spotlight, setSpotlight] = useState(null); // ids kept bright; rest dim
   const [fast, setFast] = useState(false);     // 2x, for when you have seen it
   const cancelled = useRef(false);
 
@@ -769,12 +800,20 @@ export default function Board() {
   /**
    * Play the round out one step at a time.
    *
-   * The beats matter as much as the maths. Each step reads: the ability's card
-   * slides in and holds long enough to be read, the caster drives at the
-   * opposing rank, the numbers land, everything settles, the card leaves. Six
-   * steps at roughly a second and a half is close to what Mercenaries spends,
-   * and the earlier version - a small label and a drifting number - was
-   * unreadable by comparison. `fast` halves it for anyone who has seen it.
+   * The pacing *is* the feature. Mercenaries shows one ability at a time and
+   * gives it room: the card arrives, the board goes quiet for well over a
+   * second while you read it, and only then does anything move. An earlier
+   * version overlapped those - card sliding in while the hit was already
+   * landing - which made a six-step round a blur even though every element
+   * was present.
+   *
+   * So each step is: card in, **a long still beat with nothing else moving**,
+   * target ringed, caster drives, impact, then the numbers hang with the card
+   * still up so cause and effect share the screen. About 3.4s a step, so a
+   * round runs 20s. `fast` halves every beat once you have seen it.
+   *
+   * Everything not involved in the current step dims, so the two units that
+   * matter are the two you are looking at.
    */
   async function resolveRound() {
     if (!ready || resolving) return;
@@ -793,28 +832,42 @@ export default function Board() {
       // A god killed earlier in the round never acts - show nothing for it.
       if (!actor || actor.health <= 0) { await beat(240); continue; }
 
+      // 1. The card arrives and the board goes quiet. Nothing else moves for
+      //    over a second: this is the beat where you read what is about to
+      //    happen, and it is the whole reason the phase is followable.
       setCast({ hero: actor, skill: step.skill });
-      await beat(560);
+      setSpotlight([actor.id]);
+      await beat(440);
+      if (cancelled.current) return;
+      await beat(1150);
       if (cancelled.current) return;
 
+      // 2. Only now does anything move. The target is ringed, then struck.
+      if (step.targetId) setAiming(step.targetId);
       setLunging(actor.id);
-      await beat(230);
+      await beat(330);
 
       const { heroes: next, events } = applyStep(board, step);
       const hits = events.filter((e) => e.kind === 'dmg' || e.kind === 'crit');
       setStruck(hits.map((e) => e.heroId));
+      setSpotlight([actor.id, ...events.map((e) => e.heroId)]);
       if (events.some((e) => e.kind === 'crit')) setFlash('crit');
       for (const e of events) pushFloater(e.heroId, e.text, e.kind);
 
       board = next;
       setHeroes(board);
-      await beat(360);
+      await beat(480);
       setLunging(null);
       setStruck([]);
       setFlash(null);
-      await beat(400);
+
+      // 3. The numbers hang for a moment with the card still up, so the cause
+      //    and the effect are on screen together.
+      await beat(700);
       setCast(null);
-      await beat(200);
+      setAiming(null);
+      setSpotlight(null);
+      await beat(300);
     }
 
     const ended = endRound(board, allOrders);
@@ -828,6 +881,8 @@ export default function Board() {
     setCast(null);
     setLunging(null);
     setStruck([]);
+    setAiming(null);
+    setSpotlight(null);
     setSelections({});
     setIntents(pickIntents(ticked));
     setTieSeed((Math.random() * 0xffffffff) >>> 0);
@@ -847,6 +902,8 @@ export default function Board() {
     setLunging(null);
     setStruck([]);
     setFlash(null);
+    setAiming(null);
+    setSpotlight(null);
     setOpenId(null);
     setArmed(null);
     setTieSeed((Math.random() * 0xffffffff) >>> 0);
@@ -887,6 +944,9 @@ export default function Board() {
           ordinal={ordinalOf(hero.id)}
           lunging={lunging === hero.id}
           struck={struck.includes(hero.id)}
+          aimed={aiming === hero.id}
+          dim={Boolean(spotlight) && !spotlight.includes(hero.id)}
+          resolving={resolving}
           targeting={Boolean(armed)}
           isTargetable={Boolean(armed) && armedRange.includes(hero.id)}
           isCaster={armed?.heroId === hero.id}
@@ -963,7 +1023,12 @@ export default function Board() {
       </main>
 
       {/* bottom bar */}
-      <footer className="relative z-10 shrink-0 px-3 pb-[max(0.6rem,env(safe-area-inset-bottom,0px))] pt-2">
+      {/* The footer clears out while the round plays: the reference shows a
+          bare board during the attack phase, and the button has nothing to
+          offer until it is your turn to decide again. */}
+      <footer className={`relative z-10 shrink-0 px-3 pb-[max(0.6rem,env(safe-area-inset-bottom,0px))] pt-2
+                          transition-opacity duration-500
+                          ${resolving ? 'pointer-events-none opacity-0' : 'opacity-100'}`}>
         {armed && armedHero && armedSkill ? (
           <motion.div
             initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={SPRING}
@@ -1045,6 +1110,19 @@ export default function Board() {
         </div>
         )}
       </footer>
+
+      {/* The board darkens at the edges while an ability plays, which is what
+          pulls your eye to the middle in the reference footage. */}
+      <AnimatePresence>
+        {resolving && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            transition={{ duration: 0.6 }}
+            className="pointer-events-none fixed inset-0 z-20
+                       bg-[radial-gradient(ellipse_at_50%_45%,transparent_28%,rgba(0,0,0,0.55)_78%,rgba(0,0,0,0.85)_100%)]"
+          />
+        )}
+      </AnimatePresence>
 
       {/* the firing ability's own card, held on screen while it fires */}
       <AnimatePresence>
