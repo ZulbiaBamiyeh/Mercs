@@ -209,6 +209,40 @@ dispel, cleanse, cooldown manipulation, revival — and to sit in sane bands
 per role. They have had no balance passes. Treat them as a test fixture that
 happens to be playable.
 
+## The React board
+
+A second front end lives in `web/react/`, built to a spec that differs from the
+vanilla one on purpose - **square** hero frames, a **permanent three-skill dock
+welded under every unit**, and Mercenaries' own role colours (Protector red,
+Fighter green, Caster blue). It is a feel prototype on mock state, not engine
+backed; six heroes, three a side.
+
+```bash
+npm run build:icons   # lucide-static -> web/react/icons.jsx
+npm run build:board   # esbuild (JSX) + tailwind v4 -> web/react/dist/
+```
+
+| File | Contents |
+|---|---|
+| `web/react/Board.jsx` | The component. Lift this into a real project as-is. |
+| `web/react/heroes.jsx` | Mock state. Shapes match `src/` so wiring the engine in is mechanical. |
+| `web/react/icons.jsx` | Generated Lucide components. |
+| `web/react/input.css` | Tailwind v4 source, `@theme` tokens and `@source` globs. |
+
+Everything that can be compiled ahead of time is, because the published page
+has a CDN allowlist and anything from the wrong host fails *silently*: JSX
+through esbuild, Tailwind v4 through its own CLI, Lucide icons inlined from
+`lucide-static`. Only React, ReactDOM and Framer Motion load at runtime, as UMD
+bundles referenced through the `React` / `ReactDOM` / `Motion` globals, and the
+page states plainly if any of them fails to arrive.
+
+Two consequences worth knowing before editing it:
+
+- **Tailwind class names must be literal strings.** v4 scans source text, so a
+  template-assembled `` `border-${role}` `` generates nothing. Role styling
+  goes through explicit maps in `heroes.jsx`.
+- `web/react/dist/` is generated and stays out of git.
+
 ## What's next
 
 1. **The AI policy engine** — regret matching over the joint action space. One

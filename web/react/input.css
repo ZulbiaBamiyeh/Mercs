@@ -1,0 +1,41 @@
+@import "tailwindcss";
+
+/* Tailwind v4 scans source text, so every class in the JSX must appear as a
+   literal string there - never assembled from a template. */
+@source "./Board.jsx";
+@source "./heroes.jsx";
+@source "./icons.jsx";
+@source "./main.jsx";
+
+@theme {
+  --font-display: "Marcellus", "Palatino Linotype", Palatino, Georgia, serif;
+  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  /* Role identity. Mercenaries' own mapping: Protector red, Fighter green,
+     Caster blue. */
+  --color-protector: #e0483d;
+  --color-fighter: #52a94e;
+  --color-caster: #3f86d4;
+}
+
+html, body, #root { height: 100%; }
+
+body {
+  background: #0a0e13;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* The board is a fixed composition; let it scroll rather than squeeze. */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: #0a0e13; }
+::-webkit-scrollbar-thumb { background: #27313d; border-radius: 5px; }
+::-webkit-scrollbar-thumb:hover { background: #33404f; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

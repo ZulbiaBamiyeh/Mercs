@@ -11,11 +11,21 @@
     "test": "node --test test/*.test.ts",
     "typecheck": "tsc --noEmit",
     "bench": "node bench/resolve.bench.ts",
-    "build:web": "esbuild src/index.ts --bundle --format=esm --target=es2022 --outfile=web/engine.js"
+    "build:web": "esbuild src/index.ts --bundle --format=esm --target=es2022 --outfile=web/engine.js",
+    "build:icons": "python3 scripts/build-icons.py",
+    "build:board": "node scripts/build-react.mjs"
   },
   "devDependencies": {
+    "@babel/core": "^7.26.0",
+    "@babel/preset-react": "^7.26.3",
+    "@tailwindcss/cli": "^4.3.3",
     "@types/node": "^22.9.0",
     "esbuild": "^0.28.2",
+    "framer-motion": "^11.18.2",
+    "lucide-static": "^0.469.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "tailwindcss": "^4.3.3",
     "typescript": "^6.0.2"
   }
 }
