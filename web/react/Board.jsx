@@ -16,9 +16,10 @@
 
 import * as I from './icons.jsx';
 import { PORTRAITS } from './portraits.jsx';
+import { PLAYER_TEAM, ENEMY_TEAM, ROLES, TARGET, RANGE_LABEL } from './heroes.jsx';
 import {
-  PLAYER_TEAM, ENEMY_TEAM, ROLES, COUNTERS, ROLE_BONUS, TARGET, RANGE_LABEL,
-} from './heroes.jsx';
+  needsTarget, rangeOf, buildQueue, applyStep, tickCooldowns, outcomeOf,
+} from './rules.jsx';
 
 const { useState, useMemo, useCallback, useRef, useEffect } = React;
 const { motion, AnimatePresence } = Motion;
@@ -32,16 +33,7 @@ const ORDINALS = ['1st', '2nd', '3rd', '4th', '5th', '6th', '7th', '8th'];
 /** Literal classes only - Tailwind scans source text, not runtime strings. */
 const RANK_COLS = { 1: 'grid-cols-1', 2: 'grid-cols-2', 3: 'grid-cols-3', 4: 'grid-cols-4', 5: 'grid-cols-3', 6: 'grid-cols-3' };
 
-/** An ability needs a target unless it is aimed at its own caster or the field. */
-const needsTarget = (skill) => skill.target === TARGET.enemy || skill.target === TARGET.ally;
 
-/** Damage a strike would land, role bonus included. */
-function strikeDamage(actor, skill, target) {
-  const base = skill.isAttack ? actor.attack + (skill.bonus ?? 0) : (skill.power ?? 0);
-  if (base <= 0) return { amount: 0, bonus: false };
-  const bonus = Boolean(target) && COUNTERS[actor.role] === target.role;
-  return { amount: bonus ? base * ROLE_BONUS : base, bonus };
-}
 
 /* ---------------------------------------------------------------- */
 
@@ -464,38 +456,17 @@ export default function Board() {
   const orderOf = (hero) => (hero.side === 'player' ? selections[hero.id] : intents[hero.id]);
   const chosenIdOf = (hero) => orderOf(hero)?.skillId;
 
-  const queue = useMemo(() => {
-    const steps = [];
-    for (const h of heroes) {
-      if (h.health <= 0) continue;
-      const order = h.side === 'player' ? selections[h.id] : intents[h.id];
-      const skill = order && skillOf(h, order.skillId);
-      if (skill) steps.push({ heroId: h.id, skill, side: h.side, targetId: order.targetId });
-    }
-    // Ascending speed; same-side ties keep team order, so ordering your own
-    // heroes is a decision rather than a coin flip.
-    return steps.sort((a, b) => a.skill.speed - b.skill.speed
-      || (a.side === b.side ? 0 : a.side === 'player' ? -1 : 1));
-  }, [heroes, selections, intents]);
-
-  const rangeOf = useCallback((hero, skill) => {
-    const allies = (hero.side === 'player' ? livePlayers : liveEnemies).map((h) => h.id);
-    const foes = (hero.side === 'player' ? liveEnemies : livePlayers).map((h) => h.id);
-    switch (skill.target) {
-      case TARGET.self: return [hero.id];
-      case TARGET.ally:
-      case TARGET.allAllies: return allies;
-      default: return foes;
-    }
-  }, [livePlayers, liveEnemies]);
+  const allOrders = useMemo(() => ({ ...selections, ...intents }), [selections, intents]);
+  const queue = useMemo(() => buildQueue(heroes, allOrders), [heroes, allOrders]);
+  const aimedAt = useCallback((hero, skill) => rangeOf(heroes, hero, skill), [heroes]);
 
   /* ---- choosing a target ---- */
 
   const armedHero = armed ? heroesById[armed.heroId] : null;
   const armedSkill = armedHero ? skillOf(armedHero, armed.skillId) : null;
   const armedRange = useMemo(
-    () => (armedHero && armedSkill ? rangeOf(armedHero, armedSkill) : []),
-    [armedHero, armedSkill, rangeOf],
+    () => (armedHero && armedSkill ? aimedAt(armedHero, armedSkill) : []),
+    [armedHero, armedSkill, aimedAt],
   );
   const armedTone = armedSkill && (armedSkill.target === TARGET.ally
     || armedSkill.target === TARGET.allAllies || armedSkill.target === TARGET.self)
@@ -545,71 +516,15 @@ export default function Board() {
       setToast({ side: actor.side, name: actor.name, skill: step.skill });
       await sleep(640);
 
-      const ids = rangeOf(actor, step.skill);
-      const pool = board.filter((h) => ids.includes(h.id) && h.health > 0);
-      const chosen = step.targetId && pool.find((h) => h.id === step.targetId);
-      const targets = needsTarget(step.skill)
-        // The chosen target may have died earlier in the round; fall back to
-        // the weakest thing still in range rather than fizzling silently.
-        ? [chosen || [...pool].sort((a, b) => a.health / a.maxHealth - b.health / b.maxHealth)[0]].filter(Boolean)
-        : pool;
-
-      const next = board.map((h) => ({ ...h }));
-      const striker = next.find((x) => x.id === actor.id);
-
-      /** Shields soak first; returns what actually reached health. */
-      const dealTo = (victim, raw) => {
-        const soaked = Math.min(victim.shield, raw);
-        victim.shield -= soaked;
-        const through = raw - soaked;
-        victim.health = Math.max(0, victim.health - through);
-        return through;
-      };
-
-      for (const t of targets) {
-        const target = next.find((x) => x.id === t.id);
-        if (!target) continue;
-
-        if (step.skill.heal) {
-          const healed = Math.min(step.skill.heal, target.maxHealth - target.health);
-          target.health += healed;
-          if (healed > 0) pushFloater(target.id, `+${healed}`, 'heal');
-        }
-        if (step.skill.shield) {
-          target.shield += step.skill.shield;
-          pushFloater(target.id, 'warded', 'word');
-        }
-
-        const { amount, bonus } = strikeDamage(actor, step.skill, target);
-        if (amount > 0) {
-          const through = dealTo(target, amount);
-          pushFloater(target.id, `-${through}${bonus ? ' ×2' : ''}`, bonus ? 'crit' : 'dmg');
-        }
-      }
-
-      // The Attack keyword: the striker takes the defender's Attack back, and
-      // takes it even if the blow was lethal - the trade is simultaneous.
-      if (step.skill.isAttack && targets.length === 1 && striker) {
-        const back = targets[0].attack;
-        if (back > 0) {
-          const through = dealTo(striker, back);
-          pushFloater(striker.id, `-${through}`, 'dmg');
-        }
-      }
+      const { heroes: next, events } = applyStep(board, step);
+      for (const e of events) pushFloater(e.heroId, e.text, e.kind);
 
       board = next;
       setHeroes(board);
       await sleep(720);
     }
 
-    const ticked = board.map((h) => {
-      const used = (h.side === 'player' ? selections[h.id] : intents[h.id])?.skillId;
-      const cooldowns = { ...h.cooldowns };
-      for (const key of Object.keys(cooldowns)) cooldowns[key] = Math.max(0, cooldowns[key] - 1);
-      const skill = used && skillOf(h, used);
-      if (skill?.cooldown) cooldowns[used] = skill.cooldown;
-      return { ...h, cooldowns };
-    });
+    const ticked = tickCooldowns(board, allOrders);
 
     setHeroes(ticked);
     setActiveIndex(-1);
@@ -634,7 +549,7 @@ export default function Board() {
     setResolving(false);
   };
 
-  const outcome = liveEnemies.length === 0 ? 'won' : livePlayers.length === 0 ? 'lost' : null;
+  const outcome = outcomeOf(heroes);
   const openHero = openId ? heroesById[openId] : null;
 
   const rank = (list) => (

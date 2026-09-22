@@ -302,6 +302,38 @@ Two consequences worth knowing before editing it:
   goes through explicit maps in `heroes.jsx`.
 - `web/react/dist/` is generated and stays out of git.
 
+## Balance, measured
+
+`npm run balance` plays thousands of matches through the **same `rules.jsx` the
+board resolves with**, so the numbers describe the demo rather than a
+re-implementation of it. That is why the maths lives in its own pure module.
+
+The demo's numbers were written to exercise code paths, and the harness says
+so bluntly:
+
+| Both sides | Player wins | Enemy wins | Unresolved |
+|---|---|---|---|
+| random | 75% | 2% | 23% |
+| greedy | 0% | 0% | **100%** |
+| maximally aggressive | 0% | 0% | **100%** |
+
+Competent play never ends. Three measured causes:
+
+1. **Unbounded shields.** Geb's Stone Watch is +12 shield at cooldown 0, and
+   shields in these mock rules never expire, so it ends a capped-out match
+   sitting on **61 unspent shield** having taken 28 damage against 50 health.
+   Atlas has the same ability at +10. Both Protectors are unkillable. (The real
+   engine in `src/` gives statuses a duration; the mock rules dropped it.)
+2. **The Protector mirror has no win condition.** Atlas's only damage is 11 with
+   no role bonus against a Protector, and he takes 7 back for it. Nothing can
+   chew 50 health faster than the opposing kit repairs it, and there is no
+   attrition.
+3. **Isis cannot deal damage at all** - a ceiling of 0 across all three
+   abilities, so a third of the enemy team can never threaten anything.
+
+Offensive ceilings are also ~2.6x apart: player 212 against enemy 80, on teams
+of ~115 health each.
+
 ## What's next
 
 1. **The AI policy engine** — regret matching over the joint action space. One

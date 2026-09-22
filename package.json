@@ -14,7 +14,8 @@
     "build:web": "esbuild src/index.ts --bundle --format=esm --target=es2022 --outfile=web/engine.js",
     "build:icons": "python3 scripts/build-icons.py",
     "build:board": "node scripts/build-react.mjs",
-    "build:portraits": "python3 scripts/build-portraits.py"
+    "build:portraits": "python3 scripts/build-portraits.py",
+    "balance": "node scripts/balance.mjs"
   },
   "devDependencies": {
     "@babel/core": "^7.26.0",
