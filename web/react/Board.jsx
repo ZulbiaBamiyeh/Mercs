@@ -121,72 +121,177 @@ function Burst({ text, kind }) {
  * banner, parchment text, school strip - scaled up and tinted by side so
  * whose turn it is never needs a label.
  */
-function CastCard({ cast }) {
-  const { hero, skill } = cast;
+/**
+ * One ability, as a full card.
+ *
+ * The same object appears in two places, which is the point: the card that
+ * pops while you are choosing an ability is the card that slides in when it
+ * fires. Learn it once.
+ *
+ * Portrait proportions, art in a heavy ring with the winged speed plate
+ * biting into its lower left, a cooldown badge in the corner, a struck brass
+ * name banner, rules text on parchment, and the school on a strip. Plain
+ * weapon work has no school, so that strip is simply absent.
+ */
+function SkillCard({ hero, skill, cooldown = 0, byline = null }) {
   const Icon = skill.icon;
   const mine = hero.side === 'player';
   const role = ROLES[hero.role];
+  const locked = cooldown > 0;
 
+  return (
+    <div className="frame-metal relative rounded-xl p-[5px]">
+      <div className={`relative rounded-[8px] px-2.5 pb-2.5 pt-3
+                       ${mine
+                         ? 'bg-[linear-gradient(180deg,#5c4a23,#2a2010)]'
+                         : 'bg-[linear-gradient(180deg,#5a2a2e,#281014)]'}`}>
+        <div className="relative mx-auto w-fit">
+          <span className={`frame-well grid h-[74px] w-[74px] place-items-center rounded-full
+                            border-[4px] border-amber-500/90
+                            bg-[radial-gradient(circle_at_36%_28%,#4d5d72,#141b24_72%)]
+                            ${locked ? 'text-slate-500 saturate-50' : role.text}`}>
+            <Icon size={34} />
+          </span>
+          <Winged speed={skill.speed} className="absolute -bottom-1.5 -left-3 h-[26px] w-[40px]"
+                  textClass="text-[15px]" />
+          {(skill.cooldown > 0 || locked) && (
+            <span className="seal-brass absolute -right-2.5 -top-1 grid h-[22px] w-[22px] place-items-center
+                             rounded-full font-display text-[11px] font-extrabold leading-none text-amber-950">
+              {locked ? cooldown : skill.cooldown}
+            </span>
+          )}
+        </div>
+
+        {byline && (
+          <div className={`mt-2 text-center font-body text-[8.5px] font-bold uppercase tracking-[0.16em]
+                           ${mine ? 'text-amber-300/70' : 'text-rose-300/70'}`}>
+            {byline}
+          </div>
+        )}
+
+        <div className={`${byline ? 'mt-1' : 'mt-2.5'} rounded-sm border-y-2 border-amber-600/70
+                         bg-[linear-gradient(180deg,#e2bd76,#a87c34)] px-1 py-[3px] text-center`}>
+          <span className="ink-outline-sm font-display text-[12px] font-bold uppercase leading-tight
+                           tracking-tight text-amber-950">
+            {skill.name}
+          </span>
+        </div>
+
+        <div className="frame-well mt-2 rounded-sm bg-[linear-gradient(180deg,#ddd2b9,#c0b399)] px-2 py-2
+                        text-center font-body text-[12px] leading-snug text-stone-900">
+          {skill.text}
+          {/* An Attack trades damage both ways, so say what the swing costs. */}
+          {skill.isAttack && (
+            <span className="mt-1.5 block border-t border-stone-500/40 pt-1.5 text-[11px] font-semibold text-stone-700">
+              Strikes {hero.attack + (skill.bonus ?? 0)} · takes their Attack back
+            </span>
+          )}
+          {locked && (
+            <span className="mt-1.5 block border-t border-stone-500/40 pt-1.5 text-[11px] font-bold text-red-900">
+              Ready in {cooldown} round{cooldown === 1 ? '' : 's'}
+            </span>
+          )}
+        </div>
+
+        {skill.school && (
+          <div className="mx-auto mt-1.5 w-fit rounded-sm border border-amber-900/60 bg-stone-300/90 px-2.5
+                          font-body text-[9px] font-bold uppercase tracking-[0.12em] text-stone-800">
+            {skill.school}
+          </div>
+        )}
+      </div>
+      <Bevels size={12} />
+    </div>
+  );
+}
+
+/** Where a full card sits: left edge on a wide screen, the band below the
+ *  ranks on a phone, where a tall card cannot cover the board. */
+const CARD_SLOT = `fixed bottom-[4.25rem] left-2 z-40 w-[58vw] max-w-[208px]
+                   sm:bottom-auto sm:left-4 sm:top-1/2 sm:w-[224px] sm:-translate-y-1/2`;
+
+function CastCard({ cast }) {
+  const { hero, skill } = cast;
   return (
     <motion.div
       initial={{ x: '-108%', opacity: 0, rotate: -5 }}
       animate={{ x: 0, opacity: 1, rotate: 0 }}
       exit={{ x: '-108%', opacity: 0, rotate: -5 }}
       transition={{ type: 'spring', stiffness: 240, damping: 25 }}
-      /* Left edge, vertically centred, as in the reference. On a phone in
-         portrait a tall card there would sit on top of the ranks, so it goes
-         into the empty band below them instead and keeps the same shape. */
-      className="pointer-events-none fixed bottom-[4.25rem] left-2 z-40 w-[58vw] max-w-[208px]
-                 sm:bottom-auto sm:left-4 sm:top-1/2 sm:w-[224px] sm:-translate-y-1/2"
+      className={`pointer-events-none ${CARD_SLOT}`}
     >
-      <div className="frame-metal relative rounded-xl p-[5px]">
-        {/* The card body is tinted by side rather than by school, so a glance
-            at the left edge tells you whose ability is about to go off. */}
-        <div className={`relative rounded-[8px] px-2.5 pb-2.5 pt-3
-                         ${mine
-                           ? 'bg-[linear-gradient(180deg,#5c4a23,#2a2010)]'
-                           : 'bg-[linear-gradient(180deg,#5a2a2e,#281014)]'}`}>
-          {/* art, in its own heavy ring, with the winged speed plate biting in */}
-          <div className="relative mx-auto w-fit">
-            <span className={`frame-well grid h-[74px] w-[74px] place-items-center rounded-full
-                              border-[4px] border-amber-500/90
-                              bg-[radial-gradient(circle_at_36%_28%,#4d5d72,#141b24_72%)] ${role.text}`}>
-              <Icon size={34} />
-            </span>
-            <Winged speed={skill.speed} className="absolute -bottom-1.5 -left-3 h-[26px] w-[40px]"
-                    textClass="text-[15px]" />
-          </div>
+      <SkillCard hero={hero} skill={skill}
+                 byline={`${hero.side === 'player' ? 'Your god' : 'Enemy'} · ${hero.name}`} />
+    </motion.div>
+  );
+}
 
-          {/* who is casting, in small caps above the name plate */}
-          <div className={`mt-2 text-center font-body text-[8.5px] font-bold uppercase tracking-[0.16em]
-                           ${mine ? 'text-amber-300/70' : 'text-rose-300/70'}`}>
-            {mine ? 'Your god' : 'Enemy'} · {hero.name}
-          </div>
-
-          {/* the name plate: a struck brass banner, as on the real card */}
-          <div className="mt-1 rounded-sm border-y-2 border-amber-600/70
-                          bg-[linear-gradient(180deg,#e2bd76,#a87c34)] px-1 py-[3px] text-center">
-            <span className="ink-outline-sm font-display text-[12px] font-bold uppercase leading-tight
-                             tracking-tight text-amber-950">
-              {skill.name}
-            </span>
-          </div>
-
-          {/* rules text on parchment, centred, never truncated */}
-          <div className="frame-well mt-2 rounded-sm bg-[linear-gradient(180deg,#ddd2b9,#c0b399)] px-2 py-2
-                          text-center font-body text-[12px] leading-snug text-stone-900">
-            {skill.text}
-          </div>
-
-          {skill.school && (
-            <div className="mx-auto mt-1.5 w-fit rounded-sm border border-amber-900/60 bg-stone-300/90 px-2.5
-                            font-body text-[9px] font-bold uppercase tracking-[0.12em] text-stone-800">
-              {skill.school}
-            </div>
-          )}
-        </div>
-        <Bevels size={12} />
+/**
+ * The picker: three medallions on a tray, in the middle of the board.
+ *
+ * This is the shape the reference uses, and it is far lighter than the bottom
+ * sheet it replaces. Tapping one of your gods lays its three abilities out as
+ * discs - art, speed, cooldown, nothing else - and focusing one pops the full
+ * card in the usual slot. A sheet full of three complete cards was trying to
+ * say everything at once; this says the minimum on the board and the whole
+ * card only for the one you are actually considering.
+ *
+ * On a phone a tap is the hover: the first tap focuses a medallion and lights
+ * its legal targets, the second tap on a lit target commits. Abilities that
+ * need no target commit on that first tap, since there is nothing to choose.
+ */
+function MedallionTray({ hero, focusId, chosenSkillId, readOnly, onFocus }) {
+  return (
+    <motion.div
+      layout
+      initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 8 }}
+      transition={SPRING}
+      className="frame-metal relative flex shrink-0 items-center justify-center gap-3 rounded-xl p-[4px] sm:gap-5"
+    >
+      <div className={`flex w-full items-start justify-center gap-3 rounded-[8px] px-3 pb-1 pt-2 sm:gap-6
+                       ${hero.side === 'player'
+                         ? 'bg-[linear-gradient(180deg,#4a3418,#241a0b)]'
+                         : 'bg-[linear-gradient(180deg,#4a2024,#240e11)]'}`}>
+        {hero.skills.map((skill) => {
+          const Icon = skill.icon;
+          const cd = hero.cooldowns[skill.id] ?? 0;
+          const locked = cd > 0;
+          const focused = focusId === skill.id;
+          const chosen = chosenSkillId === skill.id;
+          return (
+            <button
+              key={skill.id}
+              type="button"
+              disabled={readOnly && locked}
+              onClick={(e) => { e.stopPropagation(); onFocus(skill); }}
+              title={`${skill.name} — speed ${skill.speed}${locked ? `, ready in ${cd}` : ''}`}
+              className="relative flex flex-col items-center focus-visible:outline-none"
+            >
+              <span className={`frame-metal relative grid h-[52px] w-[52px] place-items-center rounded-full p-[3px]
+                                transition-transform sm:h-[60px] sm:w-[60px]
+                                ${locked ? 'opacity-50 saturate-50' : 'active:scale-95'}
+                                ${focused || chosen
+                                  ? 'shadow-[0_0_0_3px_rgba(253,230,138,0.95),0_0_22px_4px_rgba(251,191,36,0.6)]'
+                                  : ''}`}>
+                <span className={`frame-well grid h-full w-full place-items-center rounded-full
+                                  bg-[radial-gradient(circle_at_36%_28%,#4d5d72,#141b24_72%)]
+                                  ${locked ? 'text-slate-500' : ROLES[hero.role].text}`}>
+                  <Icon size={24} />
+                </span>
+                {(skill.cooldown > 0 || locked) && (
+                  <span className="seal-brass absolute -right-1 -top-1 grid h-[19px] w-[19px] place-items-center
+                                   rounded-full font-display text-[10px] font-extrabold leading-none text-amber-950">
+                    {locked ? cd : skill.cooldown}
+                  </span>
+                )}
+              </span>
+              {/* speed hangs below the disc, as on the reference tray */}
+              <Winged speed={skill.speed} className="-mt-1.5 h-[20px] w-[32px]" textClass="text-[12px]" />
+            </button>
+          );
+        })}
       </div>
+      <Bevels size={11} />
     </motion.div>
   );
 }
@@ -260,10 +365,13 @@ function UnitTile({
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.94 }}
             transition={SPRING}
-            className={`pointer-events-none absolute -inset-1.5 z-30 rounded-2xl border-[3px]
-                        ${targetTone === 'hostile'
-                          ? 'border-red-400 shadow-[0_0_24px_rgba(248,113,113,0.6)]'
-                          : 'border-emerald-300 shadow-[0_0_24px_rgba(110,231,183,0.55)]'}`}
+            /* Green means "you may aim here". Red is reserved for the unit
+               actually being struck during resolution, so the two never mean
+               the same thing. The reference pools the glow at the unit's base
+               rather than outlining it evenly, which is what makes a rank of
+               legal targets read as lit from below. */
+            className="pointer-events-none absolute -inset-1.5 z-30 rounded-2xl border-[3px]
+                       border-emerald-300 shadow-[0_0_26px_rgba(52,211,153,0.65)]"
           />
         )}
       </AnimatePresence>
@@ -274,11 +382,8 @@ function UnitTile({
             animate={{ opacity: 1, scale: [1, 1.14, 1] }}
             exit={{ opacity: 0, scale: 0.5 }}
             transition={{ scale: { duration: 1.3, repeat: Infinity }, opacity: { duration: 0.15 } }}
-            className={`pointer-events-none absolute left-1/2 top-1/2 z-40 -translate-x-1/2 -translate-y-1/2
-                        rounded-full border-2 p-1.5
-                        ${targetTone === 'hostile'
-                          ? 'border-red-300 bg-red-950/80 text-red-200'
-                          : 'border-emerald-300 bg-emerald-950/80 text-emerald-200'}`}
+            className="pointer-events-none absolute left-1/2 top-1/2 z-40 -translate-x-1/2 -translate-y-1/2
+                       rounded-full border-2 border-emerald-300 bg-emerald-950/80 p-1.5 text-emerald-200" 
           >
             <I.Crosshair size={22} />
           </motion.span>
@@ -308,6 +413,17 @@ function UnitTile({
               {ordinal.endsWith('?') && <sup className="text-[8px] font-bold">?</sup>}
             </span>
           </motion.span>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {isTargetable && (
+          <motion.span
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="pointer-events-none absolute -bottom-4 left-1/2 z-20 h-6 w-[85%] -translate-x-1/2
+                       rounded-[50%] bg-[radial-gradient(ellipse_at_50%_50%,rgba(52,211,153,0.85),transparent_70%)]
+                       blur-[2px]"
+          />
         )}
       </AnimatePresence>
 
@@ -526,172 +642,6 @@ function TurnStrip({ queue, activeIndex, heroesById }) {
  * ---------------------------------------------------------------- */
 
 /* ---------------------------------------------------------------- *
- * The ability tray
- *
- * Built to match the real picker: a framed tray titled "Abilities" holding
- * three portrait cards side by side. Each card is circular art in a gold
- * ring, the winged speed plate biting into the bottom-left of that ring, a
- * cooldown badge in the top-right corner, a name banner, the rules text on
- * parchment, and a school strip along the bottom. Plain weapon work carries
- * no school, so that strip is omitted rather than left blank - the real
- * Fighter cards do the same.
- *
- * Three across is the whole point of the layout, so it holds at phone width:
- * the cards get narrow, not stacked.
- * ---------------------------------------------------------------- */
-
-function AbilityCard({ skill, cooldown, chosen, readOnly, hero, onPick }) {
-  const Icon = skill.icon;
-  const locked = cooldown > 0;
-  const pickable = !readOnly && !locked;
-  const role = ROLES[hero.role];
-
-  return (
-    <button
-      type="button"
-      disabled={!pickable}
-      onClick={() => pickable && onPick(skill)}
-      title={locked ? `Ready in ${cooldown} round${cooldown === 1 ? '' : 's'}` : skill.name}
-      className={`frame-metal group relative flex flex-col items-center rounded-[10px] pb-1.5 pt-2 text-center
-                  transition-transform
-                  ${chosen ? 'shadow-[0_0_0_3px_rgba(253,230,138,0.9),0_0_20px_3px_rgba(251,191,36,0.5)]' : ''}
-                  ${locked ? 'opacity-55 saturate-50' : ''}
-                  ${pickable ? 'cursor-pointer active:scale-[0.97]' : 'cursor-default'}
-                  focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-200`}
-    >
-      {/* the card's own dark interior, inside the metal */}
-      <span className="pointer-events-none absolute inset-[3px] rounded-[7px]
-                       bg-[linear-gradient(180deg,#463014,#20160a)]" />
-      <Bevels size={10} />
-      {/* art, in a gold ring. The wrapper hugs the circle rather than the card,
-          so the speed plate bites into the ring's bottom-left as it does on
-          the real card instead of drifting to the card's edge. */}
-      <span className="relative z-10 mt-0.5 inline-block">
-        <span className={`frame-well grid h-[58px] w-[58px] place-items-center rounded-full border-[3px]
-                          border-amber-600/90 bg-[radial-gradient(circle_at_36%_28%,#4a5a6e,#1b232e_70%)]
-                          ${role.text}`}>
-          <Icon size={26} />
-        </span>
-        {/* speed bites into the bottom-left of the ring, as on the real card */}
-        <Winged speed={skill.speed} className="absolute -bottom-0.5 -left-2.5 h-[19px] w-[30px]" textClass="text-[11px]" />
-        {/* cooldown sits in the card's top-right corner, and only when it has one */}
-        {(skill.cooldown > 0 || locked) && (
-          <span className="absolute -right-3 -top-1 grid h-[19px] w-[19px] place-items-center rounded-full
-                           border-2 border-amber-200/70 bg-slate-900
-                           font-display text-[10px] font-bold leading-none text-amber-100">
-            {locked ? cooldown : skill.cooldown}
-          </span>
-        )}
-      </span>
-
-      {/* name banner */}
-      <span className="relative z-10 mt-1.5 w-[calc(100%+6px)] border-y border-amber-500/50
-                       bg-[linear-gradient(180deg,#d9b26a,#a87c34)] px-0.5 py-[2px]
-                       font-display text-[9.5px] font-bold uppercase leading-tight tracking-tight text-amber-950">
-        {skill.name}
-      </span>
-
-      {/* rules text, on parchment, never truncated */}
-      <span className="relative z-10 mt-1 flex w-[calc(100%-6px)] flex-1 flex-col justify-center rounded-sm
-                       bg-[linear-gradient(180deg,#d8cdb4,#bdb096)] px-1 py-1
-                       font-body text-[9.5px] leading-[1.25] text-stone-900">
-        {skill.text}
-        {/* An Attack trades damage both ways, so say what the swing costs. */}
-        {skill.isAttack && (
-          <span className="mt-1 block border-t border-stone-500/40 pt-1 font-semibold text-stone-700">
-            Strikes {hero.attack + (skill.bonus ?? 0)} · takes their Attack back
-          </span>
-        )}
-      </span>
-
-      {/* range, then school - the real card's bottom strip */}
-      <span className="relative z-10 mt-1 font-body text-[8px] uppercase tracking-wider text-amber-200/60">
-        {RANGE_LABEL[skill.target]}
-      </span>
-      {skill.school && (
-        <span className="relative z-10 mt-0.5 w-[calc(100%-14px)] rounded-sm border border-amber-900/60 bg-stone-300/85
-                         font-body text-[8px] font-bold uppercase tracking-wider text-stone-800">
-          {skill.school}
-        </span>
-      )}
-
-      {chosen && (
-        <span className="absolute -top-2 left-1/2 -translate-x-1/2 rounded border-2 border-amber-300
-                         bg-amber-950 px-1.5 font-display text-[8px] font-bold uppercase tracking-wider text-amber-200">
-          {readOnly ? 'Chosen' : 'Set'}
-        </span>
-      )}
-    </button>
-  );
-}
-
-function AbilitySheet({ hero, chosenSkillId, readOnly, onPick, onClose }) {
-  const role = ROLES[hero.role];
-  return (
-    <>
-      <motion.div
-        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-        onClick={onClose}
-        className="fixed inset-0 z-40 bg-black/70"
-      />
-      <motion.div
-        initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
-        transition={SHEET_SPRING}
-        role="dialog"
-        aria-label={`${hero.name} abilities`}
-        className="fixed inset-x-0 bottom-0 z-50 mx-auto max-w-2xl rounded-t-2xl border-t-4 border-x-4
-                   border-amber-950/80 bg-[linear-gradient(180deg,#4a3a25,#241b11)] shadow-2xl shadow-black/90"
-      >
-        <div className="flex items-center gap-2.5 border-b-2 border-amber-950/70 px-3 py-2.5">
-          <img src={hero.portrait || PORTRAITS[hero.id]} alt=""
-               onError={(e) => { e.currentTarget.src = PORTRAITS[hero.id]; }}
-               className={`h-11 w-11 shrink-0 rounded-lg border-2 object-cover ${role.rule.replace('bg-', 'border-')}`} />
-          <div className="min-w-0 flex-1">
-            <div className="font-display text-[16px] font-semibold leading-tight text-amber-50">{hero.name}</div>
-            <div className="font-body text-[11.5px] italic leading-tight text-amber-200/60">{hero.title}</div>
-          </div>
-          <div className="text-right">
-            <span className={`rounded px-1.5 py-[2px] font-body text-[10px] font-bold uppercase tracking-[0.1em] ${role.chip}`}>
-              {role.label}
-            </span>
-            <div className="mt-0.5 font-body text-[10px] text-amber-200/50">doubles vs {role.beats}</div>
-          </div>
-          <button type="button" onClick={onClose} aria-label="Close"
-                  className="ml-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-lg border-2 border-amber-900/70
-                             bg-amber-950/60 text-amber-200 active:bg-amber-900/60">
-            <I.ChevronRight size={18} className="rotate-90" />
-          </button>
-        </div>
-
-        {/* the tray's own title plate, as on the real panel */}
-        <div className="relative pt-3">
-          <span className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 rounded border-2
-                           border-amber-500/60 bg-[linear-gradient(180deg,#d9b26a,#9d722d)] px-3 py-[1px]
-                           font-display text-[10px] font-bold uppercase tracking-[0.18em] text-amber-950">
-            Abilities
-          </span>
-          <div className="grid grid-cols-3 items-stretch gap-1.5 px-2 pb-2.5 pt-1.5">
-            {hero.skills.map((skill) => (
-              <AbilityCard
-                key={skill.id}
-                skill={skill}
-                cooldown={hero.cooldowns[skill.id] ?? 0}
-                chosen={chosenSkillId === skill.id}
-                readOnly={readOnly}
-                hero={hero}
-                onPick={onPick}
-              />
-            ))}
-          </div>
-        </div>
-
-        <div className="h-[max(0.5rem,env(safe-area-inset-bottom,0px))]" />
-      </motion.div>
-    </>
-  );
-}
-
-/* ---------------------------------------------------------------- *
  * Board
  * ---------------------------------------------------------------- */
 
@@ -727,6 +677,7 @@ export default function Board() {
   const [selections, setSelections] = useState({});
   const [intents, setIntents] = useState(() => pickIntents(seedHeroes()));
   const [openId, setOpenId] = useState(null);
+  const [focusId, setFocusId] = useState(null); // medallion whose card is popped
   const [armed, setArmed] = useState(null);   // { heroId, skillId } choosing a target
   // One tie-break coin per round: cross-side speed ties are random, but the
   // order shown has to be the order that resolves.
@@ -771,11 +722,24 @@ export default function Board() {
     || armedSkill.target === TARGET.allAllies || armedSkill.target === TARGET.self)
     ? 'friendly' : 'hostile';
 
-  /** An ability that needs no target commits on the tap - nothing to confirm. */
-  const chooseSkill = (hero, skill) => {
-    setOpenId(null);
+  /**
+   * Tapping a medallion.
+   *
+   * On a touch screen the first tap is the hover: it pops the ability's full
+   * card and, if the ability needs a target, lights the legal ones. An ability
+   * that needs no target has nothing left to choose, so it commits there and
+   * then. Tapping a locked medallion still shows its card - reading what you
+   * cannot use yet is how you plan the next round.
+   */
+  const focusSkill = (hero, skill) => {
+    setFocusId(skill.id);
+    if (hero.side !== 'player' || resolving || outcome) return;
+    if ((hero.cooldowns[skill.id] ?? 0) > 0) { setArmed(null); return; }
+
     if (!needsTarget(skill)) {
       setArmed(null);
+      setOpenId(null);
+      setFocusId(null);
       setSelections((prev) => ({ ...prev, [hero.id]: { skillId: skill.id, targetId: null } }));
       return;
     }
@@ -786,6 +750,8 @@ export default function Board() {
     if (!armed || !armedRange.includes(target.id)) return;
     setSelections((prev) => ({ ...prev, [armed.heroId]: { skillId: armed.skillId, targetId: target.id } }));
     setArmed(null);
+    setOpenId(null);
+    setFocusId(null);
   };
 
   const pushFloater = (heroId, text, kind) => {
@@ -819,6 +785,7 @@ export default function Board() {
     if (!ready || resolving) return;
     setResolving(true);
     setOpenId(null);
+    setFocusId(null);
     setArmed(null);
     let board = heroes;
     const beat = (ms) => sleep(fast ? ms / 2 : ms);
@@ -905,6 +872,7 @@ export default function Board() {
     setAiming(null);
     setSpotlight(null);
     setOpenId(null);
+    setFocusId(null);
     setArmed(null);
     setTieSeed((Math.random() * 0xffffffff) >>> 0);
     setResolving(false);
@@ -912,6 +880,11 @@ export default function Board() {
 
   const outcome = outcomeOf(heroes);
   const openHero = openId ? heroesById[openId] : null;
+  // The card on show follows the armed ability when one is armed, so the card
+  // stays up while you pick a target - which is how the reference behaves.
+  const previewHero = armedHero ?? openHero;
+  const previewSkill = armedSkill
+    ?? (openHero && focusId ? openHero.skills.find((sk) => sk.id === focusId) : null);
   /** The button is pressable: every order in, nothing resolving, no result. */
   const live = ready && !resolving && !outcome;
 
@@ -919,7 +892,10 @@ export default function Board() {
   // Only once every order is in - a partial order would be a lie, since a
   // pick you have not made yet can land anywhere in the queue.
   const ordinalOf = (heroId) => {
-    if (!ready && !resolving) return null;
+    // Shown as soon as a god has an order, not only once every order is in.
+    // The positions do shift as you add picks - which is exactly what the
+    // reference does, and watching the order form as you choose is worth more
+    // than never showing a number that might move.
     const at = queue.findIndex((step) => step.heroId === heroId);
     if (at < 0) return null;
     // A cross-side speed tie is settled by a coin, so the position is a guess
@@ -1018,7 +994,20 @@ export default function Board() {
       <main className="relative z-10 mx-auto my-auto flex max-h-[26rem] min-h-0 w-full flex-1 flex-col
                        justify-between gap-3 px-3 py-2 sm:max-h-[36rem] sm:max-w-xl sm:gap-8 sm:py-4">
         {rank(enemies)}
-        <TurnStrip queue={queue} activeIndex={activeIndex} heroesById={heroesById} />
+        <AnimatePresence mode="wait">
+          {openHero ? (
+            <MedallionTray
+              key={`tray-${openHero.id}`}
+              hero={openHero}
+              focusId={openHero.side === 'player' ? (armed?.skillId ?? focusId) : focusId}
+              chosenSkillId={chosenIdOf(openHero)}
+              readOnly={openHero.side !== 'player' || resolving || Boolean(outcome)}
+              onFocus={(skill) => focusSkill(openHero, skill)}
+            />
+          ) : (
+            <TurnStrip key="strip" queue={queue} activeIndex={activeIndex} heroesById={heroesById} />
+          )}
+        </AnimatePresence>
         {rank(players)}
       </main>
 
@@ -1032,15 +1021,13 @@ export default function Board() {
         {armed && armedHero && armedSkill ? (
           <motion.div
             initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={SPRING}
-            className={`flex items-center gap-3 rounded-xl border-[3px] px-3 py-2
-                        ${armedTone === 'hostile'
-                          ? 'border-red-500 bg-red-950/70 shadow-[0_0_22px_-4px_rgba(248,113,113,0.6)]'
-                          : 'border-emerald-500 bg-emerald-950/70 shadow-[0_0_22px_-4px_rgba(110,231,183,0.55)]'}`}
+            className="flex items-center gap-3 rounded-xl border-[3px] border-emerald-500 bg-emerald-950/70 px-3 py-2
+                       shadow-[0_0_22px_-4px_rgba(52,211,153,0.6)]" 
           >
             <motion.span
               animate={{ scale: [1, 1.12, 1] }}
               transition={{ duration: 1.3, repeat: Infinity }}
-              className={armedTone === 'hostile' ? 'text-red-300' : 'text-emerald-300'}
+              className="text-emerald-300" 
             >
               <I.Crosshair size={22} />
             </motion.span>
@@ -1129,6 +1116,27 @@ export default function Board() {
         {cast && <CastCard key={`${cast.hero.id}-${cast.skill.id}`} cast={cast} />}
       </AnimatePresence>
 
+      {/* and the same card while you are only considering the ability */}
+      <AnimatePresence>
+        {!cast && previewHero && previewSkill && (
+          <motion.div
+            key={`preview-${previewHero.id}-${previewSkill.id}`}
+            initial={{ opacity: 0, x: -14, scale: 0.96 }}
+            animate={{ opacity: 1, x: 0, scale: 1 }}
+            exit={{ opacity: 0, x: -14, scale: 0.96 }}
+            transition={SPRING}
+            className={`pointer-events-none ${CARD_SLOT}`}
+          >
+            <SkillCard
+              hero={previewHero}
+              skill={previewSkill}
+              cooldown={previewHero.cooldowns[previewSkill.id] ?? 0}
+              byline={previewHero.side === 'player' ? null : `Enemy · ${previewHero.name}`}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* a role-doubled hit tints the whole screen for a moment */}
       <AnimatePresence>
         {flash && (
@@ -1141,18 +1149,6 @@ export default function Board() {
         )}
       </AnimatePresence>
 
-      <AnimatePresence>
-        {openHero && (
-          <AbilitySheet
-            key={openHero.id}
-            hero={openHero}
-            chosenSkillId={chosenIdOf(openHero)}
-            readOnly={openHero.side !== 'player' || resolving || Boolean(outcome)}
-            onPick={(skill) => chooseSkill(openHero, skill)}
-            onClose={() => setOpenId(null)}
-          />
-        )}
-      </AnimatePresence>
     </div>
   );
 }

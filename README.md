@@ -242,11 +242,27 @@ npm run build:board      # esbuild (JSX) + tailwind v4 -> web/react/dist/
 ### Built for a phone in portrait
 
 The layout decision everything else follows from: **abilities are not on the
-board.** Tap a hero and a sheet rises with its three abilities in full - name,
-speed, cooldown, range and rules text, none of it truncated. Tapping an enemy
-opens the same sheet read-only with the ability it has chosen marked `Chosen`.
-That is how Mercenaries does it, and it buys back the vertical space three
-permanent skill docks were eating.
+board.** Tap a hero and its three abilities lay out as a tray of medallions in
+the centre band - art, speed, cooldown, nothing else - and focusing one pops
+the ability's **full card** in the slot beside the board. Tapping an enemy
+opens the same tray read-only.
+
+That replaced a bottom sheet holding three complete cards at once, which was
+trying to say everything simultaneously. The tray says the minimum on the
+board and the whole card only for the ability you are actually considering,
+which is the shape the reference footage uses.
+
+On a phone a tap *is* the hover: the first tap focuses a medallion and lights
+its legal targets green, the second tap on a lit target commits. Abilities
+that need no target commit on that first tap, since there is nothing left to
+choose. A locked medallion still shows its card - reading what you cannot use
+yet is how you plan the next round.
+
+The full card is one object appearing in two places, deliberately: the card
+that pops while you choose is the card that slides in when the ability fires.
+
+Green means "you may aim here"; red is reserved for the unit actually being
+struck during resolution, so the two never mean the same thing.
 
 What is left on the board is only what you read at a glance: the portrait, two
 stat gems, the committed ability, and the turn order. Measured at 390x844 and
