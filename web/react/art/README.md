@@ -14,7 +14,14 @@ the page.
 
 | Slot | Frame | Export | Notes |
 |---|---|---|---|
-| Portrait | strict 1:1, `object-cover` | 512×512 | Face in the upper two-thirds; the lower third carries the name plate and the role wash. |
+| Portrait | strict 1:1 well, `object-fit: cover` | 512×512 | Face in the upper two-thirds; the lower third carries the name plate and the role wash. |
+
+**Any aspect ratio will work.** The well is square and the `portrait-fill`
+class is `object-fit: cover` with `object-position: center 22%`, so a
+non-square file is filled and centre-cropped with a bias above centre - it
+crops to the face rather than the chin, and it is never squashed. Exporting
+square just means you control the crop instead of us. The image also carries
+the well's inner top radius, so art never squares off the frame's corners.
 
 `.webp` keeps the page inside the artifact's 16MB budget - six portraits at
 512×512 webp land around 250KB total. `.png` and `.jpg` work too.

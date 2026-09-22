@@ -36,6 +36,87 @@ body {
 ::-webkit-scrollbar-thumb { background: #3a3327; border-radius: 5px; }
 ::-webkit-scrollbar-thumb:hover { background: #4d4433; }
 
+/* ---------------------------------------------------------------------- *
+ * Cast metal
+ *
+ * The frames are the difference between "a web page about a card game" and
+ * something that looks pressed out of bronze. Each piece is layered rather
+ * than flat: a gradient body that runs light-dark-light so it reads as a
+ * curved surface, a bright lip along the top edge, a dark seat underneath,
+ * and a well that sinks inward. Kept in CSS because it is five or six shadows
+ * per piece and it is reused by cards, seals and buttons alike.
+ * ---------------------------------------------------------------------- */
+
+.frame-metal {
+  background: linear-gradient(
+    158deg,
+    #f4dd9a 0%, #c9974a 15%, #8a6428 38%,
+    #5e3f15 58%, #8f6a2c 80%, #e8cd8c 100%
+  );
+  box-shadow:
+    /* the card sits on the board rather than floating on it */
+    0 16px 32px -8px rgba(0, 0, 0, 0.95),
+    0 5px 12px rgba(0, 0, 0, 0.8),
+    /* struck lip on top, dark seat below */
+    inset 0 1px 0 rgba(255, 248, 219, 0.9),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.6),
+    inset 0 0 0 1px rgba(60, 38, 8, 0.55);
+}
+
+/* The recess the art sits in. */
+.frame-well {
+  box-shadow:
+    inset 0 0 10px rgba(0, 0, 0, 0.8),
+    inset 0 3px 6px rgba(0, 0, 0, 0.9),
+    inset 0 0 0 1px rgba(0, 0, 0, 0.75);
+}
+
+/* A brass seal: pinned, domed, and lit from the upper left. */
+.seal-brass {
+  background: radial-gradient(circle at 36% 26%, #ffeeb8, #dcae45 44%, #96691b 76%, #5f3e0b);
+  box-shadow:
+    0 3px 7px rgba(0, 0, 0, 0.85),
+    inset 0 1px 1px rgba(255, 250, 222, 0.95),
+    inset 0 -2px 3px rgba(0, 0, 0, 0.5),
+    inset 0 0 0 1px rgba(74, 47, 8, 0.7);
+}
+.seal-brass-foe {
+  background: radial-gradient(circle at 36% 26%, #ffdede, #d98f8f 44%, #8f3c3c 76%, #571c1c);
+}
+
+/* Carved into the plate: the interior is cut away, so it is dark and the
+   shadow falls inward from the top. */
+.btn-carved {
+  background: linear-gradient(180deg, #53401d 0%, #2c1f0c 55%, #150e05 100%);
+  box-shadow:
+    inset 0 3px 7px rgba(0, 0, 0, 0.95),
+    inset 0 -1px 0 rgba(255, 236, 178, 0.18);
+}
+.btn-carved-dead {
+  background: linear-gradient(180deg, #2a2a2a 0%, #171717 55%, #0d0d0d 100%);
+}
+
+/* Names have to survive dark art behind them, so they get a hard outline
+   rather than a soft shadow. */
+.ink-outline {
+  text-shadow:
+    2px 2px 0 #000, -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000,
+    0 3px 6px rgba(0, 0, 0, 0.9);
+}
+.ink-outline-sm {
+  text-shadow:
+    1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000;
+}
+
+/* Drop-in art: a square well plus object-cover means any aspect ratio is
+   filled and centre-cropped rather than squashed. */
+.portrait-fill {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 22%;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;

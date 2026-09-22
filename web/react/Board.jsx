@@ -71,6 +71,26 @@ const BURST_TONE = {
   buff: ['#a855f7', '#f3e8ff', '#ffffff'],
 };
 
+/**
+ * Four bevelled corner plates.
+ *
+ * Real card frames are not extruded rectangles; they have a cast plate at
+ * each corner catching the light. Each is a triangle clipped out of a bright
+ * gold gradient, rotated to face outward.
+ */
+function Bevels({ size = 15 }) {
+  const corner = `pointer-events-none absolute bg-[linear-gradient(135deg,#fff6d8,#dcb35c_52%,#7d5a22)]`;
+  const box = { width: size, height: size };
+  return (
+    <>
+      <span style={box} className={`${corner} left-0 top-0 rounded-tl-xl [clip-path:polygon(0_0,100%_0,0_100%)]`} />
+      <span style={box} className={`${corner} right-0 top-0 rounded-tr-xl [clip-path:polygon(100%_0,100%_100%,0_0)]`} />
+      <span style={box} className={`${corner} bottom-0 left-0 rounded-bl-xl [clip-path:polygon(0_0,0_100%,100%_100%)]`} />
+      <span style={box} className={`${corner} bottom-0 right-0 rounded-br-xl [clip-path:polygon(100%_0,100%_100%,0_100%)]`} />
+    </>
+  );
+}
+
 function Burst({ text, kind }) {
   const [fill, stroke, ink] = BURST_TONE[kind] ?? BURST_TONE.dmg;
   const big = kind === 'crit';
@@ -120,11 +140,11 @@ function CastCard({ cast }) {
       className="pointer-events-none fixed bottom-[4.25rem] left-0 z-40 w-[76vw] max-w-[310px]
                  sm:bottom-auto sm:top-1/2 sm:w-[300px] sm:-translate-y-1/2"
     >
-      <div className={`relative rounded-r-xl border-y-[3px] border-r-[3px] pb-2 pl-5 pr-3 pt-3
-                       shadow-[10px_0_30px_rgba(0,0,0,0.75)]
+      <div className="frame-metal relative rounded-r-xl py-[3px] pl-0 pr-[3px]">
+      <div className={`relative rounded-r-lg pb-2 pl-5 pr-3 pt-3
                        ${mine
-                         ? 'border-amber-400/80 bg-[linear-gradient(135deg,#6b4a22,#2b1d0f)]'
-                         : 'border-rose-500/70 bg-[linear-gradient(135deg,#63262c,#2a1014)]'}`}>
+                         ? 'bg-[linear-gradient(135deg,#6b4a22,#2b1d0f)]'
+                         : 'bg-[linear-gradient(135deg,#63262c,#2a1014)]'}`}>
         <div className="flex items-center gap-2.5">
           <span className="relative shrink-0">
             <span className={`grid h-[52px] w-[52px] place-items-center rounded-full border-[3px]
@@ -158,6 +178,7 @@ function CastCard({ cast }) {
           </div>
         )}
       </div>
+      </div>
     </motion.div>
   );
 }
@@ -169,13 +190,17 @@ function CastCard({ cast }) {
  */
 function PortraitStack({ hero, role }) {
   const [failed, setFailed] = useState(false);
+  // `portrait-fill` is object-fit: cover in a square well, biased slightly
+  // above centre so a bust crops to the face rather than the chin. Any aspect
+  // ratio dropped in is filled and centre-cropped, never squashed. The inner
+  // top radius matches the well so art never squares off the frame's corners.
+  const fill = 'absolute inset-0 portrait-fill rounded-t-[8px]';
   return (
     <>
-      <img src={PORTRAITS[hero.id]} alt={`${hero.name}, ${role.label}`}
-           className="absolute inset-0 h-full w-full object-cover" />
+      <img src={PORTRAITS[hero.id]} alt={`${hero.name}, ${role.label}`} className={fill} />
       {hero.portrait && !failed && (
         <img src={hero.portrait} alt="" aria-hidden="true" onError={() => setFailed(true)}
-             className="absolute inset-0 h-full w-full object-cover" />
+             className={fill} />
       )}
     </>
   );
@@ -260,14 +285,19 @@ function UnitTile({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, scale: 0.8 }}
             transition={SPRING}
-            className={`pointer-events-none absolute -top-2.5 left-1/2 z-40 -translate-x-1/2 rounded-full
-                        border-2 px-1.5 font-display text-[9.5px] font-bold leading-[15px]
-                        shadow-[0_2px_5px_rgba(0,0,0,0.8)]
-                        ${hero.side === 'player'
-                          ? 'border-amber-300 bg-[linear-gradient(180deg,#fdf1d0,#d8b369)] text-amber-950'
-                          : 'border-rose-300 bg-[linear-gradient(180deg,#ffe2e2,#d98a8a)] text-rose-950'}`}
+            className={`seal-brass pointer-events-none absolute -top-3 left-1/2 z-40 grid h-[26px] w-[26px]
+                        -translate-x-1/2 place-items-center rounded-full
+                        ${hero.side === 'enemy' ? 'seal-brass-foe' : ''}`}
           >
-            {ordinal}
+            {/* The ordinal is the seal's stamp: dark gold, not white. A tie
+                marker rides as a superscript so the number stays centred in
+                the circle. */}
+            <span className={`ink-outline-sm font-display text-[10px] font-extrabold leading-none
+                              ${hero.side === 'enemy' ? 'text-rose-950' : 'text-amber-950'}`}
+                  style={{ textShadow: '0 1px 0 rgba(255,248,219,0.55)' }}>
+              {ordinal.replace('?', '')}
+              {ordinal.endsWith('?') && <sup className="text-[8px] font-bold">?</sup>}
+            </span>
           </motion.span>
         )}
       </AnimatePresence>
@@ -279,12 +309,24 @@ function UnitTile({
           Casting
         </span>
       )}
-      <div
-        className={`relative aspect-square w-full overflow-hidden rounded-xl border-[3px] bg-slate-900
-                    shadow-xl shadow-black/70 transition-colors
-                    ${isActing || isCaster ? 'border-amber-500'
-                      : isOpen ? 'border-amber-300' : 'border-slate-700'}`}
-      >
+      {/* A cast bronze frame with bevelled corners around a sunken well. The
+          frame is gold on every card, so selection can no longer be a border
+          colour - it is a glow ring instead, and role identity keeps reading
+          from the bottom wash, the rule and the two gems. */}
+      <div className="frame-metal relative aspect-square w-full rounded-xl p-[5px]">
+        <AnimatePresence>
+          {(isActing || isCaster || isOpen) && (
+            <motion.span
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className={`pointer-events-none absolute -inset-[4px] z-30 rounded-[16px]
+                          ${isActing || isCaster
+                            ? 'shadow-[0_0_0_3px_rgba(253,230,138,0.95),0_0_26px_4px_rgba(251,191,36,0.6)]'
+                            : 'shadow-[0_0_0_2px_rgba(253,230,138,0.65)]'}`}
+            />
+          )}
+        </AnimatePresence>
+
+        <div className="frame-well relative h-full w-full overflow-hidden rounded-[8px] bg-slate-900">
         <PortraitStack hero={hero} role={role} />
 
         {/* the caster lights up as it swings */}
@@ -334,8 +376,8 @@ function UnitTile({
         )}
 
         <div className="absolute inset-x-0 bottom-6 z-20 px-1 text-center">
-          <div className="truncate font-display text-[13px] font-semibold leading-tight text-white
-                          drop-shadow-[0_2px_3px_rgba(0,0,0,1)] sm:text-[15px]">
+          <div className="ink-outline truncate font-display text-[14px] font-bold leading-tight
+                          text-amber-50 sm:text-[16px]">
             {hero.name}
           </div>
         </div>
@@ -345,7 +387,6 @@ function UnitTile({
             <I.Skull size={30} className="text-slate-300/80" />
           </div>
         )}
-
         {/* Numbers punch in oversized and settle, rather than drifting up from
             nothing: the earlier version was legible only if you already knew
             what to look for. Keyword callouts stay plain text - a starburst on
@@ -372,6 +413,9 @@ function UnitTile({
             </motion.div>
           ))}
         </AnimatePresence>
+        </div>
+
+        <Bevels />
       </div>
 
       {/* Gems straddle the plate's bottom corners, half in and half out, and
@@ -479,22 +523,24 @@ function AbilityCard({ skill, cooldown, chosen, readOnly, hero, onPick }) {
       disabled={!pickable}
       onClick={() => pickable && onPick(skill)}
       title={locked ? `Ready in ${cooldown} round${cooldown === 1 ? '' : 's'}` : skill.name}
-      className={`group relative flex flex-col items-center rounded-[10px] border-2 pb-1.5 pt-2 text-center
+      className={`frame-metal group relative flex flex-col items-center rounded-[10px] pb-1.5 pt-2 text-center
                   transition-transform
-                  ${chosen
-                    ? 'border-amber-300 bg-[linear-gradient(180deg,#6d4a1c,#3a2710)] shadow-[0_0_0_2px_rgba(252,211,77,0.35)]'
-                    : 'border-amber-900/80 bg-[linear-gradient(180deg,#5a3f22,#2e2011)]'}
+                  ${chosen ? 'shadow-[0_0_0_3px_rgba(253,230,138,0.9),0_0_20px_3px_rgba(251,191,36,0.5)]' : ''}
                   ${locked ? 'opacity-55 saturate-50' : ''}
                   ${pickable ? 'cursor-pointer active:scale-[0.97]' : 'cursor-default'}
-                  focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300`}
+                  focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-200`}
     >
+      {/* the card's own dark interior, inside the metal */}
+      <span className="pointer-events-none absolute inset-[3px] rounded-[7px]
+                       bg-[linear-gradient(180deg,#463014,#20160a)]" />
+      <Bevels size={10} />
       {/* art, in a gold ring. The wrapper hugs the circle rather than the card,
           so the speed plate bites into the ring's bottom-left as it does on
           the real card instead of drifting to the card's edge. */}
-      <span className="relative mt-0.5 inline-block">
-        <span className={`grid h-[58px] w-[58px] place-items-center rounded-full border-[3px] border-amber-600/90
-                          bg-[radial-gradient(circle_at_36%_28%,#4a5a6e,#1b232e_70%)]
-                          shadow-[inset_0_2px_6px_rgba(0,0,0,0.85)] ${role.text}`}>
+      <span className="relative z-10 mt-0.5 inline-block">
+        <span className={`frame-well grid h-[58px] w-[58px] place-items-center rounded-full border-[3px]
+                          border-amber-600/90 bg-[radial-gradient(circle_at_36%_28%,#4a5a6e,#1b232e_70%)]
+                          ${role.text}`}>
           <Icon size={26} />
         </span>
         {/* speed bites into the bottom-left of the ring, as on the real card */}
@@ -510,14 +556,14 @@ function AbilityCard({ skill, cooldown, chosen, readOnly, hero, onPick }) {
       </span>
 
       {/* name banner */}
-      <span className="mt-1.5 w-[calc(100%+6px)] border-y border-amber-500/50
+      <span className="relative z-10 mt-1.5 w-[calc(100%+6px)] border-y border-amber-500/50
                        bg-[linear-gradient(180deg,#d9b26a,#a87c34)] px-0.5 py-[2px]
                        font-display text-[9.5px] font-bold uppercase leading-tight tracking-tight text-amber-950">
         {skill.name}
       </span>
 
       {/* rules text, on parchment, never truncated */}
-      <span className="mt-1 flex w-[calc(100%-6px)] flex-1 flex-col justify-center rounded-sm
+      <span className="relative z-10 mt-1 flex w-[calc(100%-6px)] flex-1 flex-col justify-center rounded-sm
                        bg-[linear-gradient(180deg,#d8cdb4,#bdb096)] px-1 py-1
                        font-body text-[9.5px] leading-[1.25] text-stone-900">
         {skill.text}
@@ -530,11 +576,11 @@ function AbilityCard({ skill, cooldown, chosen, readOnly, hero, onPick }) {
       </span>
 
       {/* range, then school - the real card's bottom strip */}
-      <span className="mt-1 font-body text-[8px] uppercase tracking-wider text-amber-200/60">
+      <span className="relative z-10 mt-1 font-body text-[8px] uppercase tracking-wider text-amber-200/60">
         {RANGE_LABEL[skill.target]}
       </span>
       {skill.school && (
-        <span className="mt-0.5 w-[calc(100%-14px)] rounded-sm border border-amber-900/60 bg-stone-300/85
+        <span className="relative z-10 mt-0.5 w-[calc(100%-14px)] rounded-sm border border-amber-900/60 bg-stone-300/85
                          font-body text-[8px] font-bold uppercase tracking-wider text-stone-800">
           {skill.school}
         </span>
@@ -809,6 +855,8 @@ export default function Board() {
 
   const outcome = outcomeOf(heroes);
   const openHero = openId ? heroesById[openId] : null;
+  /** The button is pressable: every order in, nothing resolving, no result. */
+  const live = ready && !resolving && !outcome;
 
   // Where each god falls in the resolved order, for the bubble on its tile.
   // Only once every order is in - a partial order would be a lie, since a
@@ -964,20 +1012,35 @@ export default function Board() {
                   <b className="font-display text-amber-200">{given}</b> of {livePlayers.length} orders given
                 </span>}
           </div>
+          {/* The one thing you press. A carved plate in the same cast metal as
+              the cards, and once every order is in it breathes a gold halo so
+              the round is obviously waiting on you. */}
           <motion.button
             type="button"
             onClick={resolveRound}
             disabled={!ready || resolving || Boolean(outcome)}
-            whileTap={ready && !resolving && !outcome ? { scale: 0.96 } : undefined}
+            whileTap={live ? { scale: 0.95 } : undefined}
             transition={SPRING}
-            className={`shrink-0 rounded-xl border-[3px] px-7 py-2.5 font-display text-[15px] font-semibold
-                        uppercase tracking-[0.16em] shadow-xl shadow-black/70
-                        focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300
-                        ${ready && !resolving && !outcome
-                          ? 'border-amber-800 bg-[linear-gradient(180deg,#f0cf7f,#c79327)] text-amber-950'
-                          : 'cursor-not-allowed border-slate-700 bg-slate-900/70 text-slate-600'}`}
+            aria-label={live ? 'Fight - resolve the round' : 'Fight - give every god an order first'}
+            className={`relative shrink-0 rounded-xl p-[3px]
+                        focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-200
+                        ${live ? 'frame-metal' : 'cursor-not-allowed bg-[linear-gradient(158deg,#4a4a4a,#2a2a2a_55%,#555)] shadow-lg shadow-black/70'}`}
           >
-            {resolving ? '…' : 'Ready'}
+            {live && (
+              <motion.span
+                aria-hidden
+                animate={{ opacity: [0.45, 1, 0.45], scale: [1, 1.045, 1] }}
+                transition={{ duration: 1.75, repeat: Infinity, ease: 'easeInOut' }}
+                className="pointer-events-none absolute -inset-1 rounded-[15px]
+                           shadow-[0_0_22px_6px_rgba(251,191,36,0.55),0_0_44px_14px_rgba(245,158,11,0.3)]"
+              />
+            )}
+            <span className={`relative block rounded-[9px] px-8 py-3 font-display text-[19px] font-bold
+                              uppercase tracking-[0.13em] sm:px-10 sm:text-[22px]
+                              ${live ? 'btn-carved text-amber-200 ink-outline' : 'btn-carved btn-carved-dead text-slate-600'}`}>
+              {resolving ? '…' : 'Fight!'}
+            </span>
+            <Bevels size={11} />
           </motion.button>
         </div>
         )}

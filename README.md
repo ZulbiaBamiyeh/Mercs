@@ -319,6 +319,33 @@ Two consequences worth knowing before editing it:
   goes through explicit maps in `heroes.jsx`.
 - `web/react/dist/` is generated and stays out of git.
 
+### The metal
+
+Everything framed on the board is cast from the same four CSS pieces, in
+`input.css` rather than scattered through the JSX, because each is five or six
+layered shadows:
+
+- `.frame-metal` - a gold/bronze body whose gradient runs light-dark-light so
+  it reads as a curved surface, with a struck lip along the top edge, a dark
+  seat underneath, and a heavy two-stage drop shadow so a card sits *on* the
+  board rather than floating above it. Unit cards, ability cards, the cast
+  card and the Fight button all use it, at 3-5px.
+- `.frame-well` - the recess the art sits in, `inset 0 0 10px rgba(0,0,0,.8)`
+  plus a directional inner shadow from the top.
+- `.seal-brass` - a domed brass disc lit from the upper left, for the turn
+  order stamps. Enemy seals take the rose variant.
+- `.ink-outline` - a hard four-way black outline. Names sit over art that can
+  be any colour, so a soft shadow is not enough; the outline is what makes
+  them pop.
+- `<Bevels>` - four cast corner plates, each a triangle clipped from a
+  brighter gold gradient. Sized per frame thickness.
+
+One consequence worth knowing: **the frame is gold on every card, so
+selection can no longer be a border colour.** Acting, casting and open states
+are glow rings instead, and role identity reads from the bottom wash, the
+bottom rule and the two role-coloured gems - three signals, none of them the
+frame.
+
 ### Resolution, beat by beat
 
 A round is not six numbers appearing; it is six little scenes. Per step:
