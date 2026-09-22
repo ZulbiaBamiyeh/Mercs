@@ -209,6 +209,14 @@ dispel, cleanse, cooldown manipulation, revival — and to sit in sane bands
 per role. They have had no balance passes. Treat them as a test fixture that
 happens to be playable.
 
+## What this copies from Mercenaries
+
+`docs/mercenaries-reference.md` records every rule this project borrows, with a
+confidence column, and is explicit about what could not be obtained: **every
+mercenary database, wiki and official page is blocked by this environment's
+egress policy**, so no per-mercenary stat table exists here. The systems are
+faithful; every number is derived and tuned, never copied.
+
 ## The React board
 
 A second front end lives in `web/react/`, built to a spec that differs from the
@@ -308,31 +316,39 @@ Two consequences worth knowing before editing it:
 board resolves with**, so the numbers describe the demo rather than a
 re-implementation of it. That is why the maths lives in its own pure module.
 
-The demo's numbers were written to exercise code paths, and the harness says
-so bluntly:
+`npm run balance -- --tune` sweeps parameter combinations and ranks them by how
+close the matchup is under every policy at once. Use it instead of arguing: the
+units are tuned to what it found, not to taste.
 
-| Both sides | Player wins | Enemy wins | Unresolved |
+Where the roster stands:
+
+| Both sides | Player | Enemy | Hit the round cap |
 |---|---|---|---|
-| random | 75% | 2% | 23% |
-| greedy | 0% | 0% | **100%** |
-| maximally aggressive | 0% | 0% | **100%** |
+| greedy | 49.2% | 50.8% | 0% |
+| maximally aggressive | 50.6% | 49.4% | 0% |
+| random | 56.9% | 39.6% | 0% |
 
-Competent play never ends. Three measured causes:
+Skill still decides matches - a greedy player beats a random one 85.8% of the
+time - and every hero contributes rather than riding along.
 
-1. **Unbounded shields.** Geb's Stone Watch is +12 shield at cooldown 0, and
-   shields in these mock rules never expire, so it ends a capped-out match
-   sitting on **61 unspent shield** having taken 28 damage against 50 health.
-   Atlas has the same ability at +10. Both Protectors are unkillable. (The real
-   engine in `src/` gives statuses a duration; the mock rules dropped it.)
-2. **The Protector mirror has no win condition.** Atlas's only damage is 11 with
-   no role bonus against a Protector, and he takes 7 back for it. Nothing can
-   chew 50 health faster than the opposing kit repairs it, and there is no
-   attrition.
-3. **Isis cannot deal damage at all** - a ceiling of 0 across all three
-   abilities, so a third of the enemy team can never threaten anything.
+### Three bugs the harness found
 
-Offensive ceilings are also ~2.6x apart: player 212 against enemy 80, on teams
-of ~115 health each.
+Recorded because each was invisible by inspection and each changed the game:
+
+1. **Shields accumulated forever.** At cooldown 0 and with no expiry, a
+   Protector ended a match sitting on 61 unspent shield having taken 28 damage
+   against 50 health. Both Protectors were literally unkillable and *every*
+   well-played match was a draw. Shields now carry a duration, as `src/`
+   always did.
+2. **Isis could not deal damage at all** - an offensive ceiling of zero across
+   all three abilities, so a third of the enemy team could never threaten
+   anything.
+3. **Cross-side speed ties always favoured the player.** The sort read
+   `a.side === 'player' ? -1 : 1`, which made greedy-vs-greedy fully
+   deterministic - so the sweep could only ever return 0% or 100% and no
+   balance signal existed at all. The reference says cross-side ties are
+   random; they now are, decided by one seed per round so the order the UI
+   previews is the order that resolves.
 
 ## What's next
 

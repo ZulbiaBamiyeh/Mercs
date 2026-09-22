@@ -29,15 +29,26 @@ await build({
 
 const M = await import(out);
 const { PLAYER_TEAM, ENEMY_TEAM, COUNTERS, ROLE_BONUS, TARGET } = M;
-const { needsTarget, rangeOf, buildQueue, applyStep, tickCooldowns, outcomeOf, strikeDamage } = M;
+const { needsTarget, rangeOf, buildQueue, applyStep, endRound, outcomeOf, strikeDamage } = M;
+const { spawn, decideOnHealth } = M;
 
-const seed = () => [
-  ...PLAYER_TEAM.map((h) => ({ ...h, side: 'player' })),
-  ...ENEMY_TEAM.map((h) => ({ ...h, side: 'enemy' })),
-].map((h) => ({
-  ...h, health: h.maxHealth, shield: 0,
-  cooldowns: Object.fromEntries(h.skills.map((s) => [s.id, s.cooldown])),
-}));
+/** Structured clone would choke on the icon components, so clone by hand. */
+const cloneDefs = () => [
+  ...PLAYER_TEAM.map((h) => ({ ...h, side: 'player', skills: h.skills.map((s) => ({ ...s })) })),
+  ...ENEMY_TEAM.map((h) => ({ ...h, side: 'enemy', skills: h.skills.map((s) => ({ ...s })) })),
+];
+
+let PATCH = null;
+const seed = () => {
+  const defs = cloneDefs();
+  if (PATCH) {
+    for (const [heroId, skillId, key, value] of PATCH) {
+      const skill = defs.find((h) => h.id === heroId)?.skills.find((s) => s.id === skillId);
+      if (skill) skill[key] = value;
+    }
+  }
+  return defs.map((h) => spawn(h, h.side));
+};
 
 const pick = (xs) => xs[Math.floor(Math.random() * xs.length)];
 
@@ -123,7 +134,8 @@ function playMatch(policyA, policyB, maxRounds = 30) {
       if (order) orders[h.id] = order;
     }
 
-    for (const step of buildQueue(heroes, orders)) {
+    const tieSeed = (Math.random() * 0xffffffff) >>> 0;
+    for (const step of buildQueue(heroes, orders, tieSeed)) {
       const before = new Map(heroes.map((h) => [h.id, h.health]));
       const { heroes: next } = applyStep(heroes, step);
       for (const h of next) {
@@ -138,12 +150,15 @@ function playMatch(policyA, policyB, maxRounds = 30) {
       if (outcomeOf(heroes)) break;
     }
 
-    heroes = tickCooldowns(heroes, orders);
+    const ended = endRound(heroes, orders);
+    heroes = ended.heroes;
   }
 
+  const clean = outcomeOf(heroes);
   return {
-    outcome: outcomeOf(heroes) ?? 'draw',
-    cappedOut: !outcomeOf(heroes),
+    // A capped-out match is decided on remaining health share, not shrugged off.
+    outcome: clean ?? decideOnHealth(heroes),
+    cappedOut: !clean,
     heroes, damageBy, damageTo,
   };
 }
@@ -165,8 +180,66 @@ function run(label, policyA, policyB, n = 4000) {
   const pct = (x) => `${((x / n) * 100).toFixed(1)}%`;
   console.log(`\n${label}  (${n} matches)`);
   console.log(`  player wins ${pct(tally.won)}   enemy wins ${pct(tally.lost)}   ` +
-    `unresolved ${pct(tally.draw)}${capped ? ` (all of it the 30-round cap)` : ''}`);
+    `dead heat ${pct(tally.draw)}   |  hit the 30-round cap ${pct(capped)}`);
   return { n, dmgBy, dmgTo, survived };
+}
+
+/**
+ * Sweep a handful of knobs looking for a matchup that is actually close.
+ *
+ * Hand-tuning this overshot twice - 0% then 100% - because with three units a
+ * side a single cooldown flips the whole matchup. Searching beats guessing.
+ */
+const KNOBS = [
+  ['geb', 'stonewatch', 'retaliation', [3, 4, 5, 6]],
+  ['geb', 'stonewatch', 'cooldown', [1, 2]],
+  ['geb', 'quake', 'cooldown', [1, 2]],
+  ['geb', 'quake', 'power', [6, 7]],
+  ['isis', 'searing', 'power', [9, 10, 11]],
+  ['atlas', 'backhand', 'bonus', [0, 3]],
+];
+
+function winRate(policyA, policyB, n) {
+  let won = 0, heat = 0, capped = 0;
+  for (let i = 0; i < n; i++) {
+    const r = playMatch(policyA, policyB);
+    if (r.outcome === 'won') won += 1;
+    else if (r.outcome === 'draw') heat += 1;
+    if (r.cappedOut) capped += 1;
+  }
+  return { win: won / n, heat: heat / n, capped: capped / n };
+}
+
+if (process.argv.includes('--tune')) {
+  const combos = KNOBS.reduce(
+    (acc, [h, s, k, values]) => acc.flatMap((c) => values.map((v) => [...c, [h, s, k, v]])),
+    [[]],
+  );
+  console.log(`Sweeping ${combos.length} combinations\n`);
+
+  const scored = [];
+  for (const combo of combos) {
+    PATCH = combo;
+    const greedy = winRate(greedyOrder, greedyOrder, 260);
+    const random = winRate(randomOrder, randomOrder, 260);
+    const aggro = winRate(aggressiveOrder, aggressiveOrder, 260);
+    // Close under every policy, and resolving on its own rather than on the cap.
+    const cost = Math.abs(greedy.win - 0.5) * 2 + Math.abs(random.win - 0.5)
+      + Math.abs(aggro.win - 0.5) + greedy.capped + aggro.capped;
+    scored.push({ combo, cost, greedy, random, aggro });
+  }
+  PATCH = null;
+
+  scored.sort((a, b) => a.cost - b.cost);
+  console.log('Closest matchups found');
+  for (const r of scored.slice(0, 6)) {
+    const desc = r.combo.map(([h, s, k, v]) => `${h}.${s}.${k}=${v}`).join('  ');
+    const p = (x) => `${(x * 100).toFixed(0)}%`;
+    console.log(`  greedy ${p(r.greedy.win).padStart(4)}  random ${p(r.random.win).padStart(4)}  ` +
+      `aggro ${p(r.aggro.win).padStart(4)}  caps ${p(r.greedy.capped).padStart(4)}   ${desc}`);
+  }
+  console.log('');
+  process.exit(0);
 }
 
 console.log('='.repeat(64));

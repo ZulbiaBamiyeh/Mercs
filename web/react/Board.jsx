@@ -18,7 +18,7 @@ import * as I from './icons.jsx';
 import { PORTRAITS } from './portraits.jsx';
 import { PLAYER_TEAM, ENEMY_TEAM, ROLES, TARGET, RANGE_LABEL } from './heroes.jsx';
 import {
-  needsTarget, rangeOf, buildQueue, applyStep, tickCooldowns, outcomeOf,
+  needsTarget, rangeOf, buildQueue, applyStep, endRound, outcomeOf, spawn,
 } from './rules.jsx';
 
 const { useState, useMemo, useCallback, useRef, useEffect } = React;
@@ -400,16 +400,11 @@ function AbilitySheet({ hero, chosenSkillId, readOnly, onPick, onClose }) {
  * Board
  * ---------------------------------------------------------------- */
 
+// Abilities with a cooldown start spent, so round one is the narrowest.
 const seedHeroes = () => [
-  ...PLAYER_TEAM.map((h) => ({ ...h, side: 'player' })),
-  ...ENEMY_TEAM.map((h) => ({ ...h, side: 'enemy' })),
-].map((h) => ({
-  ...h,
-  health: h.maxHealth,
-  shield: 0,
-  // Abilities with a cooldown start spent, so round one is the narrowest.
-  cooldowns: Object.fromEntries(h.skills.map((s) => [s.id, s.cooldown])),
-}));
+  ...PLAYER_TEAM.map((h) => spawn(h, 'player')),
+  ...ENEMY_TEAM.map((h) => spawn(h, 'enemy')),
+];
 
 function pickIntents(heroes) {
   const pick = (list) => list[Math.floor(Math.random() * list.length)];
@@ -438,6 +433,9 @@ export default function Board() {
   const [intents, setIntents] = useState(() => pickIntents(seedHeroes()));
   const [openId, setOpenId] = useState(null);
   const [armed, setArmed] = useState(null);   // { heroId, skillId } choosing a target
+  // One tie-break coin per round: cross-side speed ties are random, but the
+  // order shown has to be the order that resolves.
+  const [tieSeed, setTieSeed] = useState(() => (Math.random() * 0xffffffff) >>> 0);
   const [round, setRound] = useState(1);
   const [activeIndex, setActiveIndex] = useState(-1);
   const [resolving, setResolving] = useState(false);
@@ -457,7 +455,7 @@ export default function Board() {
   const chosenIdOf = (hero) => orderOf(hero)?.skillId;
 
   const allOrders = useMemo(() => ({ ...selections, ...intents }), [selections, intents]);
-  const queue = useMemo(() => buildQueue(heroes, allOrders), [heroes, allOrders]);
+  const queue = useMemo(() => buildQueue(heroes, allOrders, tieSeed), [heroes, allOrders, tieSeed]);
   const aimedAt = useCallback((hero, skill) => rangeOf(heroes, hero, skill), [heroes]);
 
   /* ---- choosing a target ---- */
@@ -524,13 +522,16 @@ export default function Board() {
       await sleep(720);
     }
 
-    const ticked = tickCooldowns(board, allOrders);
+    const ended = endRound(board, allOrders);
+    for (const e of ended.events) pushFloater(e.heroId, e.text, e.kind);
+    const ticked = ended.heroes;
 
     setHeroes(ticked);
     setActiveIndex(-1);
     setToast(null);
     setSelections({});
     setIntents(pickIntents(ticked));
+    setTieSeed((Math.random() * 0xffffffff) >>> 0);
     setRound((r) => r + 1);
     setResolving(false);
   }
@@ -546,6 +547,7 @@ export default function Board() {
     setToast(null);
     setOpenId(null);
     setArmed(null);
+    setTieSeed((Math.random() * 0xffffffff) >>> 0);
     setResolving(false);
   };
 
