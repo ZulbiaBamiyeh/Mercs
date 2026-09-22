@@ -51,6 +51,118 @@ function Winged({ speed, className = '', textClass = 'text-[11px]' }) {
 }
 
 /**
+ * A spiked starburst, built once at module scope.
+ *
+ * Damage numbers in Mercenaries land inside a jagged burst rather than just
+ * floating, and that shape is most of why a hit reads as a *hit*. Sixteen
+ * points, alternating between two radii.
+ */
+const BURST_POINTS = Array.from({ length: 32 }, (_, i) => {
+  const angle = (i / 32) * Math.PI * 2 - Math.PI / 2;
+  const r = i % 2 === 0 ? 50 : 33;
+  return `${(50 + Math.cos(angle) * r).toFixed(1)},${(50 + Math.sin(angle) * r).toFixed(1)}`;
+}).join(' ');
+
+/** Palette per event kind: fill, stroke, text. */
+const BURST_TONE = {
+  crit: ['#f59e0b', '#fffbeb', '#4c2a02'],
+  dmg: ['#dc2626', '#fee2e2', '#ffffff'],
+  heal: ['#16a34a', '#dcfce7', '#ffffff'],
+  buff: ['#a855f7', '#f3e8ff', '#ffffff'],
+};
+
+function Burst({ text, kind }) {
+  const [fill, stroke, ink] = BURST_TONE[kind] ?? BURST_TONE.dmg;
+  const big = kind === 'crit';
+  return (
+    <span className={`relative grid place-items-center ${big ? 'h-[76px] w-[76px]' : 'h-[58px] w-[58px]'}`}>
+      <svg viewBox="0 0 100 100" className="absolute inset-0 h-full w-full drop-shadow-[0_3px_6px_rgba(0,0,0,0.9)]">
+        <polygon points={BURST_POINTS} fill={fill} stroke={stroke} strokeWidth="4" />
+      </svg>
+      <span
+        className={`relative font-display font-bold leading-none ${big ? 'text-[25px]' : 'text-[20px]'}`}
+        style={{ color: ink, WebkitTextStroke: kind === 'crit' ? '0' : '0.5px rgba(0,0,0,0.35)' }}
+      >
+        {text}
+      </span>
+    </span>
+  );
+}
+
+/**
+ * The firing ability, shown large while it fires.
+ *
+ * This is the piece Mercenaries uses to answer "what just happened": the
+ * ability's own card slides in against the left edge, bleeding slightly off
+ * it, and stays for as long as the effect plays. Without it a round is six
+ * anonymous numbers; with it you can read the enemy's whole turn.
+ *
+ * Same card grammar as the picker - gold ring, winged speed plate, name
+ * banner, parchment text, school strip - scaled up and tinted by side so
+ * whose turn it is never needs a label.
+ */
+function CastCard({ cast }) {
+  const { hero, skill } = cast;
+  const Icon = skill.icon;
+  const mine = hero.side === 'player';
+  const role = ROLES[hero.role];
+
+  return (
+    <motion.div
+      initial={{ x: '-104%', opacity: 0, rotate: -6 }}
+      animate={{ x: 0, opacity: 1, rotate: 0 }}
+      exit={{ x: '-104%', opacity: 0, rotate: -6 }}
+      transition={{ type: 'spring', stiffness: 260, damping: 26 }}
+      /* Anchored in the empty band below the ranks rather than over the middle
+         of the board: at phone width a centred card covers the turn order and
+         bleeding it off the left edge cut its own rules text in half. It still
+         arrives from the left, which is the part that reads. */
+      className="pointer-events-none fixed bottom-[4.25rem] left-0 z-40 w-[76vw] max-w-[310px]
+                 sm:bottom-auto sm:top-1/2 sm:w-[300px] sm:-translate-y-1/2"
+    >
+      <div className={`relative rounded-r-xl border-y-[3px] border-r-[3px] pb-2 pl-5 pr-3 pt-3
+                       shadow-[10px_0_30px_rgba(0,0,0,0.75)]
+                       ${mine
+                         ? 'border-amber-400/80 bg-[linear-gradient(135deg,#6b4a22,#2b1d0f)]'
+                         : 'border-rose-500/70 bg-[linear-gradient(135deg,#63262c,#2a1014)]'}`}>
+        <div className="flex items-center gap-2.5">
+          <span className="relative shrink-0">
+            <span className={`grid h-[52px] w-[52px] place-items-center rounded-full border-[3px]
+                              border-amber-500/90 bg-[radial-gradient(circle_at_36%_28%,#4a5a6e,#141b24_70%)]
+                              ${role.text}`}>
+              <Icon size={24} />
+            </span>
+            <Winged speed={skill.speed} className="absolute -bottom-1 -left-2 h-[19px] w-[30px]" textClass="text-[11px]" />
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className={`block font-body text-[9px] font-bold uppercase tracking-[0.14em]
+                              ${mine ? 'text-amber-300/70' : 'text-rose-300/70'}`}>
+              {mine ? 'Your god' : 'Enemy'} · {hero.name}
+            </span>
+            <span className="mt-0.5 block border-y border-amber-500/50
+                             bg-[linear-gradient(180deg,#d9b26a,#a87c34)] px-1 py-[2px]
+                             font-display text-[11px] font-bold uppercase leading-tight tracking-tight text-amber-950">
+              {skill.name}
+            </span>
+          </span>
+        </div>
+
+        <div className="mt-2 rounded-sm bg-[linear-gradient(180deg,#d8cdb4,#bdb096)] px-2 py-1.5
+                        font-body text-[11.5px] leading-snug text-stone-900">
+          {skill.text}
+        </div>
+        {skill.school && (
+          <div className="mx-auto mt-1 w-fit rounded-sm border border-amber-900/60 bg-stone-300/85 px-2
+                          font-body text-[8.5px] font-bold uppercase tracking-wider text-stone-800">
+            {skill.school}
+          </div>
+        )}
+      </div>
+    </motion.div>
+  );
+}
+
+/**
  * Two stacked portraits. The overlay carries no alt and removes itself on
  * error: a blocked or missing image otherwise paints its alt text across the
  * card, and the published page's CSP blocks remote images silently.
@@ -76,6 +188,7 @@ function PortraitStack({ hero, role }) {
 function UnitTile({
   hero, chosenSkill, isActing, isOpen, floaters, onOpen,
   targeting, isTargetable, isCaster, targetTone,
+  ordinal, lunging, struck,
 }) {
   const role = ROLES[hero.role];
   const gem = GEMS[hero.role];
@@ -88,9 +201,18 @@ function UnitTile({
     <motion.button
       type="button"
       onClick={() => onOpen(hero)}
-      animate={isActing ? { scale: 1.06, y: -4 } : { scale: 1, y: 0 }}
+      /* Three states, in order of precedence. Lunging: the caster drives at the
+         opposing rank, up for your gods and down for theirs, so the blow has a
+         direction. Struck: a hard recoil shake. Otherwise the acting unit just
+         sits raised. */
+      animate={
+        lunging ? { scale: 1.12, y: hero.side === 'player' ? -26 : 26 }
+        : struck ? { scale: 1, x: [0, -7, 6, -4, 3, 0], y: 0 }
+        : isActing ? { scale: 1.06, y: -4 }
+        : { scale: 1, x: 0, y: 0 }
+      }
       whileTap={{ scale: 0.97 }}
-      transition={SPRING}
+      transition={struck ? { duration: 0.38 } : SPRING}
       aria-label={`${hero.name}, ${role.label}, ${hero.health} of ${hero.maxHealth} health`}
       className={`relative block w-full text-left focus-visible:outline-none
                   ${dead ? 'opacity-45 saturate-0' : ''}
@@ -128,6 +250,28 @@ function UnitTile({
           </motion.span>
         )}
       </AnimatePresence>
+      {/* Turn order as a bubble on the unit itself, which is where Mercenaries
+          puts it - reading the order off the board beats reading it off a
+          separate strip. */}
+      <AnimatePresence>
+        {ordinal && !isActing && (
+          <motion.span
+            initial={{ opacity: 0, y: 6, scale: 0.8 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            transition={SPRING}
+            className={`pointer-events-none absolute -top-2.5 left-1/2 z-40 -translate-x-1/2 rounded-full
+                        border-2 px-1.5 font-display text-[9.5px] font-bold leading-[15px]
+                        shadow-[0_2px_5px_rgba(0,0,0,0.8)]
+                        ${hero.side === 'player'
+                          ? 'border-amber-300 bg-[linear-gradient(180deg,#fdf1d0,#d8b369)] text-amber-950'
+                          : 'border-rose-300 bg-[linear-gradient(180deg,#ffe2e2,#d98a8a)] text-rose-950'}`}
+          >
+            {ordinal}
+          </motion.span>
+        )}
+      </AnimatePresence>
+
       {isCaster && targeting && (
         <span className="pointer-events-none absolute -top-2 left-1/2 z-40 -translate-x-1/2 rounded
                          border-2 border-amber-400 bg-amber-950 px-1.5 py-[1px] font-display text-[9px]
@@ -142,6 +286,28 @@ function UnitTile({
                       : isOpen ? 'border-amber-300' : 'border-slate-700'}`}
       >
         <PortraitStack hero={hero} role={role} />
+
+        {/* the caster lights up as it swings */}
+        <AnimatePresence>
+          {lunging && (
+            <motion.span
+              initial={{ opacity: 0 }} animate={{ opacity: [0, 0.85, 0.5] }} exit={{ opacity: 0 }}
+              transition={{ duration: 0.5 }}
+              className="pointer-events-none absolute inset-0 z-20
+                         bg-[radial-gradient(circle_at_50%_45%,rgba(255,240,190,0.75),transparent_72%)]"
+            />
+          )}
+        </AnimatePresence>
+        {/* and the target takes a white slam */}
+        <AnimatePresence>
+          {struck && (
+            <motion.span
+              initial={{ opacity: 0.9 }} animate={{ opacity: 0 }} exit={{ opacity: 0 }}
+              transition={{ duration: 0.34 }}
+              className="pointer-events-none absolute inset-0 z-20 bg-white"
+            />
+          )}
+        </AnimatePresence>
 
         {/* role reads as a wash from the bottom plus a solid rule, not a glow */}
         <div className={`pointer-events-none absolute inset-x-0 bottom-0 h-[52%] bg-gradient-to-t ${role.wash}`} />
@@ -180,23 +346,29 @@ function UnitTile({
           </div>
         )}
 
+        {/* Numbers punch in oversized and settle, rather than drifting up from
+            nothing: the earlier version was legible only if you already knew
+            what to look for. Keyword callouts stay plain text - a starburst on
+            the word "taunt" would read as damage. */}
         <AnimatePresence>
           {floaters.map((f) => (
             <motion.div
               key={f.id}
-              initial={{ opacity: 0, y: 6, scale: 0.6 }}
-              animate={{ opacity: [0, 1, 1, 0], y: [-2, -22, -30, -48], scale: [1.3, 1.05, 1, 0.95] }}
+              initial={{ opacity: 0, scale: 0.2, y: 8 }}
+              animate={{ opacity: [0, 1, 1, 0], scale: [0.2, 1.35, 1, 1.05], y: [8, -6, -14, -34] }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 1.3, times: [0, 0.14, 0.62, 1] }}
-              className={`pointer-events-none absolute inset-x-0 top-1/2 z-40 text-center font-display font-bold
-                          drop-shadow-[0_2px_5px_rgba(0,0,0,1)]
-                          ${f.kind === 'heal' ? 'text-[24px] text-emerald-300'
-                            : f.kind === 'crit' ? 'text-[29px] text-amber-300'
-                            : f.kind === 'buff' ? 'text-[19px] text-amber-200'
-                            : f.kind === 'word' ? 'text-[12px] uppercase tracking-widest text-slate-100'
-                            : 'text-[24px] text-red-300'}`}
+              transition={{ duration: 1.35, times: [0, 0.18, 0.66, 1], ease: 'easeOut' }}
+              className="pointer-events-none absolute inset-0 z-40 grid place-items-center"
             >
-              {f.text}
+              {f.kind === 'word' ? (
+                <span className="rounded border border-slate-400/60 bg-slate-950/90 px-1.5 py-[1px]
+                                 font-display text-[10.5px] font-bold uppercase tracking-widest text-slate-100
+                                 drop-shadow-[0_2px_4px_rgba(0,0,0,1)]">
+                  {f.text}
+                </span>
+              ) : (
+                <Burst text={f.text} kind={f.kind} />
+              )}
             </motion.div>
           ))}
         </AnimatePresence>
@@ -488,7 +660,11 @@ export default function Board() {
   const [activeIndex, setActiveIndex] = useState(-1);
   const [resolving, setResolving] = useState(false);
   const [floaters, setFloaters] = useState([]);
-  const [toast, setToast] = useState(null);
+  const [cast, setCast] = useState(null);      // the card on screen, mid-resolution
+  const [lunging, setLunging] = useState(null);// hero id currently swinging
+  const [struck, setStruck] = useState([]);    // hero ids taking the hit
+  const [flash, setFlash] = useState(null);    // screen tint on a doubled hit
+  const [fast, setFast] = useState(false);     // 2x, for when you have seen it
   const cancelled = useRef(false);
 
   useEffect(() => () => { cancelled.current = true; }, []);
@@ -544,12 +720,23 @@ export default function Board() {
   const ready = livePlayers.length > 0 && livePlayers.every((h) => selections[h.id]);
   const given = livePlayers.filter((h) => selections[h.id]).length;
 
+  /**
+   * Play the round out one step at a time.
+   *
+   * The beats matter as much as the maths. Each step reads: the ability's card
+   * slides in and holds long enough to be read, the caster drives at the
+   * opposing rank, the numbers land, everything settles, the card leaves. Six
+   * steps at roughly a second and a half is close to what Mercenaries spends,
+   * and the earlier version - a small label and a drifting number - was
+   * unreadable by comparison. `fast` halves it for anyone who has seen it.
+   */
   async function resolveRound() {
     if (!ready || resolving) return;
     setResolving(true);
     setOpenId(null);
     setArmed(null);
     let board = heroes;
+    const beat = (ms) => sleep(fast ? ms / 2 : ms);
 
     for (let i = 0; i < queue.length; i++) {
       if (cancelled.current) return;
@@ -557,26 +744,44 @@ export default function Board() {
       setActiveIndex(i);
 
       const actor = board.find((h) => h.id === step.heroId);
-      if (!actor || actor.health <= 0) { await sleep(480); continue; }
+      // A god killed earlier in the round never acts - show nothing for it.
+      if (!actor || actor.health <= 0) { await beat(240); continue; }
 
-      setToast({ side: actor.side, name: actor.name, skill: step.skill });
-      await sleep(640);
+      setCast({ hero: actor, skill: step.skill });
+      await beat(560);
+      if (cancelled.current) return;
+
+      setLunging(actor.id);
+      await beat(230);
 
       const { heroes: next, events } = applyStep(board, step);
+      const hits = events.filter((e) => e.kind === 'dmg' || e.kind === 'crit');
+      setStruck(hits.map((e) => e.heroId));
+      if (events.some((e) => e.kind === 'crit')) setFlash('crit');
       for (const e of events) pushFloater(e.heroId, e.text, e.kind);
 
       board = next;
       setHeroes(board);
-      await sleep(720);
+      await beat(360);
+      setLunging(null);
+      setStruck([]);
+      setFlash(null);
+      await beat(400);
+      setCast(null);
+      await beat(200);
     }
 
     const ended = endRound(board, allOrders);
     for (const e of ended.events) pushFloater(e.heroId, e.text, e.kind);
     const ticked = ended.heroes;
+    // Bleed ticks at the end of the round, so give it a moment of its own.
+    if (ended.events.length) await beat(700);
 
     setHeroes(ticked);
     setActiveIndex(-1);
-    setToast(null);
+    setCast(null);
+    setLunging(null);
+    setStruck([]);
     setSelections({});
     setIntents(pickIntents(ticked));
     setTieSeed((Math.random() * 0xffffffff) >>> 0);
@@ -592,7 +797,10 @@ export default function Board() {
     setRound(1);
     setActiveIndex(-1);
     setFloaters([]);
-    setToast(null);
+    setCast(null);
+    setLunging(null);
+    setStruck([]);
+    setFlash(null);
     setOpenId(null);
     setArmed(null);
     setTieSeed((Math.random() * 0xffffffff) >>> 0);
@@ -601,6 +809,22 @@ export default function Board() {
 
   const outcome = outcomeOf(heroes);
   const openHero = openId ? heroesById[openId] : null;
+
+  // Where each god falls in the resolved order, for the bubble on its tile.
+  // Only once every order is in - a partial order would be a lie, since a
+  // pick you have not made yet can land anywhere in the queue.
+  const ordinalOf = (heroId) => {
+    if (!ready && !resolving) return null;
+    const at = queue.findIndex((step) => step.heroId === heroId);
+    if (at < 0) return null;
+    // A cross-side speed tie is settled by a coin, so the position is a guess
+    // until it resolves - the same `?` the turn strip carries. Ties within one
+    // side are not marked, because those follow your own pick order.
+    const step = queue[at];
+    const tied = queue.some((o, j) => j !== at && o.skill.speed === step.skill.speed
+      && heroesById[o.heroId].side !== heroesById[step.heroId].side);
+    return `${ORDINALS[at] ?? `${at + 1}th`}${tied ? '?' : ''}`;
+  };
 
   const rank = (list) => (
     <div className={`grid gap-2 ${RANK_COLS[list.length] ?? 'grid-cols-3'} sm:gap-4`}>
@@ -612,6 +836,9 @@ export default function Board() {
           isActing={activeIndex >= 0 && queue[activeIndex]?.heroId === hero.id}
           isOpen={openId === hero.id}
           floaters={floaters.filter((f) => f.heroId === hero.id)}
+          ordinal={ordinalOf(hero.id)}
+          lunging={lunging === hero.id}
+          struck={struck.includes(hero.id)}
           targeting={Boolean(armed)}
           isTargetable={Boolean(armed) && armedRange.includes(hero.id)}
           isCaster={armed?.heroId === hero.id}
@@ -656,6 +883,19 @@ export default function Board() {
           <span className="font-display text-[11px] uppercase tracking-[0.16em] text-slate-400">
             Round <b className="text-amber-200">{round}</b>
           </span>
+          <button
+            type="button"
+            onClick={() => setFast((f) => !f)}
+            aria-label={fast ? 'Play at normal speed' : 'Play at double speed'}
+            title={fast ? 'Double speed' : 'Normal speed'}
+            className={`h-8 rounded-lg border-2 px-2 font-display text-[11px] font-bold tracking-wider
+                        active:bg-slate-800
+                        ${fast
+                          ? 'border-amber-600 bg-amber-950/70 text-amber-300'
+                          : 'border-slate-700 bg-slate-900/70 text-slate-500'}`}
+          >
+            2×
+          </button>
           <button type="button" onClick={reset} aria-label="Reset battle"
                   className="grid h-8 w-8 place-items-center rounded-lg border-2 border-slate-700 bg-slate-900/70
                              text-slate-400 active:bg-slate-800">
@@ -743,23 +983,20 @@ export default function Board() {
         )}
       </footer>
 
-      {/* one line naming what is resolving, in place of a log panel */}
+      {/* the firing ability's own card, held on screen while it fires */}
       <AnimatePresence>
-        {toast && (
+        {cast && <CastCard key={`${cast.hero.id}-${cast.skill.id}`} cast={cast} />}
+      </AnimatePresence>
+
+      {/* a role-doubled hit tints the whole screen for a moment */}
+      <AnimatePresence>
+        {flash && (
           <motion.div
-            key={`${toast.name}-${toast.skill.id}`}
-            initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }}
-            transition={SPRING}
-            className="pointer-events-none fixed inset-x-0 top-11 z-40 mx-auto w-fit max-w-[92vw] rounded-lg
-                       border-2 border-slate-700 bg-slate-950/92 px-3 py-1.5 text-center shadow-2xl shadow-black/80"
-          >
-            <span className={`font-display text-[12px] font-semibold uppercase tracking-wider
-                              ${toast.side === 'player' ? 'text-amber-300' : 'text-rose-300'}`}>
-              {toast.name}
-            </span>
-            <span className="mx-1.5 text-slate-600">·</span>
-            <span className="font-body text-[13px] text-slate-200">{toast.skill.name}</span>
-          </motion.div>
+            initial={{ opacity: 0 }} animate={{ opacity: [0, 0.5, 0] }} exit={{ opacity: 0 }}
+            transition={{ duration: 0.52 }}
+            className="pointer-events-none fixed inset-0 z-30
+                       bg-[radial-gradient(circle_at_50%_45%,rgba(255,196,92,0.8),transparent_70%)]"
+          />
         )}
       </AnimatePresence>
 

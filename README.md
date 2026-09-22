@@ -319,6 +319,33 @@ Two consequences worth knowing before editing it:
   goes through explicit maps in `heroes.jsx`.
 - `web/react/dist/` is generated and stays out of git.
 
+### Resolution, beat by beat
+
+A round is not six numbers appearing; it is six little scenes. Per step:
+
+| Beat | ms | What happens |
+|---|---|---|
+| Card in | 560 | The firing ability's own card slides in from the left and holds long enough to read. Gold for you, rose for them. |
+| Lunge | 230 | The caster drives at the opposing rank - up for your gods, down for theirs - and lights up. |
+| Impact | 360 | Damage lands. Numbers punch in oversized inside a jagged starburst and settle; the target takes a white slam and a hard recoil shake; a role-doubled hit tints the whole screen. |
+| Settle | 400 | Everything returns. |
+| Card out | 200 | The card leaves. |
+
+Roughly 1.75s a step, so a full round is 8-10s - close to what Mercenaries
+spends. The `2×` button in the header halves every beat for anyone who has
+already seen it. Bleed at the end of the round gets its own 700ms so it is not
+mistaken for part of the last ability.
+
+The cast card is the piece that makes an enemy turn legible: without it you can
+see that you took 24 damage but not what did it. It sits in the empty band
+below the ranks on a phone and centre-left on a wide screen, because at phone
+width a centred card covers the turn order.
+
+Turn order appears twice on purpose: as a bubble on each unit, which is where
+Mercenaries puts it and where you read it while choosing, and in the centre
+strip, which adds each ability's speed. Both carry `?` when a cross-side speed
+tie means the position is still a coin flip.
+
 ## Balance, measured
 
 `npm run balance` plays thousands of matches through the **same `rules.jsx` the
