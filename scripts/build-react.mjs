@@ -10,7 +10,7 @@
  * and the bundle references them as the globals `React`, `ReactDOM`, `Motion`.
  */
 
-import { build } from 'esbuild';
+import { build, transform } from 'esbuild';
 import { execFileSync } from 'node:child_process';
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
@@ -41,11 +41,31 @@ execFileSync(
 const js = readFileSync(resolve(out, 'board.js'), 'utf8');
 const css = readFileSync(resolve(out, 'board.css'), 'utf8');
 
-const CDN = {
-  react: 'https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js',
-  reactDom: 'https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js',
-  motion: 'https://cdn.jsdelivr.net/npm/framer-motion@11.18.2/dist/framer-motion.js',
-};
+/**
+ * React, ReactDOM and Framer Motion are inlined, not fetched.
+ *
+ * They were loaded from cdnjs and jsDelivr, which the artifact host's CSP
+ * nominally allows - but in practice the scripts did not arrive in a real
+ * client and the page showed nothing but its own "could not load" notice. A
+ * page that needs the network to render is a page that sometimes does not
+ * render, and at ~90KB gzipped there is no reason to take the risk.
+ *
+ * Order matters: React first, then ReactDOM, then Framer Motion (its UMD
+ * reads the `React` global and defines `Motion`), then the board.
+ */
+const VENDOR = [
+  'node_modules/react/umd/react.production.min.js',
+  'node_modules/react-dom/umd/react-dom.production.min.js',
+  'node_modules/framer-motion/dist/framer-motion.js',
+];
+
+const vendor = [];
+for (const rel of VENDOR) {
+  const source = readFileSync(resolve(root, rel), 'utf8');
+  // The Framer Motion UMD ships unminified; squeeze all three the same way.
+  const { code } = await transform(source, { minify: true, target: 'es2019', legalComments: 'none' });
+  vendor.push(code);
+}
 
 const page = `<title>Theomachy Board</title>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -54,27 +74,25 @@ const page = `<title>Theomachy Board</title>
 
 <div id="root"></div>
 
-<script src="${CDN.react}"></script>
-<script src="${CDN.reactDom}"></script>
-<script src="${CDN.motion}"></script>
+${vendor.map((code) => `<script>${code}</script>`).join('\n')}
 <script>
-  // The runtime libraries are the one thing this page fetches. Say so plainly
-  // rather than leaving a blank board if a CDN is unreachable.
-  (function () {
-    var missing = ['React', 'ReactDOM', 'Motion'].filter(function (g) { return !window[g]; });
-    if (!missing.length) return;
+  // Nothing here is fetched, so a blank board means a real error. Say so
+  // rather than leaving an empty page.
+  try {
+    ${js}
+  } catch (err) {
     document.getElementById('root').innerHTML =
       '<div style="font:14px ui-monospace,monospace;color:#94a3b8;padding:48px;max-width:46em;margin:0 auto">'
-      + '<p style="color:#f0a0a0"><b>Could not load ' + missing.join(', ') + '.</b></p>'
-      + '<p>The board needs React, ReactDOM and Framer Motion from cdnjs and jsDelivr. '
-      + 'A network or content blocker is stopping them.</p></div>';
-    window.__boardBlocked = true;
-  })();
+      + '<p style="color:#f0a0a0"><b>The board failed to start.</b></p><p>' + String(err && err.message || err)
+      + '</p></div>';
+    throw err;
+  }
 </script>
-<script>if (!window.__boardBlocked) { ${js} }</script>
 `;
 
 writeFileSync(resolve(out, 'index.html'), page);
 
 const kb = (s) => `${(Buffer.byteLength(s) / 1024).toFixed(1)}kb`;
-console.log(`board.js ${kb(js)}   board.css ${kb(css)}   index.html ${kb(page)}`);
+console.log(`board.js ${kb(js)}   board.css ${kb(css)}   ` +
+  `vendor ${kb(vendor.join(''))}   index.html ${kb(page)}`);
+console.log('No runtime fetches: React, ReactDOM and Framer Motion are inlined.');

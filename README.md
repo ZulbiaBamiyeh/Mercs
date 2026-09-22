@@ -296,12 +296,21 @@ server. Files published from `web/react/art/` are same-origin and load
 normally. The overlay also carries no `alt` and removes itself on error,
 because a blocked image otherwise paints its alt text straight over the card.
 
-Everything that can be compiled ahead of time is, because the published page
-has a CDN allowlist and anything from the wrong host fails *silently*: JSX
+**The built page fetches nothing at runtime.** Everything is compiled in: JSX
 through esbuild, Tailwind v4 through its own CLI, Lucide icons inlined from
-`lucide-static`. Only React, ReactDOM and Framer Motion load at runtime, as UMD
-bundles referenced through the `React` / `ReactDOM` / `Motion` globals, and the
-page states plainly if any of them fails to arrive.
+`lucide-static`, and React, ReactDOM and Framer Motion read out of
+`node_modules`, minified, and emitted as inline `<script>` blocks ahead of the
+board script. That last part used to be three CDN `<script src>` tags; they did
+not arrive in a real client, and because the CSP fails silently the page showed
+only its own "could not load" notice. Inlining costs ~277kb and removes the
+failure mode. The boot call is wrapped in a `try`/`catch` that prints the error
+rather than a blank screen.
+
+Two things the page still *tries* to fetch, both degrading cleanly: the Google
+Fonts stylesheet (Cinzel / EB Garamond, falling back to Palatino and Georgia)
+and the placeholder `picsum` portraits (the generated busts show through). They
+cannot be inlined from this sandbox because `fonts.googleapis.com` is blocked
+here.
 
 Two consequences worth knowing before editing it:
 
