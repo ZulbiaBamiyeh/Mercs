@@ -252,11 +252,26 @@ trying to say everything simultaneously. The tray says the minimum on the
 board and the whole card only for the ability you are actually considering,
 which is the shape the reference footage uses.
 
+**With a mouse, hovering a medallion pops its card** - no click - so sweeping
+along the tray flips through all three the way Hearthstone does. Clicking
+still selects. Hover wins while the cursor is over a disc; with nothing under
+it the card falls back to the armed ability, so what you picked stays up while
+you choose its target.
+
+The pointer handlers are filtered to `pointerType === 'mouse'` deliberately: a
+touch tap also fires `pointerenter`, and on a phone that hover would stick to
+whatever you last touched with no way to leave it. Keyboard focus pops the
+card too.
+
 On a phone a tap *is* the hover: the first tap focuses a medallion and lights
 its legal targets green, the second tap on a lit target commits. Abilities
 that need no target commit on that first tap, since there is nothing left to
 choose. A locked medallion still shows its card - reading what you cannot use
 yet is how you plan the next round.
+
+Cards carry no gloss on the **Attack** keyword. It means mutual damage by
+definition, and the real cards say only "Attack an enemy"; restating it on
+every card was noise.
 
 The full card is one object appearing in two places, deliberately: the card
 that pops while you choose is the card that slides in when the ability fires.

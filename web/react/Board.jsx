@@ -179,13 +179,10 @@ function SkillCard({ hero, skill, cooldown = 0, byline = null }) {
 
         <div className="frame-well mt-2 rounded-sm bg-[linear-gradient(180deg,#ddd2b9,#c0b399)] px-2 py-2
                         text-center font-body text-[12px] leading-snug text-stone-900">
+          {/* No gloss on the Attack keyword here. The keyword carries the
+              mutual damage by definition, and the real cards say only
+              "Attack an enemy" - spelling it out on every card was noise. */}
           {skill.text}
-          {/* An Attack trades damage both ways, so say what the swing costs. */}
-          {skill.isAttack && (
-            <span className="mt-1.5 block border-t border-stone-500/40 pt-1.5 text-[11px] font-semibold text-stone-700">
-              Strikes {hero.attack + (skill.bonus ?? 0)} · takes their Attack back
-            </span>
-          )}
           {locked && (
             <span className="mt-1.5 block border-t border-stone-500/40 pt-1.5 text-[11px] font-bold text-red-900">
               Ready in {cooldown} round{cooldown === 1 ? '' : 's'}
@@ -240,7 +237,7 @@ function CastCard({ cast }) {
  * its legal targets, the second tap on a lit target commits. Abilities that
  * need no target commit on that first tap, since there is nothing to choose.
  */
-function MedallionTray({ hero, focusId, chosenSkillId, readOnly, onFocus }) {
+function MedallionTray({ hero, focusId, hoverId, chosenSkillId, readOnly, onFocus, onHover }) {
   return (
     <motion.div
       layout
@@ -257,6 +254,7 @@ function MedallionTray({ hero, focusId, chosenSkillId, readOnly, onFocus }) {
           const cd = hero.cooldowns[skill.id] ?? 0;
           const locked = cd > 0;
           const focused = focusId === skill.id;
+          const hovered = hoverId === skill.id;
           const chosen = chosenSkillId === skill.id;
           return (
             <button
@@ -264,13 +262,21 @@ function MedallionTray({ hero, focusId, chosenSkillId, readOnly, onFocus }) {
               type="button"
               disabled={readOnly && locked}
               onClick={(e) => { e.stopPropagation(); onFocus(skill); }}
+              /* Pointer events filtered to `mouse` on purpose. A touch tap
+                 also fires enter, and on a phone that hover would stick to
+                 whatever you last touched with no way to leave it. */
+              onPointerEnter={(e) => { if (e.pointerType === 'mouse') onHover(skill); }}
+              onPointerLeave={(e) => { if (e.pointerType === 'mouse') onHover(null); }}
+              onFocus={() => onHover(skill)}
+              onBlur={() => onHover(null)}
               title={`${skill.name} — speed ${skill.speed}${locked ? `, ready in ${cd}` : ''}`}
               className="relative flex flex-col items-center focus-visible:outline-none"
             >
               <span className={`frame-metal relative grid h-[52px] w-[52px] place-items-center rounded-full p-[3px]
                                 transition-transform sm:h-[60px] sm:w-[60px]
                                 ${locked ? 'opacity-50 saturate-50' : 'active:scale-95'}
-                                ${focused || chosen
+                                ${hovered ? '-translate-y-1 scale-105' : ''}
+                                ${focused || chosen || hovered
                                   ? 'shadow-[0_0_0_3px_rgba(253,230,138,0.95),0_0_22px_4px_rgba(251,191,36,0.6)]'
                                   : ''}`}>
                 <span className={`frame-well grid h-full w-full place-items-center rounded-full
@@ -683,6 +689,7 @@ export default function Board() {
   const [intents, setIntents] = useState(() => pickIntents(seedHeroes()));
   const [openId, setOpenId] = useState(null);
   const [focusId, setFocusId] = useState(null); // medallion whose card is popped
+  const [hoverId, setHoverId] = useState(null); // medallion under the cursor
   const [armed, setArmed] = useState(null);   // { heroId, skillId } choosing a target
   // One tie-break coin per round: cross-side speed ties are random, but the
   // order shown has to be the order that resolves.
@@ -745,6 +752,7 @@ export default function Board() {
       setArmed(null);
       setOpenId(null);
       setFocusId(null);
+      setHoverId(null);
       setSelections((prev) => ({ ...prev, [hero.id]: { skillId: skill.id, targetId: null } }));
       return;
     }
@@ -757,6 +765,7 @@ export default function Board() {
     setArmed(null);
     setOpenId(null);
     setFocusId(null);
+    setHoverId(null);
   };
 
   const pushFloater = (heroId, text, kind) => {
@@ -791,6 +800,7 @@ export default function Board() {
     setResolving(true);
     setOpenId(null);
     setFocusId(null);
+    setHoverId(null);
     setArmed(null);
     let board = heroes;
     const beat = (ms) => sleep(fast ? ms / 2 : ms);
@@ -878,6 +888,7 @@ export default function Board() {
     setSpotlight(null);
     setOpenId(null);
     setFocusId(null);
+    setHoverId(null);
     setArmed(null);
     setTieSeed((Math.random() * 0xffffffff) >>> 0);
     setResolving(false);
@@ -885,10 +896,19 @@ export default function Board() {
 
   const outcome = outcomeOf(heroes);
   const openHero = openId ? heroesById[openId] : null;
-  // The card on show follows the armed ability when one is armed, so the card
-  // stays up while you pick a target - which is how the reference behaves.
-  const previewHero = armedHero ?? openHero;
-  const previewSkill = armedSkill
+  /*
+   * Which card is on show.
+   *
+   * Hover wins, so sweeping the mouse along the tray flips through the three
+   * cards the way Hearthstone does. With nothing under the cursor it falls
+   * back to the armed ability, so the card you picked stays up while you
+   * choose its target, and then to whatever was last tapped - which is how
+   * this works on a touch screen, where there is no hover at all.
+   */
+  const hoverSkill = openHero && hoverId
+    ? openHero.skills.find((sk) => sk.id === hoverId) : null;
+  const previewHero = hoverSkill ? openHero : (armedHero ?? openHero);
+  const previewSkill = hoverSkill ?? armedSkill
     ?? (openHero && focusId ? openHero.skills.find((sk) => sk.id === focusId) : null);
   /** The button is pressable: every order in, nothing resolving, no result. */
   const live = ready && !resolving && !outcome;
@@ -1010,6 +1030,8 @@ export default function Board() {
               key={`tray-${openHero.id}`}
               hero={openHero}
               focusId={openHero.side === 'player' ? (armed?.skillId ?? focusId) : focusId}
+              hoverId={hoverId}
+              onHover={(skill) => setHoverId(skill ? skill.id : null)}
               chosenSkillId={chosenIdOf(openHero)}
               readOnly={openHero.side !== 'player' || resolving || Boolean(outcome)}
               onFocus={(skill) => focusSkill(openHero, skill)}
@@ -1050,11 +1072,6 @@ export default function Board() {
               </div>
               <div className="font-body text-[12px] text-slate-300">
                 {armedHero.name} — choose {armedTone === 'hostile' ? 'an enemy' : 'an ally'}
-                {armedSkill.isAttack && (
-                  <span className="text-amber-200/90">
-                    {' · '}strikes for {armedHero.attack + (armedSkill.bonus ?? 0)}, takes their Attack back
-                  </span>
-                )}
               </div>
             </div>
 
