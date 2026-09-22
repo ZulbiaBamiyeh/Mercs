@@ -74,6 +74,21 @@ export const ROLES = {
 /** Protector > Fighter > Caster > Protector, at double damage. */
 export const COUNTERS = { protector: 'fighter', fighter: 'caster', caster: 'protector' };
 
+/**
+ * Mercenaries splits damaging abilities in two, and this is the split.
+ *
+ * `isAttack` marks the Attack keyword: the striker deals its own Attack stat
+ * (plus any `bonus`) and *takes the defender's Attack back in the process*,
+ * exactly like minion combat in Hearthstone. That is what makes a defender's
+ * Attack stat defensive, and why Attack on a tanky unit is worth anything.
+ *
+ * Everything else behaves like a spell: it deals its stated `power` and the
+ * caster takes nothing back.
+ *
+ * The role bonus applies to the strike only, not to the damage coming back -
+ * a design call, since a symmetric bonus would make trades unreadable.
+ */
+
 /** Plain-language range, for the ability sheet - a phone has no hover. */
 export const RANGE_LABEL = {
   enemy: 'One enemy',
@@ -99,7 +114,7 @@ export const PLAYER_TEAM = [
       { id: 'shoulder', name: 'Shoulder Sky', icon: I.Shield, speed: 1, cooldown: 0, target: TARGET.self,
         power: 0, shield: 10, text: 'Draw single attacks for a round and shield yourself for 10.' },
       { id: 'backhand', name: 'Backhand', icon: I.Hammer, speed: 5, cooldown: 1, target: TARGET.enemy,
-        power: 11, text: 'Deal Attack damage plus 4 to one enemy.' },
+        isAttack: true, bonus: 4, text: 'Attack an enemy for your Attack plus 4. You take their Attack back.' },
       { id: 'heavens', name: 'Bear Heavens', icon: I.Umbrella, speed: 2, cooldown: 3, target: TARGET.allAllies,
         power: 0, shield: 14, text: 'Shield your whole team for 14 and hold the line for 2 rounds.' },
     ],
@@ -113,11 +128,11 @@ export const PLAYER_TEAM = [
     maxHealth: 36,
     skills: [
       { id: 'spear', name: 'Spear Ruin', icon: I.Swords, speed: 4, cooldown: 0, target: TARGET.enemy,
-        power: 11, text: "Deal damage equal to this hero's Attack." },
+        isAttack: true, text: 'Attack an enemy for your Attack. You take their Attack back.' },
       { id: 'charge', name: 'Charge', icon: I.Wind, speed: 5, cooldown: 1, target: TARGET.allEnemies,
         power: 8, text: 'Deal 75% Attack to the target and its neighbours.' },
       { id: 'sack', name: 'Sack City', icon: I.Flame, speed: 6, cooldown: 2, target: TARGET.enemy,
-        power: 23, text: 'Deal Attack damage, plus 12 if the target is under 40% health.' },
+        isAttack: true, bonus: 12, text: 'Attack an enemy for your Attack plus 12. You take their Attack back.' },
     ],
   }),
   hero({
@@ -164,11 +179,11 @@ export const ENEMY_TEAM = [
     maxHealth: 33,
     skills: [
       { id: 'claws', name: 'Quick Claws', icon: I.Cat, speed: 2, cooldown: 0, target: TARGET.enemy,
-        power: 8, text: 'Deal 80% Attack damage. Very fast.' },
+        isAttack: true, text: 'Attack an enemy for your Attack. Very fast. You take their Attack back.' },
       { id: 'ninelives', name: 'Nine Lives', icon: I.Heart, speed: 1, cooldown: 3, target: TARGET.self,
         power: 0, shield: 8, text: 'Negate the next damage taken and gain +4 Attack.' },
       { id: 'throat', name: 'Throat', icon: I.Crosshair, speed: 4, cooldown: 2, target: TARGET.enemy,
-        power: 16, text: 'Strike the weakest enemy, +16 if it is under 35% health.' },
+        isAttack: true, bonus: 8, text: 'Attack an enemy for your Attack plus 8. You take their Attack back.' },
     ],
   }),
   hero({

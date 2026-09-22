@@ -244,6 +244,27 @@ What is left on the board is only what you read at a glance: the portrait, two
 stat gems, the committed ability, and the turn order. Measured at 390x844 and
 360x640 with no scrolling in either direction.
 
+**Choosing a target** is a state you cannot miss. An ability that needs one
+arms instead of firing: legal targets pulse and wear a crosshair, everything
+else greys out, the caster wears a `Casting` tag, and the footer becomes a
+coloured bar naming the ability, what it will do and a Cancel. A tap that
+misses every tile cancels, so you are never stuck holding an ability. An
+ability aimed at its own caster or the whole field commits on the tap - there
+is nothing to confirm.
+
+### The Attack keyword
+
+Mercenaries splits damaging abilities in two, and so does this. An ability
+marked `isAttack` deals the striker's own Attack stat (plus any `bonus`) and
+**takes the defender's Attack back in the process**, exactly like minion combat
+in Hearthstone - which is what makes a defender's Attack stat defensive, and
+why Attack on a tanky unit is worth anything at all. Everything else behaves
+like a spell: it deals its stated `power` and the caster takes nothing back.
+
+Two calls worth knowing: the role bonus applies to the strike only, not to the
+damage coming back, because a symmetric bonus makes trades unreadable. And the
+trade is simultaneous - a lethal blow still takes the reply.
+
 ### Card anatomy
 
 1. A **strict 1:1 portrait plate** - thick dark border, heavy drop shadow. Role

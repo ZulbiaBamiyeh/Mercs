@@ -32,6 +32,17 @@ const ORDINALS = ['1st', '2nd', '3rd', '4th', '5th', '6th', '7th', '8th'];
 /** Literal classes only - Tailwind scans source text, not runtime strings. */
 const RANK_COLS = { 1: 'grid-cols-1', 2: 'grid-cols-2', 3: 'grid-cols-3', 4: 'grid-cols-4', 5: 'grid-cols-3', 6: 'grid-cols-3' };
 
+/** An ability needs a target unless it is aimed at its own caster or the field. */
+const needsTarget = (skill) => skill.target === TARGET.enemy || skill.target === TARGET.ally;
+
+/** Damage a strike would land, role bonus included. */
+function strikeDamage(actor, skill, target) {
+  const base = skill.isAttack ? actor.attack + (skill.bonus ?? 0) : (skill.power ?? 0);
+  if (base <= 0) return { amount: 0, bonus: false };
+  const bonus = Boolean(target) && COUNTERS[actor.role] === target.role;
+  return { amount: bonus ? base * ROLE_BONUS : base, bonus };
+}
+
 /* ---------------------------------------------------------------- */
 
 function Winged({ speed, className = '', textClass = 'text-[11px]' }) {
@@ -70,7 +81,10 @@ function PortraitStack({ hero, role }) {
  * Unit tile - portrait, two gems, chosen ability. Nothing else.
  * ---------------------------------------------------------------- */
 
-function UnitTile({ hero, chosenSkill, isActing, isOpen, floaters, onOpen }) {
+function UnitTile({
+  hero, chosenSkill, isActing, isOpen, floaters, onOpen,
+  targeting, isTargetable, isCaster, targetTone,
+}) {
   const role = ROLES[hero.role];
   const dead = hero.health <= 0;
   const frac = Math.max(0, Math.min(1, hero.health / Math.max(1, hero.maxHealth)));
@@ -85,12 +99,54 @@ function UnitTile({ hero, chosenSkill, isActing, isOpen, floaters, onOpen }) {
       whileTap={{ scale: 0.97 }}
       transition={SPRING}
       aria-label={`${hero.name}, ${role.label}, ${hero.health} of ${hero.maxHealth} health`}
-      className={`relative block w-full text-left focus-visible:outline-none ${dead ? 'opacity-45 saturate-0' : ''}`}
+      className={`relative block w-full text-left focus-visible:outline-none
+                  ${dead ? 'opacity-45 saturate-0' : ''}
+                  ${targeting && !isTargetable && !isCaster ? 'opacity-35 grayscale' : ''}`}
     >
+      {/* While choosing a target, a legal one pulses and wears a crosshair. */}
+      <AnimatePresence>
+        {isTargetable && (
+          <motion.span
+            initial={{ opacity: 0, scale: 0.94 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.94 }}
+            transition={SPRING}
+            className={`pointer-events-none absolute -inset-1.5 z-30 rounded-2xl border-[3px]
+                        ${targetTone === 'hostile'
+                          ? 'border-red-400 shadow-[0_0_24px_rgba(248,113,113,0.6)]'
+                          : 'border-emerald-300 shadow-[0_0_24px_rgba(110,231,183,0.55)]'}`}
+          />
+        )}
+      </AnimatePresence>
+      <AnimatePresence>
+        {isTargetable && (
+          <motion.span
+            initial={{ opacity: 0, scale: 0.5 }}
+            animate={{ opacity: 1, scale: [1, 1.14, 1] }}
+            exit={{ opacity: 0, scale: 0.5 }}
+            transition={{ scale: { duration: 1.3, repeat: Infinity }, opacity: { duration: 0.15 } }}
+            className={`pointer-events-none absolute left-1/2 top-1/2 z-40 -translate-x-1/2 -translate-y-1/2
+                        rounded-full border-2 p-1.5
+                        ${targetTone === 'hostile'
+                          ? 'border-red-300 bg-red-950/80 text-red-200'
+                          : 'border-emerald-300 bg-emerald-950/80 text-emerald-200'}`}
+          >
+            <I.Crosshair size={22} />
+          </motion.span>
+        )}
+      </AnimatePresence>
+      {isCaster && targeting && (
+        <span className="pointer-events-none absolute -top-2 left-1/2 z-40 -translate-x-1/2 rounded
+                         border-2 border-amber-400 bg-amber-950 px-1.5 py-[1px] font-display text-[9px]
+                         font-bold uppercase tracking-wider text-amber-200">
+          Casting
+        </span>
+      )}
       <div
         className={`relative aspect-square w-full overflow-hidden rounded-xl border-[3px] bg-slate-900
                     shadow-xl shadow-black/70 transition-colors
-                    ${isActing ? 'border-amber-500' : isOpen ? 'border-amber-300' : 'border-slate-700'}`}
+                    ${isActing || isCaster ? 'border-amber-500'
+                      : isOpen ? 'border-amber-300' : 'border-slate-700'}`}
       >
         <PortraitStack hero={hero} role={role} />
 
@@ -224,7 +280,7 @@ function TurnStrip({ queue, activeIndex, heroesById }) {
  * Ability sheet - the whole reason the board is this small
  * ---------------------------------------------------------------- */
 
-function AbilityRow({ skill, cooldown, chosen, readOnly, onPick }) {
+function AbilityRow({ skill, cooldown, chosen, readOnly, hero, onPick }) {
   const Icon = skill.icon;
   const locked = cooldown > 0;
   const pickable = !readOnly && !locked;
@@ -264,6 +320,13 @@ function AbilityRow({ skill, cooldown, chosen, readOnly, onPick }) {
         <span className={`mt-1 block font-body text-[13px] leading-snug ${locked ? 'text-slate-600' : 'text-slate-300'}`}>
           {skill.text}
         </span>
+        {/* An Attack trades damage both ways, so say what it costs to swing. */}
+        {skill.isAttack && (
+          <span className="mt-1 flex items-center gap-1.5 font-body text-[11.5px] text-amber-200/80">
+            <I.Swords size={12} />
+            Strikes for {hero.attack + (skill.bonus ?? 0)} — and takes the defender's Attack back
+          </span>
+        )}
       </span>
 
       <span className="ml-1 shrink-0 self-center text-right">
@@ -329,6 +392,7 @@ function AbilitySheet({ hero, chosenSkillId, readOnly, onPick, onClose }) {
               cooldown={hero.cooldowns[skill.id] ?? 0}
               chosen={chosenSkillId === skill.id}
               readOnly={readOnly}
+              hero={hero}
               onPick={onPick}
             />
           ))}
@@ -356,11 +420,22 @@ const seedHeroes = () => [
 }));
 
 function pickIntents(heroes) {
+  const pick = (list) => list[Math.floor(Math.random() * list.length)];
   const intents = {};
+
   for (const h of heroes) {
     if (h.side !== 'enemy' || h.health <= 0) continue;
     const ready = h.skills.filter((s) => (h.cooldowns[s.id] ?? 0) <= 0);
-    if (ready.length) intents[h.id] = ready[Math.floor(Math.random() * ready.length)].id;
+    if (!ready.length) continue;
+
+    const skill = pick(ready);
+    let targetId = null;
+    if (needsTarget(skill)) {
+      const wanted = skill.target === TARGET.ally ? 'enemy' : 'player';
+      const pool = heroes.filter((o) => o.side === wanted && o.health > 0);
+      targetId = pool.length ? pick(pool).id : null;
+    }
+    intents[h.id] = { skillId: skill.id, targetId };
   }
   return intents;
 }
@@ -370,6 +445,7 @@ export default function Board() {
   const [selections, setSelections] = useState({});
   const [intents, setIntents] = useState(() => pickIntents(seedHeroes()));
   const [openId, setOpenId] = useState(null);
+  const [armed, setArmed] = useState(null);   // { heroId, skillId } choosing a target
   const [round, setRound] = useState(1);
   const [activeIndex, setActiveIndex] = useState(-1);
   const [resolving, setResolving] = useState(false);
@@ -385,15 +461,16 @@ export default function Board() {
   const livePlayers = players.filter((h) => h.health > 0);
   const liveEnemies = enemies.filter((h) => h.health > 0);
   const skillOf = (hero, id) => hero.skills.find((s) => s.id === id);
-  const chosenIdOf = (hero) => (hero.side === 'player' ? selections[hero.id] : intents[hero.id]);
+  const orderOf = (hero) => (hero.side === 'player' ? selections[hero.id] : intents[hero.id]);
+  const chosenIdOf = (hero) => orderOf(hero)?.skillId;
 
   const queue = useMemo(() => {
     const steps = [];
     for (const h of heroes) {
       if (h.health <= 0) continue;
-      const id = h.side === 'player' ? selections[h.id] : intents[h.id];
-      const skill = id && skillOf(h, id);
-      if (skill) steps.push({ heroId: h.id, skill, side: h.side });
+      const order = h.side === 'player' ? selections[h.id] : intents[h.id];
+      const skill = order && skillOf(h, order.skillId);
+      if (skill) steps.push({ heroId: h.id, skill, side: h.side, targetId: order.targetId });
     }
     // Ascending speed; same-side ties keep team order, so ordering your own
     // heroes is a decision rather than a coin flip.
@@ -412,6 +489,35 @@ export default function Board() {
     }
   }, [livePlayers, liveEnemies]);
 
+  /* ---- choosing a target ---- */
+
+  const armedHero = armed ? heroesById[armed.heroId] : null;
+  const armedSkill = armedHero ? skillOf(armedHero, armed.skillId) : null;
+  const armedRange = useMemo(
+    () => (armedHero && armedSkill ? rangeOf(armedHero, armedSkill) : []),
+    [armedHero, armedSkill, rangeOf],
+  );
+  const armedTone = armedSkill && (armedSkill.target === TARGET.ally
+    || armedSkill.target === TARGET.allAllies || armedSkill.target === TARGET.self)
+    ? 'friendly' : 'hostile';
+
+  /** An ability that needs no target commits on the tap - nothing to confirm. */
+  const chooseSkill = (hero, skill) => {
+    setOpenId(null);
+    if (!needsTarget(skill)) {
+      setArmed(null);
+      setSelections((prev) => ({ ...prev, [hero.id]: { skillId: skill.id, targetId: null } }));
+      return;
+    }
+    setArmed({ heroId: hero.id, skillId: skill.id });
+  };
+
+  const chooseTarget = (target) => {
+    if (!armed || !armedRange.includes(target.id)) return;
+    setSelections((prev) => ({ ...prev, [armed.heroId]: { skillId: armed.skillId, targetId: target.id } }));
+    setArmed(null);
+  };
+
   const pushFloater = (heroId, text, kind) => {
     const id = uid();
     setFloaters((f) => [...f, { id, heroId, text, kind }]);
@@ -425,6 +531,7 @@ export default function Board() {
     if (!ready || resolving) return;
     setResolving(true);
     setOpenId(null);
+    setArmed(null);
     let board = heroes;
 
     for (let i = 0; i < queue.length; i++) {
@@ -440,12 +547,25 @@ export default function Board() {
 
       const ids = rangeOf(actor, step.skill);
       const pool = board.filter((h) => ids.includes(h.id) && h.health > 0);
-      const single = step.skill.target === TARGET.enemy || step.skill.target === TARGET.ally;
-      const targets = single
-        ? [[...pool].sort((a, b) => a.health / a.maxHealth - b.health / b.maxHealth)[0]].filter(Boolean)
+      const chosen = step.targetId && pool.find((h) => h.id === step.targetId);
+      const targets = needsTarget(step.skill)
+        // The chosen target may have died earlier in the round; fall back to
+        // the weakest thing still in range rather than fizzling silently.
+        ? [chosen || [...pool].sort((a, b) => a.health / a.maxHealth - b.health / b.maxHealth)[0]].filter(Boolean)
         : pool;
 
       const next = board.map((h) => ({ ...h }));
+      const striker = next.find((x) => x.id === actor.id);
+
+      /** Shields soak first; returns what actually reached health. */
+      const dealTo = (victim, raw) => {
+        const soaked = Math.min(victim.shield, raw);
+        victim.shield -= soaked;
+        const through = raw - soaked;
+        victim.health = Math.max(0, victim.health - through);
+        return through;
+      };
+
       for (const t of targets) {
         const target = next.find((x) => x.id === t.id);
         if (!target) continue;
@@ -459,14 +579,21 @@ export default function Board() {
           target.shield += step.skill.shield;
           pushFloater(target.id, 'warded', 'word');
         }
-        if (step.skill.power > 0) {
-          const bonus = COUNTERS[actor.role] === target.role;
-          let amount = bonus ? step.skill.power * ROLE_BONUS : step.skill.power;
-          const soaked = Math.min(target.shield, amount);
-          target.shield -= soaked;
-          amount -= soaked;
-          target.health = Math.max(0, target.health - amount);
-          pushFloater(target.id, `-${amount}${bonus ? ' ×2' : ''}`, bonus ? 'crit' : 'dmg');
+
+        const { amount, bonus } = strikeDamage(actor, step.skill, target);
+        if (amount > 0) {
+          const through = dealTo(target, amount);
+          pushFloater(target.id, `-${through}${bonus ? ' ×2' : ''}`, bonus ? 'crit' : 'dmg');
+        }
+      }
+
+      // The Attack keyword: the striker takes the defender's Attack back, and
+      // takes it even if the blow was lethal - the trade is simultaneous.
+      if (step.skill.isAttack && targets.length === 1 && striker) {
+        const back = targets[0].attack;
+        if (back > 0) {
+          const through = dealTo(striker, back);
+          pushFloater(striker.id, `-${through}`, 'dmg');
         }
       }
 
@@ -476,7 +603,7 @@ export default function Board() {
     }
 
     const ticked = board.map((h) => {
-      const used = h.side === 'player' ? selections[h.id] : intents[h.id];
+      const used = (h.side === 'player' ? selections[h.id] : intents[h.id])?.skillId;
       const cooldowns = { ...h.cooldowns };
       for (const key of Object.keys(cooldowns)) cooldowns[key] = Math.max(0, cooldowns[key] - 1);
       const skill = used && skillOf(h, used);
@@ -503,6 +630,7 @@ export default function Board() {
     setFloaters([]);
     setToast(null);
     setOpenId(null);
+    setArmed(null);
     setResolving(false);
   };
 
@@ -519,14 +647,35 @@ export default function Board() {
           isActing={activeIndex >= 0 && queue[activeIndex]?.heroId === hero.id}
           isOpen={openId === hero.id}
           floaters={floaters.filter((f) => f.heroId === hero.id)}
-          onOpen={(h) => { if (!resolving) setOpenId(h.id); }}
+          targeting={Boolean(armed)}
+          isTargetable={Boolean(armed) && armedRange.includes(hero.id)}
+          isCaster={armed?.heroId === hero.id}
+          targetTone={armedTone}
+          onOpen={(h) => {
+            if (resolving) return;
+            // While aiming, a tap is the aim; only a legal target lands, and
+            // anything else cancels rather than silently doing nothing.
+            if (armed) {
+              if (armedRange.includes(h.id)) chooseTarget(h);
+              else setArmed(null);
+              return;
+            }
+            setOpenId(h.id);
+          }}
         />
       ))}
     </div>
   );
 
   return (
-    <div className="relative flex h-full flex-col overflow-hidden bg-[#0d0a07]">
+    <div
+      className="relative flex h-full flex-col overflow-hidden bg-[#0d0a07]"
+      onClick={(e) => {
+        // Aiming at nothing should let go. A tap that misses every tile and
+        // every control cancels, so you are never stuck holding an ability.
+        if (armed && !e.target.closest('button')) setArmed(null);
+      }}
+    >
       <div aria-hidden className="pointer-events-none absolute inset-0">
         <div className="absolute inset-0 bg-[repeating-linear-gradient(91deg,#1c1409_0px,#241a0c_4px,#160f07_9px,#1f1509_14px)] opacity-70" />
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_78%_52%_at_50%_44%,rgba(214,166,96,0.22),transparent_70%)]" />
@@ -562,6 +711,46 @@ export default function Board() {
 
       {/* bottom bar */}
       <footer className="relative z-10 shrink-0 px-3 pb-[max(0.6rem,env(safe-area-inset-bottom,0px))] pt-2">
+        {armed && armedHero && armedSkill ? (
+          <motion.div
+            initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={SPRING}
+            className={`flex items-center gap-3 rounded-xl border-[3px] px-3 py-2
+                        ${armedTone === 'hostile'
+                          ? 'border-red-500 bg-red-950/70 shadow-[0_0_22px_-4px_rgba(248,113,113,0.6)]'
+                          : 'border-emerald-500 bg-emerald-950/70 shadow-[0_0_22px_-4px_rgba(110,231,183,0.55)]'}`}
+          >
+            <motion.span
+              animate={{ scale: [1, 1.12, 1] }}
+              transition={{ duration: 1.3, repeat: Infinity }}
+              className={armedTone === 'hostile' ? 'text-red-300' : 'text-emerald-300'}
+            >
+              <I.Crosshair size={22} />
+            </motion.span>
+
+            <div className="min-w-0 flex-1 leading-tight">
+              <div className="font-display text-[13px] font-semibold uppercase tracking-wider text-white">
+                {armedSkill.name}
+              </div>
+              <div className="font-body text-[12px] text-slate-300">
+                {armedHero.name} — choose {armedTone === 'hostile' ? 'an enemy' : 'an ally'}
+                {armedSkill.isAttack && (
+                  <span className="text-amber-200/90">
+                    {' · '}strikes for {armedHero.attack + (armedSkill.bonus ?? 0)}, takes their Attack back
+                  </span>
+                )}
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setArmed(null)}
+              className="shrink-0 rounded-lg border-2 border-slate-600 bg-slate-900/80 px-3 py-2
+                         font-display text-[11px] uppercase tracking-wider text-slate-300 active:bg-slate-800"
+            >
+              Cancel
+            </button>
+          </motion.div>
+        ) : (
         <div className="flex items-center gap-3">
           <div className="min-w-0 flex-1 font-body text-[12.5px] leading-tight">
             {outcome === 'won' ? <span className="text-emerald-300">The field is yours.</span>
@@ -586,6 +775,7 @@ export default function Board() {
             {resolving ? '…' : 'Ready'}
           </motion.button>
         </div>
+        )}
       </footer>
 
       {/* one line naming what is resolving, in place of a log panel */}
@@ -615,10 +805,7 @@ export default function Board() {
             hero={openHero}
             chosenSkillId={chosenIdOf(openHero)}
             readOnly={openHero.side !== 'player' || resolving || Boolean(outcome)}
-            onPick={(skill) => {
-              setSelections((s) => ({ ...s, [openHero.id]: skill.id }));
-              setOpenId(null);
-            }}
+            onPick={(skill) => chooseSkill(openHero, skill)}
             onClose={() => setOpenId(null)}
           />
         )}
