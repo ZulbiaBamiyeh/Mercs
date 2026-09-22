@@ -10,6 +10,23 @@
 
 import * as I from './icons.jsx';
 
+/**
+ * Character art.
+ *
+ * Drop files into `web/react/art/` and point these at them, e.g.
+ * `atlas: 'art/atlas.webp'`. Same-origin files load normally; the remote
+ * placeholders below only work on a dev server, because the published page's
+ * CSP blocks remote images silently. See web/react/art/README.md.
+ */
+export const ART = {
+  atlas: 'https://picsum.photos/seed/atlas/512/512',
+  ares: 'https://picsum.photos/seed/ares/512/512',
+  zeus: 'https://picsum.photos/seed/zeus/512/512',
+  geb: 'https://picsum.photos/seed/geb/512/512',
+  bastet: 'https://picsum.photos/seed/bastet/512/512',
+  isis: 'https://picsum.photos/seed/isis/512/512',
+};
+
 /** Who an ability may be aimed at. Drives the hover targeting highlight. */
 export const TARGET = {
   enemy: 'enemy',
@@ -56,9 +73,18 @@ export const ROLES = {
 
 /** Protector > Fighter > Caster > Protector, at double damage. */
 export const COUNTERS = { protector: 'fighter', fighter: 'caster', caster: 'protector' };
+
+/** Plain-language range, for the ability sheet - a phone has no hover. */
+export const RANGE_LABEL = {
+  enemy: 'One enemy',
+  allEnemies: 'All enemies',
+  ally: 'One ally',
+  allAllies: 'Whole team',
+  self: 'Self',
+};
 export const ROLE_BONUS = 2;
 
-const hero = (h) => ({ ...h, health: h.maxHealth });
+const hero = (h) => ({ ...h, health: h.maxHealth, portrait: ART[h.id] ?? null });
 
 export const PLAYER_TEAM = [
   hero({
@@ -68,8 +94,7 @@ export const PLAYER_TEAM = [
     role: 'protector',
     attack: 7,
     maxHealth: 52,
-    /** Remote portrait. Rendered over the generated bust in portraits.jsx. */
-    portrait: 'https://picsum.photos/seed/atlas/400/400',
+
     skills: [
       { id: 'shoulder', name: 'Shoulder Sky', icon: I.Shield, speed: 1, cooldown: 0, target: TARGET.self,
         power: 0, shield: 10, text: 'Draw single attacks for a round and shield yourself for 10.' },
@@ -86,7 +111,6 @@ export const PLAYER_TEAM = [
     role: 'fighter',
     attack: 11,
     maxHealth: 36,
-    portrait: 'https://picsum.photos/seed/ares/400/400',
     skills: [
       { id: 'spear', name: 'Spear Ruin', icon: I.Swords, speed: 4, cooldown: 0, target: TARGET.enemy,
         power: 11, text: "Deal damage equal to this hero's Attack." },
@@ -103,7 +127,6 @@ export const PLAYER_TEAM = [
     role: 'caster',
     attack: 10,
     maxHealth: 28,
-    portrait: 'https://picsum.photos/seed/zeus/400/400',
     skills: [
       { id: 'bolt', name: 'Thunderbolt', icon: I.Zap, speed: 3, cooldown: 0, target: TARGET.enemy,
         power: 11, text: 'Deal 11 damage to one enemy.' },
@@ -123,7 +146,6 @@ export const ENEMY_TEAM = [
     role: 'protector',
     attack: 7,
     maxHealth: 50,
-    portrait: 'https://picsum.photos/seed/geb/400/400',
     skills: [
       { id: 'stonewatch', name: 'Stone Watch', icon: I.Shield, speed: 1, cooldown: 0, target: TARGET.self,
         power: 0, shield: 12, text: 'Draw single attacks and negate the next damage taken.' },
@@ -140,7 +162,6 @@ export const ENEMY_TEAM = [
     role: 'fighter',
     attack: 10,
     maxHealth: 33,
-    portrait: 'https://picsum.photos/seed/bastet/400/400',
     skills: [
       { id: 'claws', name: 'Quick Claws', icon: I.Cat, speed: 2, cooldown: 0, target: TARGET.enemy,
         power: 8, text: 'Deal 80% Attack damage. Very fast.' },
@@ -157,7 +178,6 @@ export const ENEMY_TEAM = [
     role: 'caster',
     attack: 8,
     maxHealth: 32,
-    portrait: 'https://picsum.photos/seed/isis/400/400',
     skills: [
       { id: 'mending', name: 'Mending', icon: I.Activity, speed: 2, cooldown: 0, target: TARGET.ally,
         power: 0, heal: 12, text: 'Restore 12 health to one ally.' },

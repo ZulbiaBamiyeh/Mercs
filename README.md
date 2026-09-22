@@ -231,28 +231,41 @@ npm run build:board      # esbuild (JSX) + tailwind v4 -> web/react/dist/
 | `web/react/portraits.jsx` | Generated painted busts, one per hero, as data URIs. |
 | `web/react/input.css` | Tailwind v4 source, `@theme` tokens and `@source` globs. |
 
+### Built for a phone in portrait
+
+The layout decision everything else follows from: **abilities are not on the
+board.** Tap a hero and a sheet rises with its three abilities in full - name,
+speed, cooldown, range and rules text, none of it truncated. Tapping an enemy
+opens the same sheet read-only with the ability it has chosen marked `Chosen`.
+That is how Mercenaries does it, and it buys back the vertical space three
+permanent skill docks were eating.
+
+What is left on the board is only what you read at a glance: the portrait, two
+stat gems, the committed ability, and the turn order. Measured at 390x844 and
+360x640 with no scrolling in either direction.
+
 ### Card anatomy
 
-1. A **strict 1:1 portrait plate** - `border-4 border-slate-700`, `shadow-2xl
-   shadow-black/70`. Role is a coloured gradient wash up from the bottom plus a
-   solid 3px rule, never a glowing outer border.
+1. A **strict 1:1 portrait plate** - thick dark border, heavy drop shadow. Role
+   is a coloured gradient wash up from the bottom plus a solid 3px rule, never
+   a glowing outer border.
 2. **Stat gems riveted half-in, half-out** of the plate's bottom corners, which
-   is why they live outside the plate's `overflow-hidden` box rather than
-   inside it.
-3. A **stone skill tray bolted below** the plate with visible iron straps,
-   wider than the plate so skill names wrap instead of truncating.
+   is why they live outside the plate's `overflow-hidden` box. The name sits
+   above them rather than being squeezed between them.
 
 ### Portraits
 
-Each plate stacks two real `<img class="object-cover">`: a generated painted
-bust underneath, and `hero.portrait` (a remote URL) over it. The reason is that
-**the published page's CSP blocks external images silently** - a remote URL on
-its own renders an empty frame. The overlay also carries no `alt` and removes
-itself on error, because a blocked image otherwise paints its alt text straight
-over the card.
+One place sets art: the `ART` map at the top of `heroes.jsx`. Drop files into
+`web/react/art/` and point entries at them (`atlas: 'art/atlas.webp'`); see
+`web/react/art/README.md` for sizes.
 
-So the artifact shows the generated busts; a local dev server shows the remote
-photos on top. Set `hero.portrait` to your own art and it wins in both.
+Each plate stacks two real `<img class="object-cover">`: a generated painted
+bust underneath, and `hero.portrait` over it. The reason is that **the
+published page's CSP blocks *remote* images silently** - a remote URL on its
+own renders an empty frame, so the placeholder `picsum` URLs only work on a dev
+server. Files published from `web/react/art/` are same-origin and load
+normally. The overlay also carries no `alt` and removes itself on error,
+because a blocked image otherwise paints its alt text straight over the card.
 
 Everything that can be compiled ahead of time is, because the published page
 has a CDN allowlist and anything from the wrong host fails *silently*: JSX
