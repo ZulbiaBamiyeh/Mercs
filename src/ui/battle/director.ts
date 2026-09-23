@@ -266,7 +266,9 @@ export class Director {
       case 'status':
         show();
         this.popText(e.target, e.text, `is-${e.tone}`);
-        if (e.text === 'Immune' || e.text === 'Taunt') play('shield');
+        if (['Immune', 'Taunt', 'Divine Shield', 'Shield breaks', 'Frost Armor'].includes(e.text)) play('shield');
+        if (e.text === 'Shield breaks') this.flash(e.target, 'is-shield-break');
+        if (e.text === 'Frozen') play('shield');
         await this.wait(next?.t === 'status' ? 160 : 520);
         return;
       case 'redirect':

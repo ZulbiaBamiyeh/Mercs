@@ -5,7 +5,7 @@
 
 import { abilityDef } from './data';
 import {
-  isAlive, legalTargets, livingBoard, other, resolveTurn, slotsToFill, unit,
+  isAlive, legalTargets, livingBoard, neighbours, other, resolveTurn, slotsToFill, unit,
 } from './battle';
 import type { BattleState, Command, Side } from './types';
 
@@ -41,6 +41,11 @@ function evaluate(s: BattleState, side: Side, cmds: Command[]): number {
     score += gained > 0 ? Math.min(gained, missing + (now.maxHealth - before.maxHealth)) * 0.7 : gained * 0.6;
     score += (now.attack - before.attack) * 2.2;
   }
+  // Summons that are still standing.
+  for (const id of after.sides[side].board) {
+    const u = after.units[id];
+    if (u && isAlive(u) && u.isMinion && !u.expires && !s.units[id]) score += u.attack * 1.5 + u.health * 0.5;
+  }
   return score;
 }
 
@@ -49,10 +54,41 @@ function futureValue(s: BattleState, side: Side, c: Command): number {
   const u = unit(s, c.actor);
   const allies = livingBoard(s, side).filter((f) => f.uid !== u.uid);
   const hurtAlly = allies.some((a) => a.health < a.maxHealth * 0.5);
+  const target = c.target ? unit(s, c.target) : null;
   switch (c.ability) {
     case 'taunt':
     case 'hold-the-front':
-      return hurtAlly ? 18 : 4;
+    case 'deep-roots':
+    case 'molten-bulwark':
+    case 'bone-wall':
+      return hurtAlly ? 18 : 5;
+    case 'forge-ward':
+      return (hurtAlly ? 18 : 5) + (u.shield ? 0 : 8);
+    case 'hold-fast': {
+      const buckler = u.item === 'iron-buckler' ? neighbours(s, u).filter((n) => !n.shield).length * 8 : 0;
+      return (hurtAlly ? 18 : 5) + (u.shield ? 0 : 8) + buckler;
+    }
+    case 'aegis-prayer':
+    case 'frost-armor':
+      return target && !target.shield ? (target.health < target.maxHealth * 0.5 ? 16 : 9) : 0;
+    case 'entangle':
+      return 7 * livingBoard(s, other(side)).length;
+    case 'bramble-lash':
+    case 'pinning-shot':
+      return 7;
+    case 'vanish':
+      return 14;
+    case 'call-wolf':
+    case 'raise-dead':
+      return 6;
+    case 'rally-the-crew':
+      return 8;
+    case 'curse-of-frailty':
+      return 10;
+    case 'whirlpool':
+    case 'thunderclap':
+    case 'blizzard':
+      return 5;
     case 'elunes-grace':
       return 22;
     case 'blessing-of-sacrifice': {
@@ -68,7 +104,7 @@ function futureValue(s: BattleState, side: Side, c: Command): number {
 
 export function chooseCommands(s: BattleState, side: Side, seed = s.rng ^ (s.turn * 7919)): Command[] {
   const rand = localRng(seed);
-  const actors = livingBoard(s, side).filter((u) => !u.isMinion);
+  const actors = livingBoard(s, side).filter((u) => u.abilities.length > 0);
   const options = actors.map((u) =>
     u.abilities
       .filter((a) => a.cd === 0)

@@ -26,6 +26,14 @@ const NAMES = [
   'laurel-crown', 'broken-shield', 'upgrade', 'speedometer', 'dice-six-faces-five',
 ];
 
+// Every icon the original roster names, so new content needs no edit here.
+const originals = readFileSync(new URL('../src/engine/originals.ts', import.meta.url), 'utf8');
+for (const m of originals.matchAll(/icon: '([a-z0-9-]+)'/g)) if (!NAMES.includes(m[1])) NAMES.push(m[1]);
+// Status badges and effects.
+for (const n of ['drop', 'root-tip', 'ice-cube', 'invisible', 'vampire-dracula', 'shield-reflect', 'thorny-vine', 'broken-skull', 'bleeding-wound']) {
+  if (set.icons[n] && !NAMES.includes(n)) NAMES.push(n);
+}
+
 const out = {};
 for (const n of NAMES) {
   const icon = set.icons[n];

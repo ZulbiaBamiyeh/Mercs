@@ -3,6 +3,7 @@
 // by the fight so far (drawn green, like the source game).
 
 import { atonementDamage, N } from './abilities';
+import { ORIGINAL_TEXT } from './originals';
 import type { BattleState, Unit } from './types';
 
 interface Holder { item: string | null; side?: Unit['side']; arcaneDamage?: number }
@@ -13,6 +14,8 @@ export function abilityText(id: string, u: Holder | null, s?: BattleState | null
   const item = u?.item ?? null;
   const has = (i: string) => item === i;
   const arcane = u?.arcaneDamage ?? 0;
+  const original = ORIGINAL_TEXT[id];
+  if (original) return original(u);
   switch (id) {
     case 'crusaders-blow':
       return has('hammer-of-dawn')
@@ -94,6 +97,18 @@ export const KEYWORDS: Record<string, string> = {
   Taunt: 'Enemies must Attack characters with Taunt. Abilities that deal damage without Attacking ignore it.',
   Deathblow: 'A bonus that happens if this ability kills a character.',
   Immune: "Can't be damaged. Damaging abilities aimed at it pick another target.",
+  'Divine Shield': 'Ignores the next damage this character takes, then breaks.',
+  Root: "Can't Attack. An ability that Attacks stops at the Attack, and nothing after it happens.",
+  Bleed: 'Takes this much damage at the end of each turn until it is healed. Stacks.',
+  Bleeding: 'Takes damage at the end of each turn until it is healed.',
+  Freeze: 'Loses its next action. Only matters if it has not acted yet this turn.',
+  Frozen: 'Loses its next action. Only matters if it has not acted yet this turn.',
+  Stealth: "Can't be targeted by enemies until it uses an ability. Abilities that hit all enemies still hit it.",
+  Lifesteal: 'Damage this deals also restores that much Health to this character.',
+  Windfury: 'Attacks twice. If the first Attack kills, the second picks a new target.',
+  Combo: 'A bonus if a friendly character already used an ability earlier this turn.',
+  'Shadow Weakness': 'Takes this much extra damage from Shadow abilities. Stacks.',
+  Passive: 'Always on while this Merc is alive.',
 };
 
 export const ROLE_INFO = {

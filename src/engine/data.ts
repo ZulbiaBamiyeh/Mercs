@@ -1,9 +1,13 @@
-// Builds the roster from src/data/roster.json. The JSON owns stats, speeds,
+// Two playable rosters: the originals (src/engine/originals.ts) and the
+// classic Hearthstone starters, kept for testing.
+//
+// The classic roster is built from src/data/roster.json. The JSON owns stats, speeds,
 // cooldowns and item names. This file adds what the JSON does not say: how an
 // ability targets, which icon it uses, and placeholder portrait colours.
 
 import raw from '../data/roster.json';
-import type { AbilityDef, ItemDef, MercDef, Role, School, TargetKind } from './types';
+import { MINIONS, ORIGINAL_MERCS } from './originals';
+import type { AbilityDef, ItemDef, MercDef, Role, RosterId, School, TargetKind } from './types';
 
 export const slug = (s: string) =>
   s.toLowerCase().replace(/['’]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
@@ -35,13 +39,13 @@ const ABILITY_META: Record<string, { target: TargetKind; isAttack?: boolean; ico
   'greater-arcane-missiles': { target: 'none', icon: 'missile-swarm' },
 };
 
-const ITEM_META: Record<string, { icon: string; modifies: string | null }> = {
+const ITEM_META: Record<string, Pick<ItemDef, 'icon' | 'modifies' | 'health' | 'reduction' | 'cooldown'>> = {
   'hammer-of-dawn': { icon: 'warhammer', modifies: 'crusaders-blow' },
   'tome-of-judgment': { icon: 'spell-book', modifies: 'seal-of-light' },
   'tome-of-light': { icon: 'book-cover', modifies: null },
   'striking-gauntlets': { icon: 'gauntlet', modifies: 'martial-mastery' },
   'band-of-enlightenment': { icon: 'ring', modifies: 'hold-the-front' },
-  'shield-of-dawn': { icon: 'magic-shield', modifies: null },
+  'shield-of-dawn': { icon: 'magic-shield', modifies: null, reduction: 3 },
   gorehowl: { icon: 'battle-axe', modifies: 'blood-fervor' },
   'halting-sash': { icon: 'belt', modifies: 'staggering-slam' },
   'bloodthirst-amulet': { icon: 'gem-pendant', modifies: 'battlefury' },
@@ -53,12 +57,12 @@ const ITEM_META: Record<string, { icon: string; modifies: string | null }> = {
   'burning-blade': { icon: 'flaming-claw', modifies: null },
   'frostwolf-talisman': { icon: 'wolf-head', modifies: 'tribal-warfare' },
   'helm-of-inspiration': { icon: 'horned-helm', modifies: 'offensive-rally' },
-  'ancestral-armor': { icon: 'armor-vest', modifies: null },
+  'ancestral-armor': { icon: 'armor-vest', modifies: null, health: 20 },
   'radiant-wand': { icon: 'crystal-wand', modifies: 'blinding-luminance' },
-  'shard-of-the-naaru': { icon: 'crystal-growth', modifies: 'flash-heal' },
+  'shard-of-the-naaru': { icon: 'crystal-growth', modifies: 'flash-heal', cooldown: { ability: 'flash-heal', delta: 1 } },
   'robes-of-purity': { icon: 'robe', modifies: 'atonement' },
   'arcane-powder': { icon: 'powder-bag', modifies: 'arcane-explosion' },
-  'mana-rod': { icon: 'wizard-staff', modifies: 'arcane-bolt' },
+  'mana-rod': { icon: 'wizard-staff', modifies: 'arcane-bolt', cooldown: { ability: 'arcane-bolt', delta: 1 } },
   'ley-line-wand': { icon: 'orb-wand', modifies: 'greater-arcane-missiles' },
 };
 
@@ -100,10 +104,10 @@ function buildItem(i: RawItem): ItemDef {
   const id = slug(i.name);
   const meta = ITEM_META[id];
   if (!meta) throw new Error(`No item metadata for ${i.name}`);
-  return { id, name: i.name, text: i.text, icon: meta.icon, modifies: meta.modifies };
+  return { id, name: i.name, text: i.text, ...meta };
 }
 
-export const MERCS: MercDef[] = (raw.mercs as RawMerc[]).map((m) => {
+export const CLASSIC_MERCS: MercDef[] = (raw.mercs as RawMerc[]).map((m) => {
   const meta = MERC_META[m.id];
   if (!meta) throw new Error(`No portrait metadata for ${m.id}`);
   return {
@@ -119,18 +123,35 @@ export const MERCS: MercDef[] = (raw.mercs as RawMerc[]).map((m) => {
     items: m.equipment.map(buildItem),
     palette: meta.palette,
     title: meta.title,
+    roster: 'classic' as const,
   };
 });
 
-export const MERC_BY_ID: Record<string, MercDef> = Object.fromEntries(MERCS.map((m) => [m.id, m]));
+export const ROSTERS: Record<Exclude<RosterId, 'minion'>, MercDef[]> = {
+  originals: ORIGINAL_MERCS,
+  classic: CLASSIC_MERCS,
+};
+
+/** Every playable merc, both rosters. */
+export const MERCS: MercDef[] = [...ORIGINAL_MERCS, ...CLASSIC_MERCS];
+
+const ALL = [...MERCS, ...MINIONS];
+
+export const MERC_BY_ID: Record<string, MercDef> = Object.fromEntries(ALL.map((m) => [m.id, m]));
 
 export const ABILITY_BY_ID: Record<string, AbilityDef> = Object.fromEntries(
-  MERCS.flatMap((m) => m.abilities.map((a) => [a.id, a])),
+  ALL.flatMap((m) => m.abilities.map((a) => [a.id, a])),
 );
 
 export const ITEM_BY_ID: Record<string, ItemDef> = Object.fromEntries(
-  MERCS.flatMap((m) => m.items.map((i) => [i.id, i])),
+  ALL.flatMap((m) => m.items.map((i) => [i.id, i])),
 );
+
+{
+  const ids = ALL.flatMap((m) => m.abilities.map((a) => a.id));
+  const dup = ids.find((id, i) => ids.indexOf(id) !== i);
+  if (dup) throw new Error(`Duplicate ability id ${dup}`);
+}
 
 export function mercDef(id: string): MercDef {
   const d = MERC_BY_ID[id];

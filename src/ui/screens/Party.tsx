@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
-import { abilityText, ITEM_BY_ID, MERC_BY_ID, MERCS, ROLE_INFO, type MercDef, type PartyPick } from '../../engine';
+import { abilityText, ITEM_BY_ID, MERC_BY_ID, ROLE_INFO, ROSTERS, type MercDef, type PartyPick } from '../../engine';
+import type { RosterKey } from '../App';
 import { AbilityCard } from '../components/AbilityCard';
 import { Icon } from '../components/Icon';
 import { Medallion } from '../components/Medallion';
@@ -23,9 +24,16 @@ const stats = (m: MercDef, item: string | null) => {
   };
 };
 
-export function Party({ party, setParty, onBack, onFight }: {
+const ROSTER_TABS: { key: RosterKey; label: string; note: string }[] = [
+  { key: 'originals', label: 'The Free Companies', note: '12 originals' },
+  { key: 'classic', label: 'Classic', note: 'test roster' },
+];
+
+export function Party({ roster, setRoster, party, setParty, onBack, onFight }: {
+  roster: RosterKey; setRoster: (r: RosterKey) => void;
   party: PartyPick[]; setParty: (p: PartyPick[]) => void; onBack: () => void; onFight: () => void;
 }) {
+  const MERCS = ROSTERS[roster];
   const stage = useStage();
   const [hover, setHover] = useState<Hover | null>(null);
   const inParty = (id: string) => party.findIndex((p) => p.defId === id);
@@ -65,9 +73,23 @@ export function Party({ party, setParty, onBack, onFight }: {
           <h2 className="screen-title">Assemble your party</h2>
           <p className="screen-sub">Hire six. Three take the table, three wait on the bench to replace the fallen.</p>
         </div>
+        <div className="roster-tabs" role="tablist" aria-label="Roster">
+          {ROSTER_TABS.map((t) => (
+            <button
+              key={t.key}
+              type="button"
+              role="tab"
+              aria-selected={roster === t.key}
+              className={`roster-tab ${roster === t.key ? 'is-on' : ''}`}
+              onClick={() => { if (roster !== t.key) { play('select'); setRoster(t.key); } }}
+            >
+              {t.label}<small>{t.note}</small>
+            </button>
+          ))}
+        </div>
       </header>
 
-      <div className="roster-grid">
+      <div className={`roster-grid count-${MERCS.length > 8 ? 'wide' : 'narrow'}`} key={roster}>
         {MERCS.map((m, idx) => {
           const pi = inParty(m.id);
           const pick = pi >= 0 ? party[pi]! : null;
@@ -84,13 +106,12 @@ export function Party({ party, setParty, onBack, onFight }: {
             >
               <span className={`rarity rarity-${m.rarity.toLowerCase()}`}>{m.rarity}</span>
               {pick && <span className="pick-seal">{pi + 1}</span>}
-              <Portrait p={stats(m, pick?.item ?? null)} size={132} />
+              <Portrait p={stats(m, pick?.item ?? null)} size={MERCS.length > 8 ? 100 : 132} />
               <span className="rc-name">{m.name}</span>
               <span className="rc-meta">
                 <Icon name={ROLE_ICON[m.role]} size={15} /> {ROLE_INFO[m.role].label}
-                <span className="dot">·</span>
-                {[m.faction, ...m.types].filter(Boolean).join(' ')}
               </span>
+              <span className="rc-faction">{[m.faction, ...m.types].filter(Boolean).join(' · ')}</span>
               <span className="rc-abilities" onClick={(e) => e.stopPropagation()}>
                 {m.abilities.map((a) => (
                   <span
@@ -99,7 +120,7 @@ export function Party({ party, setParty, onBack, onFight }: {
                     onPointerEnter={(e) => setHover(anchor(e, { kind: 'ability', merc: m.id, ability: a.id, item: pick?.item ?? null }))}
                     onPointerLeave={() => setHover(null)}
                   >
-                    <Medallion ability={a} speed={a.speed} size={56} />
+                    <Medallion ability={a} speed={a.speed} size={MERCS.length > 8 ? 44 : 56} />
                   </span>
                 ))}
               </span>
@@ -152,7 +173,7 @@ export function Party({ party, setParty, onBack, onFight }: {
                         onPointerLeave={() => setHover(null)}
                         aria-label={it.name}
                       >
-                        <Icon name={it.icon} size={24} />
+                        <Icon name={it.icon} size={24} pixel={it.pixel} />
                       </button>
                     ))}
                   </span>
@@ -208,7 +229,7 @@ export function Party({ party, setParty, onBack, onFight }: {
               const it = ITEM_BY_ID[hover.item]!;
               return (
                 <div className="item-card">
-                  <div className="item-card-icon"><Icon name={it.icon} size={54} /></div>
+                  <div className="item-card-icon"><Icon name={it.icon} size={54} pixel={it.pixel} /></div>
                   <div className="item-card-name">{it.name}</div>
                   <div className="item-card-text"><RichText text={it.text.replace(/^Passive:/, '**Passive:**')} /></div>
                 </div>

@@ -21,6 +21,9 @@ interface LogItem { id: number; text: string; side: 'player' | 'enemy' | 'none' 
 
 const ordinal = (n: number) => `${n}${n % 10 === 1 && n !== 11 ? 'st' : n % 10 === 2 && n !== 12 ? 'nd' : n % 10 === 3 && n !== 13 ? 'rd' : 'th'}`;
 
+/** A unit that can be given an order: alive, and not a one-turn copy. */
+const canOrder = (u: Unit | undefined): u is Unit => isAlive(u) && u.abilities.length > 0;
+
 const toStats = (u: Unit): PortraitStats => ({
   defId: u.defId, name: u.name, role: u.role, palette: mercDef(u.defId).palette,
   attack: u.attack + u.attackThisTurn + (u.item === 'tome-of-light' && u.taunt > 0 ? 12 : 0),
@@ -72,6 +75,12 @@ export function Battle({ party, enemy, seed, onRematch, onLeave }: {
     return () => { alive.current = false; };
   }, []);
 
+  // Dev-only: lets a test script poke the displayed state.
+  useEffect(() => {
+    if (!import.meta.env.DEV) return;
+    (window as unknown as { __mercs?: unknown }).__mercs = { view, setView };
+  }, [view]);
+
   // ---- placement -----------------------------------------------------------
   const needed = slotsToFill(s, 'player');
   const newlyPlaced = draft.filter((id) => !s.sides.player.board.includes(id));
@@ -111,7 +120,7 @@ export function Battle({ party, enemy, seed, onRematch, onLeave }: {
     setEcmds(chooseCommands(state, 'enemy'));
     setPcmds([]);
     setArmed(null);
-    const first = state.sides.player.board.find((id) => isAlive(state.units[id]));
+    const first = state.sides.player.board.find((id) => canOrder(state.units[id]));
     setSelected(first ?? null);
     setPhase('command');
     setBanner(`Turn ${state.turn}`);
@@ -146,7 +155,7 @@ export function Battle({ party, enemy, seed, onRematch, onLeave }: {
     const next = [...pcmds.filter((c) => c.actor !== actor), { actor, ability, target }];
     setPcmds(next);
     setArmed(null);
-    const pending = s.sides.player.board.find((id) => isAlive(s.units[id]) && !next.some((c) => c.actor === id));
+    const pending = s.sides.player.board.find((id) => canOrder(s.units[id]) && !next.some((c) => c.actor === id));
     setSelected(pending ?? null);
   };
 
@@ -174,7 +183,7 @@ export function Battle({ party, enemy, seed, onRematch, onLeave }: {
       if (u.side === 'player') { setArmed(null); setSelected(uid); play('select'); }
       return;
     }
-    if (u.side === 'player' && !u.isMinion) { play('select'); setSelected(uid); }
+    if (u.side === 'player' && canOrder(u)) { play('select'); setSelected(uid); }
   };
 
   // ---- resolution ----------------------------------------------------------
@@ -255,7 +264,7 @@ export function Battle({ party, enemy, seed, onRematch, onLeave }: {
   const playerRow = phase === 'placement' ? draft : view.sides.player.board;
   const enemyRow = view.sides.enemy.board;
   const selUnit = selected ? s.units[selected] : undefined;
-  const allCommanded = phase === 'command' && s.sides.player.board.every((id) => !isAlive(s.units[id]) || pcmds.some((c) => c.actor === id));
+  const allCommanded = phase === 'command' && s.sides.player.board.every((id) => !canOrder(s.units[id]) || pcmds.some((c) => c.actor === id));
 
   const inspectUnit = hoverUnit ? view.units[hoverUnit] : undefined;
   const inspectCmd = inspectUnit && phase === 'command' ? cmdOf(inspectUnit.uid) : undefined;
@@ -295,7 +304,7 @@ export function Battle({ party, enemy, seed, onRematch, onLeave }: {
     const ord = order[uid];
     const isNew = phase === 'placement' && newlyPlaced.includes(uid);
     const targetable = phase === 'command' && !!armed && legal.includes(uid);
-    const pendingOrder = phase === 'command' && side === 'player' && !cmd && isAlive(u);
+    const pendingOrder = phase === 'command' && side === 'player' && !cmd && canOrder(u);
     const cls = [
       selected === uid ? 'is-selected' : '',
       targetable ? `is-targetable target-${abilityDef(armed!).target === 'enemy' ? 'foe' : 'friend'}` : '',
@@ -304,6 +313,9 @@ export function Battle({ party, enemy, seed, onRematch, onLeave }: {
       u.taunt > 0 ? 'has-taunt' : '',
       u.immune ? 'is-immune' : '',
       u.dead ? 'is-dead-body' : '',
+      u.stealth ? 'is-stealthed' : '',
+      u.frozen > 0 ? 'is-frozen' : '',
+      u.rooted > 0 ? 'is-rooted' : '',
     ].join(' ');
     return (
       <motion.div
@@ -323,9 +335,12 @@ export function Battle({ party, enemy, seed, onRematch, onLeave }: {
           onPointerLeave={() => setHoverUnit((h) => (h === uid ? null : h))}
           onContextMenu={(e) => { e.preventDefault(); setArmed(null); }}
         >
-          <Portrait p={toStats(u)} size={u.isMinion ? 118 : 150} dead={u.dead} minion={u.isMinion}>
+          <Portrait p={toStats(u)} size={u.isMinion ? 118 : 150} dead={u.dead} minion={u.expires}>
             {u.taunt > 0 && <><div className="taunt-frame" /><Icon name="templar-shield" className="taunt-shield" /></>}
             {u.immune && <div className="immune-aura" />}
+            {u.shield && <div className="shield-bubble" />}
+            {u.frozen > 0 && <div className="frost-shell" />}
+            {u.rooted > 0 && <div className="root-vines"><Icon name="curling-vines" /></div>}
             {targetable && <div className="reticle"><Icon name="swords-emblem" /></div>}
           </Portrait>
           <StatusBadges u={u} rally={!!view.sides[u.side].rally} />
@@ -632,7 +647,10 @@ export function Battle({ party, enemy, seed, onRematch, onLeave }: {
 
 function StatusBadges({ u, rally }: { u: Unit; rally: boolean }) {
   const badges: { icon: string; label: string; value?: string | number; tone: string }[] = [];
-  if (u.taunt > 0) badges.push({ icon: 'templar-shield', label: `Taunt (${u.taunt} turn${u.taunt > 1 ? 's' : ''})`, value: u.taunt, tone: 'neutral' });
+  if (u.taunt > 0) {
+    const permanent = u.taunt >= 50;
+    badges.push({ icon: 'templar-shield', label: permanent ? 'Taunt' : `Taunt (${u.taunt} turn${u.taunt > 1 ? 's' : ''})`, value: permanent ? undefined : u.taunt, tone: 'neutral' });
+  }
   if (u.immune) badges.push({ icon: 'eye-shield', label: 'Immune this turn', tone: 'good' });
   if (u.guardedBy) badges.push({ icon: 'heart-shield', label: 'Guarded by Blessing of Sacrifice', tone: 'good' });
   if (u.pendingSlow > 0) badges.push({ icon: 'snail', label: `Next ability ${u.pendingSlow} slower`, value: `+${u.pendingSlow}`, tone: 'bad' });
@@ -640,11 +658,25 @@ function StatusBadges({ u, rally }: { u: Unit; rally: boolean }) {
   if (u.arcaneDamage > 0) badges.push({ icon: 'star-swirl', label: `+${u.arcaneDamage} Arcane Damage`, value: `+${u.arcaneDamage}`, tone: 'good' });
   if (u.attackThisTurn < 0) badges.push({ icon: 'broken-shield', label: `${u.attackThisTurn} Attack this turn`, value: u.attackThisTurn, tone: 'bad' });
   if (rally && !u.dead) badges.push({ icon: 'rally-the-troops', label: 'Offensive Rally', tone: 'good' });
+  if (u.shield) badges.push({ icon: 'shield-reflect', label: 'Divine Shield: ignores the next damage', tone: 'good' });
+  if (u.stealth) badges.push({ icon: 'invisible', label: "Stealth: enemies can't target it until it acts", tone: 'good' });
+  if (u.bleed > 0) badges.push({ icon: 'drop', label: `Bleed ${u.bleed}: takes ${u.bleed} at end of turn until healed`, value: u.bleed, tone: 'bad' });
+  if (u.rooted > 0) badges.push({ icon: 'root-tip', label: "Rooted: can't Attack this turn", tone: 'bad' });
+  if (u.frozen > 0) badges.push({ icon: 'ice-cube', label: u.frozen > 1 ? 'Frozen until the end of next turn' : 'Frozen: loses its next action this turn', value: u.frozen > 1 ? u.frozen : undefined, tone: 'bad' });
+  if (u.lifesteal > 0) badges.push({ icon: 'vampire-dracula', label: `Lifesteal (${u.lifesteal} turn${u.lifesteal > 1 ? 's' : ''})`, tone: 'good' });
+  if (u.thorns > 0) badges.push({ icon: 'thorny-vine', label: `Deals ${u.thorns} damage to attackers this turn`, value: u.thorns, tone: 'good' });
+  if (u.frostArmor) badges.push({ icon: 'ice-shield', label: 'Frost Armor: freezes attackers', tone: 'good' });
+  for (const [school, n] of Object.entries(u.weakness)) {
+    if (n) badges.push({ icon: 'broken-skull', label: `${school} Weakness ${n}: takes ${n} more ${school} damage`, value: `+${n}`, tone: 'bad' });
+  }
+  if (u.speedThisTurn !== 0 && !u.dead) {
+    badges.push({ icon: u.speedThisTurn < 0 ? 'feathered-wing' : 'snail', label: `Abilities this turn are ${Math.abs(u.speedThisTurn)} ${u.speedThisTurn < 0 ? 'faster' : 'slower'}`, value: u.speedThisTurn > 0 ? `+${u.speedThisTurn}` : u.speedThisTurn, tone: u.speedThisTurn < 0 ? 'good' : 'bad' });
+  }
   if (!badges.length) return null;
   return (
     <div className="badges">
-      {badges.map((b) => (
-        <span key={b.icon} className={`badge tone-${b.tone}`} title={b.label}>
+      {badges.slice(0, 6).map((b) => (
+        <span key={b.icon + b.label} className={`badge tone-${b.tone}`} title={b.label}>
           <Icon name={b.icon} size={18} />
           {b.value !== undefined && <em>{b.value}</em>}
         </span>
@@ -692,9 +724,10 @@ function UnitInspector({ u, cmd, s }: { u: Unit; cmd?: Command; s: BattleState }
         </div>
         <div className="insp-meta dim">{[u.faction, ...u.types].filter(Boolean).join(' · ')}{u.isMinion ? ' · dies at end of turn' : ''}</div>
       </div>
+      <StatusList u={u} />
       {item && (
         <div className="insp-item">
-          <span className="insp-item-icon"><Icon name={item.icon} size={30} /></span>
+          <span className="insp-item-icon"><Icon name={item.icon} size={30} pixel={item.pixel} /></span>
           <span>
             <b>{item.name}</b>
             <RichText text={item.text.replace(/^Passive:/, '**Passive:**')} />
@@ -726,4 +759,20 @@ function UnitInspector({ u, cmd, s }: { u: Unit; cmd?: Command; s: BattleState }
       )}
     </div>
   );
+}
+
+function StatusList({ u }: { u: Unit }) {
+  const parts: string[] = [];
+  if (u.taunt > 0 && u.taunt < 50) parts.push(`Taunt ${u.taunt}`);
+  if (u.taunt >= 50) parts.push('Taunt');
+  if (u.shield) parts.push('Divine Shield');
+  if (u.stealth) parts.push('Stealth');
+  if (u.bleed > 0) parts.push(`Bleed ${u.bleed}`);
+  if (u.rooted > 0) parts.push('Rooted');
+  if (u.frozen > 0) parts.push('Frozen');
+  if (u.lifesteal > 0) parts.push('Lifesteal');
+  if (u.immune) parts.push('Immune');
+  for (const [k, n] of Object.entries(u.weakness)) if (n) parts.push(`${k} Weakness ${n}`);
+  if (!parts.length) return null;
+  return <div className="insp-status">{parts.map((p) => <span key={p}>{p}</span>)}</div>;
 }

@@ -1,5 +1,6 @@
 import type { AbilityDef } from '../../engine';
 import { Icon } from './Icon';
+import { pixelIcon } from '../pixelIcon';
 
 export const schoolClass = (s: AbilityDef['school']) => `school-${(s ?? 'none').toLowerCase()}`;
 
@@ -34,7 +35,11 @@ export function Medallion({
     >
       <span className="med-ring">
         <span className="med-face">
-          <Icon name={ability.icon} className="med-icon" />
+          {ability.pixel && pixelIcon(ability.icon) ? (
+            <img src={pixelIcon(ability.icon)} alt="" className="med-icon is-pixel" draggable={false} />
+          ) : (
+            <Icon name={ability.icon} className="med-icon" />
+          )}
           <span className="med-gloss" />
         </span>
       </span>

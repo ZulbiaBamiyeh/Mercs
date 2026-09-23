@@ -19,6 +19,10 @@ export interface AbilityDef {
   /** True when the ability Attacks, so Taunt restricts its target. */
   isAttack: boolean;
   icon: string;
+  /** Attacks twice (the second picks a new target if the first died). */
+  windfury?: boolean;
+  /** Draw the icon as pixel art, to match pixel portraits. */
+  pixel?: boolean;
 }
 
 export interface ItemDef {
@@ -28,7 +32,20 @@ export interface ItemDef {
   icon: string;
   /** The ability this item modifies, or null for a passive. */
   modifies: string | null;
+  // Simple passives the engine applies itself.
+  health?: number;
+  /** Flat damage reduction. */
+  reduction?: number;
+  /** Damage dealt back to anything that Attacks this merc. */
+  thorns?: number;
+  /** Permanent speed change for one ability. */
+  speed?: { ability: string; delta: number };
+  /** Extra cooldown for one ability. */
+  cooldown?: { ability: string; delta: number };
+  pixel?: boolean;
 }
+
+export type RosterId = 'originals' | 'classic' | 'minion';
 
 export interface MercDef {
   id: string;
@@ -44,6 +61,7 @@ export interface MercDef {
   /** Two colours for the placeholder portrait until real art exists. */
   palette: [string, string];
   title: string;
+  roster: RosterId;
 }
 
 export interface AbilityState {
@@ -71,6 +89,8 @@ export interface Unit {
   abilities: AbilityState[];
   item: string | null;
   isMinion: boolean;
+  /** Dies at end of turn (Mirror Image). Other minions stay until killed. */
+  expires: boolean;
   dead: boolean;
 
   // statuses
@@ -89,6 +109,27 @@ export interface Unit {
   guardedBy: string | null;
   acted: boolean;
   damagedThisTurn: boolean;
+
+  /** Damage taken at end of each turn until healed. */
+  bleed: number;
+  /** Turns left, counting this one: can't Attack. */
+  rooted: number;
+  /** Turns left, counting this one: loses its next action. */
+  frozen: number;
+  /** Absorbs the next damage instance. */
+  shield: boolean;
+  /** Can't be targeted by enemies until it acts. */
+  stealth: boolean;
+  /** Turns left: damage this unit deals heals it. */
+  lifesteal: number;
+  /** Damage dealt back to attackers this turn, on top of item thorns. */
+  thorns: number;
+  /** This turn: characters that Attack this unit are Frozen until end of next turn. */
+  frostArmor: boolean;
+  /** Extra damage taken from each school, permanent. */
+  weakness: Partial<Record<School, number>>;
+  /** Speed change for this turn only. */
+  speedThisTurn: number;
 }
 
 export interface SideState {
@@ -99,6 +140,8 @@ export interface SideState {
   healed: number;
   /** Offensive Rally, active for the rest of the turn. */
   rally: { attack: number; health: number } | null;
+  /** Abilities this side has resolved this turn, for Combo. */
+  resolved: number;
 }
 
 export type Phase = 'placement' | 'command' | 'over';

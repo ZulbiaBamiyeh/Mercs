@@ -17,9 +17,10 @@ export function RichText({ text }: { text: string }) {
 /** The keywords a text uses, for the tooltip column beside a card. */
 export function keywordsIn(text: string): [string, string][] {
   const seen = new Set<string>();
-  for (const m of text.matchAll(/\*\*([^*:]+):?\*\*/g)) {
-    const k = m[1]!.replace(/s$/, '') in KEYWORDS ? m[1]!.replace(/s$/, '') : m[1]!;
-    if (KEYWORDS[k]) seen.add(k);
+  for (const m of text.matchAll(/\*\*([^*]+)\*\*/g)) {
+    const raw = m[1]!.replace(/[.:]$/, '');
+    const k = [raw, raw.replace(/s$/, '')].find((x) => KEYWORDS[x]);
+    if (k) seen.add(k);
   }
   return [...seen].map((k) => [k, KEYWORDS[k]!]);
 }

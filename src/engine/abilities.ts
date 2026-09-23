@@ -170,7 +170,7 @@ const impl: Record<string, AbilityFn> = {
       const uid = `${u.side[0]}${ctx.s.nextUid++}-image`;
       const copy: Unit = {
         ...structuredClone(u),
-        uid, name: 'Mirror Image', role: null, isMinion: true, item: null, abilities: [],
+        uid, name: 'Mirror Image', role: null, isMinion: true, expires: true, item: null, abilities: [],
         taunt: 0, immune: false, guardedBy: null, acted: true, damagedThisTurn: false, graceCharges: 0,
       };
       ctx.s.units[uid] = copy;

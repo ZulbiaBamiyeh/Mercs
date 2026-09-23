@@ -2,10 +2,15 @@
 // end of turn. Rules follow docs/mercs-mechanics-spec.md; section numbers in
 // comments point there.
 
-import { abilityDef, mercDef } from './data';
+import { abilityDef, ITEM_BY_ID, mercDef } from './data';
 import type {
-  AbilityDef, BattleEvent, BattleState, Command, DamageKind, PartyPick, Role, School, Side, Step, Unit,
+  AbilityDef, BattleEvent, BattleState, Command, DamageKind, ItemDef, PartyPick, Role, School, Side, Step, Unit,
 } from './types';
+
+export const itemOf = (u: Unit): ItemDef | undefined => (u.item ? ITEM_BY_ID[u.item] : undefined);
+
+/** Thrown by attack() when a Rooted unit tries to Attack: the rest of the ability is cancelled (§2.4). */
+export class Cancelled extends Error {}
 
 export const BOARD_MERCS = 3;
 export const BOARD_MAX = 6; // 3 mercs plus up to 3 minions (§6)
@@ -82,15 +87,14 @@ export function effectiveAttack(u: Unit): number {
 }
 
 export function effectiveCooldown(item: string | null, a: AbilityDef): number {
-  if (item === 'shard-of-the-naaru' && a.id === 'flash-heal') return a.cooldown + 1;
-  if (item === 'mana-rod' && a.id === 'arcane-bolt') return a.cooldown + 1;
-  return a.cooldown;
+  const cd = item ? ITEM_BY_ID[item]?.cooldown : undefined;
+  return a.cooldown + (cd && cd.ability === a.id ? cd.delta : 0);
 }
 
 export function currentSpeed(u: Unit, abilityId: string): number {
   const st = u.abilities.find((a) => a.id === abilityId);
   const base = abilityDef(abilityId).speed;
-  return Math.max(0, base + (st?.speedMod ?? 0) + u.pendingSlow);
+  return Math.max(0, base + (st?.speedMod ?? 0) + u.pendingSlow + u.speedThisTurn);
 }
 
 export function sideAlive(s: BattleState, side: Side): boolean {
@@ -104,26 +108,66 @@ export function sideAlive(s: BattleState, side: Side): boolean {
 // ---------------------------------------------------------------------------
 // Setup and placement (§2.1)
 
+/** Every status at rest. */
+export function freshStatuses() {
+  return {
+    dead: false, taunt: 0, immune: false, attackThisTurn: 0, pendingSlow: 0, graceCharges: 0, arcaneDamage: 0,
+    guardedBy: null, acted: false, damagedThisTurn: false,
+    bleed: 0, rooted: 0, frozen: 0, shield: false, stealth: false, lifesteal: 0, thorns: 0, frostArmor: false,
+    weakness: {}, speedThisTurn: 0,
+  };
+}
+
 function makeUnit(s: BattleState, side: Side, pick: PartyPick): Unit {
   const def = mercDef(pick.defId);
-  const health = def.health + (pick.item === 'ancestral-armor' ? 20 : 0);
+  const item = pick.item ? ITEM_BY_ID[pick.item] : undefined;
+  const health = def.health + (item?.health ?? 0);
   const uid = `${side[0]}${s.nextUid++}-${def.id}`;
   return {
     uid, defId: def.id, side, name: def.name, role: def.role, faction: def.faction, types: [...def.types],
     baseAttack: def.attack, attack: def.attack, baseMaxHealth: health, maxHealth: health, health,
-    abilities: def.abilities.map((a) => ({ id: a.id, cd: effectiveCooldown(pick.item, a), speedMod: 0 })),
-    item: pick.item, isMinion: false, dead: false,
-    taunt: 0, immune: false, attackThisTurn: 0, pendingSlow: 0, graceCharges: 0, arcaneDamage: 0,
-    guardedBy: null, acted: false, damagedThisTurn: false,
+    abilities: def.abilities.map((a) => ({
+      id: a.id,
+      cd: effectiveCooldown(pick.item, a),
+      speedMod: item?.speed?.ability === a.id ? item.speed.delta : 0,
+    })),
+    item: pick.item, isMinion: false, expires: false,
+    ...freshStatuses(),
   };
+}
+
+/** Summons a minion to the right of its owner. Returns null when the board is full. */
+export function summon(
+  ctx: Ctx, owner: Unit, defId: string, stats: { attack: number; health: number }, extra: Partial<Unit> = {},
+): Unit | null {
+  const board = ctx.s.sides[owner.side].board;
+  if (board.length >= BOARD_MAX) {
+    ctx.emit({ t: 'status', target: owner.uid, text: 'No room', tone: 'neutral' });
+    return null;
+  }
+  const def = mercDef(defId);
+  const uid = `${owner.side[0]}${ctx.s.nextUid++}-${def.id}`;
+  const u: Unit = {
+    uid, defId: def.id, side: owner.side, name: def.name, role: null, faction: def.faction, types: [...def.types],
+    baseAttack: stats.attack, attack: stats.attack, baseMaxHealth: stats.health, maxHealth: stats.health, health: stats.health,
+    abilities: def.abilities.map((a) => ({ id: a.id, cd: a.cooldown, speedMod: 0 })),
+    item: null, isMinion: true, expires: false,
+    ...freshStatuses(),
+    ...extra,
+  };
+  ctx.s.units[uid] = u;
+  const at = board.indexOf(owner.uid);
+  board.splice(at < 0 ? board.length : at + 1, 0, uid);
+  ctx.emit({ t: 'summon', unit: uid, by: owner.uid });
+  return u;
 }
 
 export function createBattle(player: PartyPick[], enemy: PartyPick[], seed: number): BattleState {
   const s: BattleState = {
     turn: 1, phase: 'placement', units: {}, rng: seed | 0, nextUid: 1, winner: null,
     sides: {
-      player: { board: [], bench: [], healed: 0, rally: null },
-      enemy: { board: [], bench: [], healed: 0, rally: null },
+      player: { board: [], bench: [], healed: 0, rally: null, resolved: 0 },
+      enemy: { board: [], bench: [], healed: 0, rally: null, resolved: 0 },
     },
   };
   for (const [side, party] of [['player', player], ['enemy', enemy]] as const) {
@@ -167,7 +211,7 @@ export function legalTargets(s: BattleState, actorId: string, abilityId: string)
     case 'none':
       return [];
     case 'enemy': {
-      const foes = livingBoard(s, other(actor.side));
+      const foes = livingBoard(s, other(actor.side)).filter((f) => !f.stealth);
       const taunts = foes.filter((f) => f.taunt > 0);
       return (def.isAttack && taunts.length ? taunts : foes).map((f) => f.uid);
     }
@@ -226,7 +270,7 @@ export class Ctx {
   }
 }
 
-interface DamageOpts { kind: DamageKind; school?: School | null; noCrit?: boolean }
+interface DamageOpts { kind: DamageKind; school?: School | null; noCrit?: boolean; lifesteal?: boolean }
 
 /** The damage pipeline (§4.3). Returns who actually took it and how much. */
 export function dealDamage(
@@ -247,7 +291,8 @@ export function dealDamage(
   const src = sourceId ? ctx.s.units[sourceId] ?? null : null;
   let amount = base;
   if (src && opts.kind === 'spell' && opts.school === 'Arcane') amount += src.arcaneDamage;
-  if (target.item === 'shield-of-dawn') amount -= 3;
+  amount -= itemOf(target)?.reduction ?? 0;
+  if (opts.school) amount += target.weakness[opts.school] ?? 0;
   amount = Math.max(0, amount);
   const crit = !!src && !opts.noCrit && opts.kind !== 'counter' && amount > 0 && roleAdvantage(src.role, target.role);
   if (crit) amount *= 2;
@@ -257,12 +302,18 @@ export function dealDamage(
     return { to: target.uid, amount: 0 };
   }
   if (amount === 0 && opts.kind === 'counter') return { to: target.uid, amount: 0 };
+  if (target.shield && amount > 0) {
+    target.shield = false;
+    ctx.emit({ t: 'status', target: target.uid, text: 'Shield breaks', tone: 'neutral' });
+    return { to: target.uid, amount: 0 };
+  }
 
   target.health -= amount;
   if (amount > 0) target.damagedThisTurn = true;
   ctx.emit({
     t: 'damage', target: target.uid, amount, crit, kind: opts.kind, source: sourceId, lethal: target.health <= 0,
   });
+  if (src && amount > 0 && (opts.lifesteal || src.lifesteal > 0) && isAlive(src)) heal(ctx, src.side, src.uid, amount);
   return { to: target.uid, amount };
 }
 
@@ -288,6 +339,10 @@ export function heal(ctx: Ctx, healerSide: Side, targetId: string, amount: numbe
   if (!isAlive(t)) return 0;
   const restored = Math.max(0, Math.min(amount, t.maxHealth - t.health));
   t.health += restored;
+  if (t.bleed > 0) {
+    t.bleed = 0;
+    ctx.emit({ t: 'status', target: t.uid, text: 'Bleed cured', tone: 'good' });
+  }
   ctx.s.sides[healerSide].healed += restored;
   ctx.emit({ t: 'heal', target: targetId, amount: restored });
   return restored;
@@ -302,10 +357,16 @@ export function buff(ctx: Ctx, u: Unit, attack: number, health: number): void {
 }
 
 /** The Attack keyword (§4.1): both sides deal their Attack at once. */
-export function attack(ctx: Ctx, attackerId: string, targetId: string): { killed: boolean; dealt: number } {
+export function attack(
+  ctx: Ctx, attackerId: string, targetId: string, opts: { lifesteal?: boolean } = {},
+): { killed: boolean; dealt: number } {
   const a = ctx.u(attackerId);
   const t = ctx.u(targetId);
   if (!isAlive(a) || !isAlive(t)) return { killed: false, dealt: 0 };
+  if (a.rooted > 0) {
+    ctx.emit({ t: 'status', target: a.uid, text: 'Rooted', tone: 'bad' });
+    throw new Cancelled();
+  }
 
   const rally = ctx.s.sides[a.side].rally;
   if (rally) buff(ctx, a, rally.attack, rally.health);
@@ -314,8 +375,15 @@ export function attack(ctx: Ctx, attackerId: string, targetId: string): { killed
   ctx.emit({ t: 'attack', attacker: a.uid, target: t.uid });
   const outgoing = effectiveAttack(a);
   const incoming = effectiveAttack(t);
-  const hit = dealDamage(ctx, a.uid, t.uid, outgoing, { kind: 'attack' });
+  const hit = dealDamage(ctx, a.uid, t.uid, outgoing, { kind: 'attack', lifesteal: opts.lifesteal ?? false });
   dealDamage(ctx, t.uid, a.uid, incoming, { kind: 'counter' });
+  const defender = ctx.u(hit.to);
+  const thorns = defender.thorns + (itemOf(defender)?.thorns ?? 0);
+  if (thorns > 0 && isAlive(a)) dealDamage(ctx, defender.uid, a.uid, thorns, { kind: 'spell', noCrit: true });
+  if (defender.frostArmor && isAlive(a) && a.frozen < 2) {
+    a.frozen = 2;
+    ctx.emit({ t: 'status', target: a.uid, text: 'Frozen', tone: 'bad' });
+  }
   const died = processDeaths(ctx);
   return { killed: died.includes(hit.to), dealt: hit.amount };
 }
@@ -332,7 +400,7 @@ function resolveTarget(ctx: Ctx, actor: Unit, def: AbilityDef, target: string | 
     if (foes.length === 0) return undefined;
     const taunts = foes.filter((f) => f.taunt > 0);
     const current = target ? ctx.s.units[target] : undefined;
-    const valid = isAlive(current) && onBoard(ctx.s, current);
+    const valid = isAlive(current) && onBoard(ctx.s, current) && !current.stealth;
 
     if (def.isAttack && taunts.length) {
       if (valid && current.taunt > 0) return current.uid;
@@ -342,7 +410,7 @@ function resolveTarget(ctx: Ctx, actor: Unit, def: AbilityDef, target: string | 
     }
     if (valid && !current.immune) return current.uid;
     // Every enemy-targeted ability here deals damage, so Immune targets are skipped.
-    const pool = foes.filter((f) => !f.immune);
+    const pool = foes.filter((f) => !f.immune && !f.stealth);
     if (pool.length === 0) return valid ? current.uid : ctx.pick(foes)!.uid;
     const to = ctx.pick(pool)!;
     if (current) ctx.emit({ t: 'redirect', from: current.uid, to: to.uid, reason: 'Retarget' });
@@ -404,7 +472,15 @@ export function resolveTurn(
     const def = abilityDef(c.ability);
     actor.acted = true;
     actor.pendingSlow = 0;
+    if (actor.frozen > 0) {
+      ctx.emit({ t: 'status', target: actor.uid, text: 'Frozen', tone: 'bad' });
+      continue;
+    }
     st.cd = effectiveCooldown(actor.item, def) + 1;
+    if (actor.stealth) {
+      actor.stealth = false;
+      ctx.emit({ t: 'status', target: actor.uid, text: 'Revealed', tone: 'neutral' });
+    }
 
     let casts = 1;
     if (actor.graceCharges > 0 && def.school === 'Arcane' && def.id !== 'elunes-grace') {
@@ -423,9 +499,14 @@ export function resolveTurn(
       }
       const fn = ABILITIES[def.id];
       if (!fn) throw new Error(`No implementation for ${def.id}`);
-      fn(ctx, actor, target);
+      try {
+        fn(ctx, actor, target);
+      } catch (err) {
+        if (!(err instanceof Cancelled)) throw err;
+      }
       processDeaths(ctx);
     }
+    s.sides[side].resolved++;
   }
 
   endOfTurn(ctx);
@@ -435,10 +516,18 @@ export function resolveTurn(
 /** §2.5: expire this-turn effects, tick durations and cooldowns, check for a winner. */
 function endOfTurn(ctx: Ctx): void {
   const s = ctx.s;
+  // Bleed first, then deaths (§2.5).
   for (const side of ['player', 'enemy'] as const) {
     for (const id of s.sides[side].board) {
       const u = ctx.u(id);
-      if (u.isMinion && !u.dead) {
+      if (isAlive(u) && u.bleed > 0) dealDamage(ctx, null, u.uid, u.bleed, { kind: 'spell', noCrit: true });
+    }
+  }
+  processDeaths(ctx);
+  for (const side of ['player', 'enemy'] as const) {
+    for (const id of s.sides[side].board) {
+      const u = ctx.u(id);
+      if (u.expires && !u.dead) {
         u.dead = true;
         ctx.emit({ t: 'vanish', unit: id });
       }
@@ -450,12 +539,19 @@ function endOfTurn(ctx: Ctx): void {
     u.guardedBy = null;
     u.acted = false;
     u.damagedThisTurn = false;
+    u.thorns = 0;
+    u.frostArmor = false;
+    u.speedThisTurn = 0;
     if (u.taunt > 0) u.taunt--;
-    if (!u.dead && !u.isMinion) for (const a of u.abilities) a.cd = Math.max(0, a.cd - 1);
+    if (u.rooted > 0) u.rooted--;
+    if (u.frozen > 0) u.frozen--;
+    if (u.lifesteal > 0) u.lifesteal--;
+    if (!u.dead) for (const a of u.abilities) a.cd = Math.max(0, a.cd - 1);
   }
   for (const side of ['player', 'enemy'] as const) {
     const sd = s.sides[side];
     sd.rally = null;
+    sd.resolved = 0;
     sd.board = sd.board.filter((id) => !ctx.u(id).dead);
     // Dead minions have no graveyard; drop them so the state stays small.
     for (const id of Object.keys(s.units)) {

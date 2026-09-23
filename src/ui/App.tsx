@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
-import { MERCS, type PartyPick } from '../engine';
+import { ROSTERS, type PartyPick } from '../engine';
 import { Stage } from './Stage';
 import { Title } from './screens/Title';
 import { Party } from './screens/Party';
@@ -11,28 +11,49 @@ type Screen =
   | { id: 'party' }
   | { id: 'battle'; enemy: PartyPick[]; seed: number; key: number };
 
-const DEFAULT_PARTY: PartyPick[] = [
-  { defId: 'cariel', item: 'tome-of-light' },
-  { defId: 'grommash', item: 'gorehowl' },
-  { defId: 'tyrande', item: 'elunes-charm' },
-  { defId: 'samuro', item: 'burning-blade' },
-  { defId: 'xyrella', item: 'shard-of-the-naaru' },
-  { defId: 'millhouse', item: 'ley-line-wand' },
-];
+export type RosterKey = keyof typeof ROSTERS;
 
-function loadParty(): PartyPick[] {
+const DEFAULT_PARTY: Record<RosterKey, PartyPick[]> = {
+  originals: [
+    { defId: 'brannoc', item: 'magma-core' },
+    { defId: 'vessa', item: 'gravebound-axe' },
+    { defId: 'nyxa', item: 'venom-vial' },
+    { defId: 'lyra', item: 'hawkeye-lens' },
+    { defId: 'aurelle', item: 'blessed-beads' },
+    { defId: 'ilsa', item: 'rime-shard' },
+  ],
+  classic: [
+    { defId: 'cariel', item: 'tome-of-light' },
+    { defId: 'grommash', item: 'gorehowl' },
+    { defId: 'tyrande', item: 'elunes-charm' },
+    { defId: 'samuro', item: 'burning-blade' },
+    { defId: 'xyrella', item: 'shard-of-the-naaru' },
+    { defId: 'millhouse', item: 'ley-line-wand' },
+  ],
+};
+
+function load<T>(key: string, fallback: T, valid: (v: unknown) => boolean): T {
   try {
-    const raw = localStorage.getItem('mercs:party');
+    const raw = localStorage.getItem(key);
     if (raw) {
-      const p = JSON.parse(raw) as PartyPick[];
-      if (Array.isArray(p) && p.every((x) => MERCS.some((m) => m.id === x.defId))) return p;
+      const v = JSON.parse(raw) as unknown;
+      if (valid(v)) return v as T;
     }
   } catch { /* storage unavailable */ }
-  return DEFAULT_PARTY;
+  return fallback;
+}
+
+function save(key: string, v: unknown) {
+  try { localStorage.setItem(key, JSON.stringify(v)); } catch { /* ignore */ }
+}
+
+function loadParty(roster: RosterKey): PartyPick[] {
+  return load(`mercs:party:${roster}`, DEFAULT_PARTY[roster], (v) =>
+    Array.isArray(v) && v.every((x: PartyPick) => ROSTERS[roster].some((m) => m.id === x.defId)));
 }
 
 /** A random warband of six with random equipment. */
-export function randomWarband(seed: number): PartyPick[] {
+export function randomWarband(roster: RosterKey, seed: number): PartyPick[] {
   let a = seed | 0;
   const r = () => {
     a = (a + 0x6d2b79f5) | 0;
@@ -40,22 +61,30 @@ export function randomWarband(seed: number): PartyPick[] {
     t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   };
-  const pool = [...MERCS].sort(() => r() - 0.5).slice(0, 6);
+  const pool = [...ROSTERS[roster]].sort(() => r() - 0.5).slice(0, 6);
   return pool.map((m) => ({ defId: m.id, item: m.items[Math.floor(r() * m.items.length)]!.id }));
 }
 
 export function App() {
   const [screen, setScreen] = useState<Screen>({ id: 'title' });
-  const [party, setPartyState] = useState<PartyPick[]>(loadParty);
+  const [roster, setRosterState] = useState<RosterKey>(() =>
+    load<RosterKey>('mercs:roster', 'originals', (v) => v === 'originals' || v === 'classic'));
+  const [party, setPartyState] = useState<PartyPick[]>(() => loadParty(roster));
 
   const setParty = (p: PartyPick[]) => {
     setPartyState(p);
-    try { localStorage.setItem('mercs:party', JSON.stringify(p)); } catch { /* ignore */ }
+    save(`mercs:party:${roster}`, p);
+  };
+
+  const setRoster = (r: RosterKey) => {
+    setRosterState(r);
+    save('mercs:roster', r);
+    setPartyState(loadParty(r));
   };
 
   const startBattle = () => {
     const seed = (Math.random() * 2 ** 31) | 0;
-    setScreen({ id: 'battle', enemy: randomWarband(seed ^ 0x5bd1e995), seed, key: seed });
+    setScreen({ id: 'battle', enemy: randomWarband(roster, seed ^ 0x5bd1e995), seed, key: seed });
   };
 
   return (
@@ -71,7 +100,7 @@ export function App() {
         >
           {screen.id === 'title' && <Title onStart={() => setScreen({ id: 'party' })} />}
           {screen.id === 'party' && (
-            <Party party={party} setParty={setParty} onBack={() => setScreen({ id: 'title' })} onFight={startBattle} />
+            <Party roster={roster} setRoster={setRoster} party={party} setParty={setParty} onBack={() => setScreen({ id: 'title' })} onFight={startBattle} />
           )}
           {screen.id === 'battle' && (
             <Battle
