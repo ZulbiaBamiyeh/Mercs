@@ -1,10 +1,21 @@
 import { createContext, useContext, useLayoutEffect, useMemo, useRef, useState } from 'react';
 
-export const STAGE_W = 1600;
-export const STAGE_H = 900;
+/**
+ * Two fixed canvases, scaled to fit the window:
+ * - landscape: 1600x900
+ * - portrait: 900 wide, and as tall as the phone's shape allows (1600-2000),
+ *   so a tall phone uses its whole screen instead of letterboxing.
+ */
+export const LANDSCAPE = { w: 1600, h: 900 };
+const PORTRAIT_W = 900;
+const PORTRAIT_MIN_H = 1600;
+const PORTRAIT_MAX_H = 2000;
 
 interface StageApi {
   scale: number;
+  w: number;
+  h: number;
+  portrait: boolean;
   el: () => HTMLElement | null;
   /** Converts a client point to stage coordinates. */
   toStage: (x: number, y: number) => { x: number; y: number };
@@ -19,29 +30,33 @@ export const useStage = () => {
   return c;
 };
 
-/**
- * A fixed 1600x900 canvas scaled to fit the window, so the composition holds
- * from a phone in landscape up to a desktop monitor.
- */
+function measure() {
+  const vw = window.innerWidth, vh = window.innerHeight;
+  if (vh > vw) {
+    const h = Math.round(Math.max(PORTRAIT_MIN_H, Math.min(PORTRAIT_MAX_H, (PORTRAIT_W * vh) / vw)));
+    return { w: PORTRAIT_W, h, scale: Math.min(vw / PORTRAIT_W, vh / h), portrait: true };
+  }
+  return { ...LANDSCAPE, scale: Math.min(vw / LANDSCAPE.w, vh / LANDSCAPE.h), portrait: false };
+}
+
 export function Stage({ children }: { children: React.ReactNode }) {
   const ref = useRef<HTMLDivElement>(null);
-  const [scale, setScale] = useState(1);
-  const [portrait, setPortrait] = useState(false);
-  const [dismissed, setDismissed] = useState(false);
+  const [dims, setDims] = useState(measure);
 
   useLayoutEffect(() => {
-    const fit = () => {
-      const w = window.innerWidth, h = window.innerHeight;
-      setScale(Math.min(w / STAGE_W, h / STAGE_H));
-      setPortrait(h > w * 1.1 && w < 900);
-    };
+    const fit = () => setDims(measure());
     fit();
     window.addEventListener('resize', fit);
-    return () => window.removeEventListener('resize', fit);
+    window.addEventListener('orientationchange', fit);
+    return () => {
+      window.removeEventListener('resize', fit);
+      window.removeEventListener('orientationchange', fit);
+    };
   }, []);
 
+  const { scale, w, h, portrait } = dims;
   const api: StageApi = useMemo(() => ({
-    scale,
+    scale, w, h, portrait,
     el: () => ref.current,
     toStage: (x, y) => {
       const r = ref.current!.getBoundingClientRect();
@@ -57,21 +72,18 @@ export function Stage({ children }: { children: React.ReactNode }) {
         h: n.height / scale,
       };
     },
-  }), [scale]);
+  }), [scale, w, h, portrait]);
 
   return (
     <Ctx.Provider value={api}>
       <div className="viewport">
-        <div ref={ref} className="stage" style={{ transform: `scale(${scale})` }}>
+        <div
+          ref={ref}
+          className={`stage ${portrait ? 'is-portrait' : 'is-landscape'}`}
+          style={{ width: w, height: h, transform: `scale(${scale})`, '--H': `${h}px` } as React.CSSProperties}
+        >
           {children}
         </div>
-        {portrait && !dismissed && (
-          <button className="rotate-hint" onClick={() => setDismissed(true)} type="button">
-            <span className="rotate-icon" aria-hidden="true">⟳</span>
-            Turn your phone sideways to see the table properly.
-            <small>Tap to dismiss</small>
-          </button>
-        )}
       </div>
     </Ctx.Provider>
   );

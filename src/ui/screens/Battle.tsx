@@ -10,6 +10,7 @@ import { Icon } from '../components/Icon';
 import { Medallion } from '../components/Medallion';
 import { Portrait, ROLE_CLASS, ROLE_ICON, type PortraitStats } from '../components/Portrait';
 import { RichText } from '../components/RichText';
+import { BleedDrips, FrostCrystals, RootVines, ShieldBubble, StealthSmoke, TauntShield } from '../components/StatusFx';
 import { Director, logLine } from '../battle/director';
 import { Arrow } from '../battle/Arrow';
 import { isMuted, play, setMuted } from '../sfx';
@@ -53,6 +54,10 @@ export function Battle({ party, enemy, seed, onRematch, onLeave }: {
   const [pointer, setPointer] = useState<{ x: number; y: number } | null>(null);
   const [hoverUnit, setHoverUnit] = useState<string | null>(null);
   const [hoverAbility, setHoverAbility] = useState<string | null>(null);
+  // Touch has no hover, so a tap pins what it touched for reading.
+  const [touch, setTouch] = useState(false);
+  const [pinnedUnit, setPinnedUnit] = useState<string | null>(null);
+  const [peekAbility, setPeekAbility] = useState<string | null>(null);
   const [acting, setActing] = useState<{ actor: string; ability: string; side: Side; text: string; name: string; echo: boolean } | null>(null);
   const [log, setLog] = useState<LogItem[]>([]);
   // During combat: the order as it stood when Ready was pressed, minus whoever has acted.
@@ -152,6 +157,8 @@ export function Battle({ party, enemy, seed, onRematch, onLeave }: {
 
   const commit = (actor: string, ability: string, target: string | null) => {
     play('place');
+    setPeekAbility(null);
+    setPinnedUnit(null);
     const next = [...pcmds.filter((c) => c.actor !== actor), { actor, ability, target }];
     setPcmds(next);
     setArmed(null);
@@ -163,9 +170,12 @@ export function Battle({ party, enemy, seed, onRematch, onLeave }: {
     if (!selected) return;
     const u = s.units[selected]!;
     const st = u.abilities.find((a) => a.id === id)!;
-    if (st.cd > 0) { play('click'); return; }
+    if (st.cd > 0) { play('click'); setArmed(null); setPeekAbility(id); return; }
     const def = abilityDef(id);
-    if (def.target === 'none') { commit(selected, id, null); return; }
+    setPeekAbility(null);
+    setPinnedUnit(null);
+    // With a mouse the card was already read on hover; on touch the first tap shows it.
+    if (def.target === 'none' && (!touch || armed === id)) { commit(selected, id, null); return; }
     play('select');
     setArmed(id);
   };
@@ -178,12 +188,16 @@ export function Battle({ party, enemy, seed, onRematch, onLeave }: {
       return;
     }
     if (phase !== 'command') return;
-    if (armed && selected) {
-      if (legal.includes(uid)) { commit(selected, armed, uid); return; }
-      if (u.side === 'player') { setArmed(null); setSelected(uid); play('select'); }
-      return;
+    if (armed && selected && legal.includes(uid)) { commit(selected, armed, uid); return; }
+    setPeekAbility(null);
+    if (touch) setPinnedUnit(uid);
+    if (u.side === 'player' && canOrder(u)) {
+      setArmed(null);
+      setSelected(uid);
+      play('select');
+    } else if (armed) {
+      setArmed(null);
     }
-    if (u.side === 'player' && canOrder(u)) { play('select'); setSelected(uid); }
   };
 
   // ---- resolution ----------------------------------------------------------
@@ -217,6 +231,8 @@ export function Battle({ party, enemy, seed, onRematch, onLeave }: {
     setSelected(null);
     setHoverAbility(null);
     setHoverUnit(null);
+    setPinnedUnit(null);
+    setPeekAbility(null);
     play('ready');
     setLog((l) => [...l, { id: ++logSeq, text: `Turn ${s.turn}`, side: 'turn' }]);
     setQueued({ order: previewOrder(s, { player: pcmds, enemy: ecmds }), cmds: [...pcmds, ...ecmds] });
@@ -266,11 +282,12 @@ export function Battle({ party, enemy, seed, onRematch, onLeave }: {
   const selUnit = selected ? s.units[selected] : undefined;
   const allCommanded = phase === 'command' && s.sides.player.board.every((id) => !canOrder(s.units[id]) || pcmds.some((c) => c.actor === id));
 
-  const inspectUnit = hoverUnit ? view.units[hoverUnit] : undefined;
+  const inspectUnit = hoverUnit ? view.units[hoverUnit] : pinnedUnit ? view.units[pinnedUnit] : undefined;
+  const shownAbility = hoverAbility ?? peekAbility ?? armed;
   const inspectCmd = inspectUnit && phase === 'command' ? cmdOf(inspectUnit.uid) : undefined;
 
   let arrow: { from: string; to: { x: number; y: number } | string; tone: 'aim' | 'player' | 'enemy' } | null = null;
-  if (phase === 'command' && armed && selected && pointer) {
+  if (phase === 'command' && armed && selected && pointer && !touch && abilityDef(armed).target !== 'none') {
     arrow = { from: selected, to: hoverUnit && legal.includes(hoverUnit) ? hoverUnit : pointer, tone: 'aim' };
   } else if (phase === 'command' && inspectCmd?.target) {
     arrow = { from: inspectCmd.actor, to: inspectCmd.target, tone: s.units[inspectCmd.actor]!.side === 'player' ? 'player' : 'enemy' };
@@ -283,8 +300,11 @@ export function Battle({ party, enemy, seed, onRematch, onLeave }: {
       ? `Choose ${left} mercenar${left === 1 ? 'y' : 'ies'} from your bench${s.turn > 1 ? ' to replace the fallen' : ''}.`
       : 'Use the arrows to rearrange, then lock in.';
   } else if (phase === 'command') {
-    if (armed) hint = `Choose a target for ${abilityDef(armed).name}. Right-click or Esc to cancel.`;
-    else if (selUnit) hint = `Choose an ability for ${selUnit.name}.`;
+    if (armed && abilityDef(armed).target === 'none') hint = `Tap ${abilityDef(armed).name} again to use it.`;
+    else if (armed) hint = touch
+      ? `Tap a glowing target for ${abilityDef(armed).name}.`
+      : `Choose a target for ${abilityDef(armed).name}. Right-click or Esc to cancel.`;
+    else if (selUnit) hint = touch ? `Tap an ability to read it, then tap again or pick a target.` : `Choose an ability for ${selUnit.name}.`;
     else if (allCommanded) hint = 'Orders set. The enemy intents are shown on their side. Press Ready!';
     else hint = 'Select one of your mercenaries.';
   }
@@ -331,16 +351,18 @@ export function Battle({ party, enemy, seed, onRematch, onLeave }: {
           ref={register(uid)}
           className={`unit-body ${cls}`}
           onClick={() => onUnitClick(uid)}
-          onPointerEnter={() => setHoverUnit(uid)}
-          onPointerLeave={() => setHoverUnit((h) => (h === uid ? null : h))}
+          onPointerEnter={(e) => { if (e.pointerType !== 'touch') setHoverUnit(uid); }}
+          onPointerLeave={(e) => { if (e.pointerType !== 'touch') setHoverUnit((h) => (h === uid ? null : h)); }}
           onContextMenu={(e) => { e.preventDefault(); setArmed(null); }}
         >
           <Portrait p={toStats(u)} size={u.isMinion ? 118 : 150} dead={u.dead} minion={u.expires}>
-            {u.taunt > 0 && <><div className="taunt-frame" /><Icon name="templar-shield" className="taunt-shield" /></>}
+            {u.taunt > 0 && <TauntShield />}
             {u.immune && <div className="immune-aura" />}
-            {u.shield && <div className="shield-bubble" />}
-            {u.frozen > 0 && <div className="frost-shell" />}
-            {u.rooted > 0 && <div className="root-vines"><Icon name="curling-vines" /></div>}
+            {u.frozen > 0 && <FrostCrystals />}
+            {u.rooted > 0 && <RootVines />}
+            {u.stealth && <StealthSmoke />}
+            {u.bleed > 0 && <BleedDrips amount={u.bleed} />}
+            {(u.shield || u.frostArmor) && <ShieldBubble frost={u.frostArmor} />}
             {targetable && <div className="reticle"><Icon name="swords-emblem" /></div>}
           </Portrait>
           <StatusBadges u={u} rally={!!view.sides[u.side].rally} />
@@ -387,10 +409,21 @@ export function Battle({ party, enemy, seed, onRematch, onLeave }: {
     <div
       className={`battle phase-${phase}`}
       onPointerMove={(e) => setPointer(stage.toStage(e.clientX, e.clientY))}
+      onPointerDown={(e) => { const t = e.pointerType === 'touch'; if (t !== touch) setTouch(t); }}
       onContextMenu={(e) => { if (armed) { e.preventDefault(); setArmed(null); } }}
     >
       <div className="battle-bg" />
-      <div ref={shakeRef} className="battle-shake">
+      <div
+        ref={shakeRef}
+        className="battle-shake"
+        onClick={(e) => {
+          // A tap on empty table closes whatever was pinned for reading.
+          if ((e.target as Element).closest('.unit-body, .medallion, button')) return;
+          setPinnedUnit(null);
+          setPeekAbility(null);
+          if (touch) setArmed(null);
+        }}
+      >
         <div className="table">
           <div className="table-rail rail-left" />
           <div className="table-rail rail-right" />
@@ -481,8 +514,8 @@ export function Battle({ party, enemy, seed, onRematch, onLeave }: {
                       type="button"
                       className={`hand-card ${full ? 'is-full' : ''}`}
                       onClick={() => placeFromHand(id)}
-                      onPointerEnter={() => setHoverUnit(id)}
-                      onPointerLeave={() => setHoverUnit((h) => (h === id ? null : h))}
+                      onPointerEnter={(e) => { if (e.pointerType !== 'touch') setHoverUnit(id); }}
+                      onPointerLeave={(e) => { if (e.pointerType !== 'touch') setHoverUnit((h) => (h === id ? null : h)); }}
                       initial={{ opacity: 0, y: 40 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -60, scale: 0.8 }}
@@ -532,16 +565,21 @@ export function Battle({ party, enemy, seed, onRematch, onLeave }: {
                 showKeywords={false}
               />
             </motion.div>
-          ) : hoverAbility && selUnit ? (
-            <motion.div key={`hov-${hoverAbility}`} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, transition: { duration: 0.1 } }} transition={{ duration: 0.15 }}>
+          ) : shownAbility && selUnit && phase === 'command' && selUnit.abilities.some((a) => a.id === shownAbility) ? (
+            <motion.div key={`hov-${shownAbility}`} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, transition: { duration: 0.1 } }} transition={{ duration: 0.15 }}>
               <AbilityCard
-                ability={abilityDef(hoverAbility)}
-                text={abilityText(hoverAbility, selUnit, s)}
-                speed={currentSpeed(selUnit, hoverAbility)}
-                cooldown={abilityDef(hoverAbility).cooldown}
-                waiting={selUnit.abilities.find((a) => a.id === hoverAbility)?.cd ?? 0}
+                ability={abilityDef(shownAbility)}
+                text={abilityText(shownAbility, selUnit, s)}
+                speed={currentSpeed(selUnit, shownAbility)}
+                cooldown={abilityDef(shownAbility).cooldown}
+                waiting={selUnit.abilities.find((a) => a.id === shownAbility)?.cd ?? 0}
                 tone="player"
               />
+              {touch && armed === shownAbility && abilityDef(shownAbility).target === 'none' && (
+                <button type="button" className="btn-brass use-btn" onClick={() => commit(selUnit.uid, shownAbility, null)}>
+                  Use {abilityDef(shownAbility).name}
+                </button>
+              )}
             </motion.div>
           ) : inspectUnit && phase !== 'resolving' ? (
             <motion.div key={`unit-${inspectUnit.uid}`} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, transition: { duration: 0.1 } }} transition={{ duration: 0.15 }}>

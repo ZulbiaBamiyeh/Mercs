@@ -9,59 +9,12 @@
 // Replace any output file with hand-made art and the game will use that instead.
 
 import { mkdirSync, writeFileSync } from 'node:fs';
-import { deflateSync } from 'node:zlib';
+import { dark, hex, light, mix, Pix as BasePix, png, upscale as upscaleAny } from './pixel-lib.mjs';
+
+class Pix extends BasePix { constructor() { super(W, H); } }
+const upscale = (px, s) => upscaleAny(px, W, H, s);
 
 const W = 48, H = 60, SCALE = 8;
-
-// ---------------------------------------------------------------- colour --
-const hex = (h) => [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)];
-const toHex = (c) => '#' + c.map((v) => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, '0')).join('');
-const mix = (a, b, t) => toHex(hex(a).map((v, i) => v + (hex(b)[i] - v) * t));
-// Highlights lean warm, shadows lean cool, as pixel artists usually do.
-const light = (c, t = 0.22) => mix(c, '#fff4d6', t);
-const dark = (c, t = 0.28) => mix(c, '#1a1030', t);
-
-// ---------------------------------------------------------------- canvas --
-class Pix {
-  constructor() {
-    this.col = new Array(W * H).fill(null);
-    this.reg = new Int32Array(W * H).fill(-1);
-    this.shade = [];
-    this.next = 0;
-  }
-  region(shade = true) { this.shade[this.next] = shade; return this.next++; }
-  put(x, y, c, r) {
-    if (x < 0 || y < 0 || x >= W || y >= H) return;
-    this.col[y * W + x] = c;
-    this.reg[y * W + x] = r;
-  }
-  fill(test, c, opts = {}) {
-    const r = opts.region ?? this.region(opts.shade ?? true);
-    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (test(x + 0.5, y + 0.5)) this.put(x, y, c, r);
-    return r;
-  }
-  ellipse(cx, cy, rx, ry, c, o) { return this.fill((x, y) => ((x - cx) / rx) ** 2 + ((y - cy) / ry) ** 2 <= 1, c, o); }
-  rect(x0, y0, w, h, c, o) { return this.fill((x, y) => x >= x0 && x < x0 + w && y >= y0 && y < y0 + h, c, o); }
-  poly(pts, c, o) {
-    return this.fill((x, y) => {
-      let inside = false;
-      for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) {
-        const [xi, yi] = pts[i], [xj, yj] = pts[j];
-        if ((yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) inside = !inside;
-      }
-      return inside;
-    }, c, o);
-  }
-  line(x0, y0, x1, y1, c, width = 1, o) {
-    return this.fill((x, y) => {
-      const dx = x1 - x0, dy = y1 - y0;
-      const t = Math.max(0, Math.min(1, ((x - x0) * dx + (y - y0) * dy) / (dx * dx + dy * dy || 1)));
-      return Math.hypot(x - (x0 + t * dx), y - (y0 + t * dy)) <= width / 2;
-    }, c, o);
-  }
-  px(pts, c) { const r = this.region(false); for (const [x, y] of pts) this.put(x, y, c, r); return r; }
-  mirror(pts) { return [...pts, ...pts.map(([x, y]) => [W - 1 - x, y])]; }
-}
 
 // ------------------------------------------------------------ body parts --
 const CX = 24;
@@ -446,42 +399,6 @@ const PALETTES = {
   lyra: ['#c6e38a', '#23361f'], grisk: ['#e3b25a', '#3d2a14'], aurelle: ['#ffe9a8', '#7a4a1e'],
   oona: ['#6fd6c4', '#15343a'], mordekai: ['#9be07a', '#1a2418'], ilsa: ['#bfe8ff', '#1a2a44'],
   wolf: ['#b9a58a', '#2a2018'], skeleton: ['#e8e2cc', '#2a2632'],
-};
-
-// ------------------------------------------------------------------- png --
-const CRC = new Uint32Array(256).map((_, n) => {
-  let c = n;
-  for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
-  return c >>> 0;
-});
-const crc32 = (buf) => { let c = 0xffffffff; for (const b of buf) c = CRC[(c ^ b) & 0xff] ^ (c >>> 8); return (c ^ 0xffffffff) >>> 0; };
-function chunk(type, data) {
-  const len = Buffer.alloc(4); len.writeUInt32BE(data.length);
-  const td = Buffer.concat([Buffer.from(type), data]);
-  const crc = Buffer.alloc(4); crc.writeUInt32BE(crc32(td));
-  return Buffer.concat([len, td, crc]);
-}
-function png(pixels, w, h) {
-  const raw = Buffer.alloc((w * 3 + 1) * h);
-  for (let y = 0; y < h; y++) {
-    raw[y * (w * 3 + 1)] = 0;
-    for (let x = 0; x < w; x++) {
-      const [r, g, b] = hex(pixels[y * w + x]);
-      const o = y * (w * 3 + 1) + 1 + x * 3;
-      raw[o] = r; raw[o + 1] = g; raw[o + 2] = b;
-    }
-  }
-  const ihdr = Buffer.alloc(13);
-  ihdr.writeUInt32BE(w, 0); ihdr.writeUInt32BE(h, 4); ihdr[8] = 8; ihdr[9] = 2;
-  return Buffer.concat([
-    Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]),
-    chunk('IHDR', ihdr), chunk('IDAT', deflateSync(raw, { level: 9 })), chunk('IEND', Buffer.alloc(0)),
-  ]);
-}
-const upscale = (px, s) => {
-  const out = new Array(W * s * H * s);
-  for (let y = 0; y < H * s; y++) for (let x = 0; x < W * s; x++) out[y * W * s + x] = px[Math.floor(y / s) * W + Math.floor(x / s)];
-  return out;
 };
 
 // ------------------------------------------------------------------ main --

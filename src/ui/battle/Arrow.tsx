@@ -39,7 +39,7 @@ export function Arrow({ arrow, els }: { arrow: ArrowSpec | null; els: Map<string
   const angle = (Math.atan2(b.y - cy, b.x - cx) * 180) / Math.PI;
   const d = `M ${a.x} ${a.y} Q ${cx} ${cy} ${ex} ${ey}`;
   return (
-    <svg className={`arrow tone-${arrow.tone}`} viewBox="0 0 1600 900" aria-hidden="true">
+    <svg className={`arrow tone-${arrow.tone}`} viewBox={`0 0 ${stage.w} ${stage.h}`} aria-hidden="true">
       <defs>
         <filter id="arrow-glow" x="-20%" y="-20%" width="140%" height="140%">
           <feGaussianBlur stdDeviation="5" />

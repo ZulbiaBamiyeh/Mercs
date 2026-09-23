@@ -11,8 +11,8 @@ import { play } from '../sfx';
 import { useStage } from '../Stage';
 
 type Hover =
-  | { kind: 'ability'; merc: string; ability: string; item: string | null; x: number; y: number }
-  | { kind: 'item'; item: string; x: number; y: number };
+  | { kind: 'ability'; merc: string; ability: string; item: string | null; x: number; y: number; below?: boolean }
+  | { kind: 'item'; item: string; x: number; y: number; below?: boolean };
 
 const PARTY_SIZE = 6;
 
@@ -54,16 +54,20 @@ export function Party({ roster, setRoster, party, setParty, onBack, onFight }: {
     setParty(party.map((p) => (p.defId === defId ? { ...p, item } : p)));
   };
 
-  const anchor = (e: React.PointerEvent, extra: Record<string, unknown>) => {
+  // Cards float above what they describe, kept on screen. Near the top they drop below instead.
+  const anchor = (e: React.SyntheticEvent, extra: Record<string, unknown>) => {
     const c = stage.centerOf(e.currentTarget);
-    return { ...extra, x: c.x, y: c.y - c.h / 2 } as Hover;
+    const x = Math.max(170, Math.min(stage.w - 170, c.x));
+    const below = c.y - c.h / 2 < 480;
+    return { ...extra, x, y: below ? c.y + c.h / 2 : c.y - c.h / 2, below } as Hover;
   };
+  const isMouse = (e: React.PointerEvent) => e.pointerType !== 'touch';
 
   const full = party.length === PARTY_SIZE;
   const roleCount = (r: MercDef['role']) => party.filter((p) => MERC_BY_ID[p.defId]?.role === r).length;
 
   return (
-    <div className="party-screen">
+    <div className="party-screen" onClick={() => setHover(null)}>
       <div className="party-backdrop" />
       <header className="party-header">
         <button className="btn-ghost" type="button" onClick={() => { play('click'); onBack(); }}>
@@ -117,8 +121,13 @@ export function Party({ roster, setRoster, party, setParty, onBack, onFight }: {
                   <span
                     key={a.id}
                     className="rc-med-hit"
-                    onPointerEnter={(e) => setHover(anchor(e, { kind: 'ability', merc: m.id, ability: a.id, item: pick?.item ?? null }))}
-                    onPointerLeave={() => setHover(null)}
+                    onPointerEnter={(e) => { if (isMouse(e)) setHover(anchor(e, { kind: 'ability', merc: m.id, ability: a.id, item: pick?.item ?? null })); }}
+                    onPointerLeave={(e) => { if (isMouse(e)) setHover(null); }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      play('hover');
+                      setHover(anchor(e, { kind: 'ability', merc: m.id, ability: a.id, item: pick?.item ?? null }));
+                    }}
                   >
                     <Medallion ability={a} speed={a.speed} size={MERCS.length > 8 ? 44 : 56} />
                   </span>
@@ -168,9 +177,9 @@ export function Party({ roster, setRoster, party, setParty, onBack, onFight }: {
                         type="button"
                         key={it.id}
                         className={`item-btn ${p.item === it.id ? 'is-on' : ''}`}
-                        onClick={() => setItem(m.id, it.id)}
-                        onPointerEnter={(e) => setHover(anchor(e, { kind: 'item', item: it.id }))}
-                        onPointerLeave={() => setHover(null)}
+                        onClick={(e) => { e.stopPropagation(); setItem(m.id, it.id); setHover(anchor(e, { kind: 'item', item: it.id })); }}
+                        onPointerEnter={(e) => { if (isMouse(e)) setHover(anchor(e, { kind: 'item', item: it.id })); }}
+                        onPointerLeave={(e) => { if (isMouse(e)) setHover(null); }}
                         aria-label={it.name}
                       >
                         <Icon name={it.icon} size={24} pixel={it.pixel} />
@@ -208,7 +217,7 @@ export function Party({ roster, setRoster, party, setParty, onBack, onFight }: {
         {hover && (
           <motion.div
             key={hover.kind === 'ability' ? hover.ability : hover.item}
-            className="float-card"
+            className={`float-card ${hover.below ? 'is-below' : ''}`}
             style={{ left: hover.x, top: hover.y }}
             initial={{ opacity: 0, y: 8, scale: 0.96 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}

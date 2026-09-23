@@ -28,8 +28,9 @@ export function Medallion({
       className={`medallion ${schoolClass(ability.school)} is-${state} ${className}`}
       style={{ '--m': `${size}px` } as React.CSSProperties}
       onClick={onClick}
-      onPointerEnter={onEnter}
-      onPointerLeave={onLeave}
+      // Touch has no hover: a tap is handled as a click instead.
+      onPointerEnter={(e) => { if (e.pointerType !== 'touch') onEnter?.(); }}
+      onPointerLeave={(e) => { if (e.pointerType !== 'touch') onLeave?.(); }}
       aria-label={onClick ? `${ability.name}, speed ${speed}${cooldown ? `, ready in ${cooldown}` : ''}` : undefined}
       type={onClick ? 'button' : undefined}
     >

@@ -83,6 +83,26 @@ export class Director {
     if (d) setTimeout(() => d.remove(), 1300 * Math.max(0.6, this.api.pace()));
   }
 
+  /** Gold shards burst outward when a Divine Shield breaks. */
+  private shatter(uid: string) {
+    const c = this.center(uid);
+    if (!c || reduced()) return;
+    for (let i = 0; i < 14; i++) {
+      const a = (Math.PI * 2 * i) / 14 + Math.random() * 0.3;
+      const r = c.w * 0.5;
+      const d = this.spawn('fx-shard', c.x + Math.cos(a) * r * 0.9, c.y + Math.sin(a) * r * 1.1);
+      if (!d) continue;
+      const dist = 60 + Math.random() * 70;
+      d.animate(
+        [
+          { transform: `translate(-50%,-50%) rotate(${a}rad) scale(1)`, opacity: 1 },
+          { transform: `translate(calc(-50% + ${Math.cos(a) * dist}px), calc(-50% + ${Math.sin(a) * dist + 30}px)) rotate(${a + 4}rad) scale(.3)`, opacity: 0 },
+        ],
+        { duration: 700 * Math.max(0.6, this.api.pace()), easing: 'cubic-bezier(.2,.7,.3,1)', fill: 'forwards' },
+      ).onfinish = () => d.remove();
+    }
+  }
+
   private flash(uid: string, cls: string) {
     const el = this.api.unitEl(uid);
     if (!el) return;
@@ -267,7 +287,7 @@ export class Director {
         show();
         this.popText(e.target, e.text, `is-${e.tone}`);
         if (['Immune', 'Taunt', 'Divine Shield', 'Shield breaks', 'Frost Armor'].includes(e.text)) play('shield');
-        if (e.text === 'Shield breaks') this.flash(e.target, 'is-shield-break');
+        if (e.text === 'Shield breaks') this.shatter(e.target);
         if (e.text === 'Frozen') play('shield');
         await this.wait(next?.t === 'status' ? 160 : 520);
         return;

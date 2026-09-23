@@ -1,0 +1,140 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 500" width="400" height="500">
+  <!-- Style study C: storybook vector. Brannoc Emberhelm, hand-authored SVG. -->
+  <defs>
+    <radialGradient id="bg" cx=".52" cy=".42" r=".75">
+      <stop offset="0" stop-color="#ffb35a"/>
+      <stop offset=".38" stop-color="#d0561f"/>
+      <stop offset=".78" stop-color="#5e1c12"/>
+      <stop offset="1" stop-color="#2a0c0a"/>
+    </radialGradient>
+    <linearGradient id="skin" x1="0" y1="0" x2=".3" y2="1">
+      <stop offset="0" stop-color="#ffc79c"/>
+      <stop offset="1" stop-color="#e08c62"/>
+    </linearGradient>
+    <linearGradient id="beard" x1="0" y1="0" x2=".2" y2="1">
+      <stop offset="0" stop-color="#ff8a3d"/>
+      <stop offset=".6" stop-color="#e2561e"/>
+      <stop offset="1" stop-color="#a8340f"/>
+    </linearGradient>
+    <linearGradient id="steel" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#e9edf3"/>
+      <stop offset=".35" stop-color="#a0a8b6"/>
+      <stop offset=".7" stop-color="#6d7482"/>
+      <stop offset="1" stop-color="#4a505c"/>
+    </linearGradient>
+    <linearGradient id="bronze" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffe29a"/>
+      <stop offset=".5" stop-color="#d99a3e"/>
+      <stop offset="1" stop-color="#8a5418"/>
+    </linearGradient>
+    <linearGradient id="horn" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0" stop-color="#c9b28a"/>
+      <stop offset="1" stop-color="#fff8e6"/>
+    </linearGradient>
+    <radialGradient id="ember" cx=".4" cy=".4" r=".6">
+      <stop offset="0" stop-color="#fff6c8"/>
+      <stop offset=".5" stop-color="#ffab3a"/>
+      <stop offset="1" stop-color="#d4460e"/>
+    </radialGradient>
+    <filter id="paper" x="0" y="0" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="3" seed="4"/>
+      <feColorMatrix values="0 0 0 0 .25  0 0 0 0 .12  0 0 0 0 .05  0 0 0 .5 0"/>
+    </filter>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="6"/>
+    </filter>
+  </defs>
+
+  <!-- backdrop: forge light and embers -->
+  <rect width="400" height="500" fill="url(#bg)"/>
+  <g fill="#ffd27a">
+    <circle cx="48" cy="80" r="3"/><circle cx="352" cy="120" r="2.5"/><circle cx="330" cy="60" r="2"/>
+    <circle cx="70" cy="190" r="2"/><circle cx="36" cy="300" r="3"/><circle cx="368" cy="230" r="2"/>
+  </g>
+  <g fill="#ffd27a" filter="url(#glow)" opacity=".8">
+    <circle cx="48" cy="80" r="6"/><circle cx="36" cy="300" r="6"/><circle cx="352" cy="120" r="5"/>
+  </g>
+
+  <g stroke="#2b140c" stroke-width="5" stroke-linejoin="round" stroke-linecap="round">
+    <!-- hammer over the right shoulder -->
+    <path d="M300 500 L352 318 L372 324 L322 500 Z" fill="#7a4424"/>
+    <path d="M318 248 L396 272 L378 336 L300 312 Z" fill="url(#steel)"/>
+    <path d="M318 248 L396 272 L391 290 L313 266 Z" fill="#e3e7ee" stroke-width="3"/>
+    <circle cx="350" cy="296" r="11" fill="url(#ember)" stroke-width="3"/>
+
+    <!-- shoulders -->
+    <path d="M14 500 C14 428 54 392 122 392 C156 392 176 418 176 446 L176 500 Z" fill="url(#steel)"/>
+    <path d="M386 500 C386 428 346 392 278 392 C244 392 224 418 224 446 L224 500 Z" fill="url(#steel)"/>
+    <path d="M150 500 L150 440 Q200 420 250 440 L250 500 Z" fill="#5c6270"/>
+    <path d="M26 452 Q80 432 150 446" fill="none" stroke="url(#bronze)" stroke-width="8"/>
+    <path d="M374 452 Q320 432 250 446" fill="none" stroke="url(#bronze)" stroke-width="8"/>
+    <circle cx="200" cy="470" r="17" fill="url(#bronze)"/>
+    <circle cx="200" cy="470" r="8" fill="url(#ember)" stroke-width="3"/>
+
+    <!-- ears and face -->
+    <circle cx="108" cy="244" r="22" fill="url(#skin)"/>
+    <circle cx="292" cy="244" r="22" fill="url(#skin)"/>
+    <ellipse cx="200" cy="232" rx="94" ry="98" fill="url(#skin)"/>
+
+    <!-- beard, two braids with bronze beads -->
+    <path d="M98 262 C84 330 108 404 150 428 C166 452 188 458 200 446 C212 458 234 452 250 428 C292 404 316 330 302 262 C278 296 250 300 200 300 C150 300 122 296 98 262 Z" fill="url(#beard)"/>
+    <g fill="url(#beard)" stroke-width="4">
+      <ellipse cx="164" cy="438" rx="12" ry="10"/><ellipse cx="164" cy="456" rx="11" ry="9"/><ellipse cx="164" cy="472" rx="10" ry="8"/>
+      <ellipse cx="236" cy="438" rx="12" ry="10"/><ellipse cx="236" cy="456" rx="11" ry="9"/><ellipse cx="236" cy="472" rx="10" ry="8"/>
+    </g>
+    <rect x="154" y="480" width="20" height="12" rx="4" fill="url(#bronze)" stroke-width="3"/>
+    <rect x="226" y="480" width="20" height="12" rx="4" fill="url(#bronze)" stroke-width="3"/>
+  </g>
+
+  <!-- beard texture -->
+  <g fill="none" stroke="#a8340f" stroke-width="3" stroke-linecap="round" opacity=".7">
+    <path d="M126 336 Q134 366 150 384"/><path d="M152 348 Q158 380 172 404"/><path d="M200 356 L200 414"/>
+    <path d="M248 348 Q242 380 228 404"/><path d="M274 336 Q266 366 250 384"/>
+  </g>
+  <path d="M122 300 Q136 316 150 312" fill="none" stroke="#ffb07a" stroke-width="3" stroke-linecap="round" opacity=".8"/>
+
+  <g stroke="#2b140c" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">
+    <!-- smile -->
+    <path d="M176 318 Q200 346 224 318 Q200 330 176 318 Z" fill="#6a1a10"/>
+    <path d="M190 328 Q200 336 210 328" fill="#ff7b6b" stroke-width="2"/>
+    <!-- curling mustache -->
+    <path d="M200 300 C182 284 150 288 136 304 C126 318 140 330 152 320 C162 310 176 308 200 312 Z" fill="url(#beard)"/>
+    <path d="M200 300 C218 284 250 288 264 304 C274 318 260 330 248 320 C238 310 224 308 200 312 Z" fill="url(#beard)"/>
+    <!-- big round nose -->
+    <circle cx="200" cy="274" r="21" fill="#f0a075"/>
+  </g>
+  <ellipse cx="193" cy="266" rx="7" ry="5" fill="#ffe0c8"/>
+
+  <!-- rosy cheeks -->
+  <ellipse cx="138" cy="282" rx="20" ry="12" fill="#ff7a70" opacity=".45"/>
+  <ellipse cx="262" cy="282" rx="20" ry="12" fill="#ff7a70" opacity=".45"/>
+
+  <!-- eyes -->
+  <g stroke="#2b140c" stroke-width="4">
+    <ellipse cx="162" cy="242" rx="17" ry="20" fill="#fffaf2"/>
+    <ellipse cx="238" cy="242" rx="17" ry="20" fill="#fffaf2"/>
+  </g>
+  <circle cx="165" cy="245" r="11" fill="#3a1a0c"/>
+  <circle cx="235" cy="245" r="11" fill="#3a1a0c"/>
+  <circle cx="161" cy="239" r="4.5" fill="#fff"/><circle cx="231" cy="239" r="4.5" fill="#fff"/>
+  <circle cx="169" cy="250" r="2" fill="#fff"/><circle cx="239" cy="250" r="2" fill="#fff"/>
+  <!-- bushy brows, set determined -->
+  <path d="M134 214 Q160 196 190 212 Q164 208 136 224 Z" fill="#c84a1a" stroke="#2b140c" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M266 214 Q240 196 210 212 Q236 208 264 224 Z" fill="#c84a1a" stroke="#2b140c" stroke-width="3" stroke-linejoin="round"/>
+
+  <!-- helmet: dome, bronze band with rivets, horns, glowing rune -->
+  <g stroke="#2b140c" stroke-width="5" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M110 176 C82 150 60 104 74 52 C88 98 110 124 138 146 Z" fill="url(#horn)"/>
+    <path d="M290 176 C318 150 340 104 326 52 C312 98 290 124 262 146 Z" fill="url(#horn)"/>
+    <path d="M100 196 C100 112 146 70 200 70 C254 70 300 112 300 196 Z" fill="url(#steel)"/>
+    <path d="M92 182 Q200 164 308 182 L306 212 Q200 196 94 212 Z" fill="url(#bronze)"/>
+  </g>
+  <path d="M136 100 Q166 80 196 78" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" opacity=".6"/>
+  <g fill="#6a3c10"><circle cx="118" cy="196" r="4"/><circle cx="160" cy="190" r="4"/><circle cx="240" cy="190" r="4"/><circle cx="282" cy="196" r="4"/></g>
+  <path d="M200 106 L212 124 L200 142 L188 124 Z" fill="url(#ember)" stroke="#2b140c" stroke-width="3"/>
+  <path d="M200 106 L212 124 L200 142 L188 124 Z" fill="#ffb347" filter="url(#glow)" opacity=".7"/>
+
+  <!-- warm rim light from the forge, paper grain -->
+  <path d="M296 200 C298 250 292 300 272 340" fill="none" stroke="#ffc36a" stroke-width="4" stroke-linecap="round" opacity=".55"/>
+  <rect width="400" height="500" filter="url(#paper)" opacity=".35"/>
+</svg>
