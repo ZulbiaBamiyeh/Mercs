@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 500" width="400" height="500">
+  <!-- Mother Gorsebark. Flat planes; Thornwild moss. -->
+  <defs><filter id="grain" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="2" seed="21"/><feColorMatrix values="0 0 0 0 .1  0 0 0 0 .12  0 0 0 0 .08  0 0 0 .35 0"/></filter></defs>
+  <rect width="400" height="500" fill="#5c7046"/>
+  <circle cx="200" cy="215" r="150" fill="#687c50"/>
+  <!-- branches -->
+  <path d="M146 150 L96 60 L110 56 L150 124 L132 40 L146 38 L162 130 Z" fill="#5a3e27"/>
+  <path d="M254 150 L304 60 L290 56 L250 124 L268 40 L254 38 L238 130 Z" fill="#48321f"/>
+  <path d="M60 60 L100 40 L128 70 L92 88 Z" fill="#8db55a"/><path d="M118 20 L156 22 L160 56 L124 52 Z" fill="#7aa24c"/>
+  <path d="M340 60 L300 40 L272 70 L308 88 Z" fill="#72974a"/><path d="M282 20 L244 22 L240 56 L276 52 Z" fill="#8db55a"/>
+  <!-- shoulders of bark, moss -->
+  <path d="M40 500 L70 396 L140 368 L260 368 L330 396 L360 500 Z" fill="#5f432b"/>
+  <path d="M214 368 L260 368 L330 396 L360 500 L232 500 Z" fill="#4c3522"/>
+  <path d="M52 420 Q70 376 140 372 L150 396 Q98 396 70 440 Z" fill="#7aa24c"/>
+  <path d="M348 420 Q330 376 260 372 L250 396 Q302 396 330 440 Z" fill="#62853e"/>
+  <!-- a long carved face -->
+  <path d="M136 120 L264 120 L276 300 L232 382 L168 382 L124 300 Z" fill="#6e4d31"/>
+  <path d="M212 120 L264 120 L276 300 L232 382 L204 382 Z" fill="#5a3e27"/>
+  <path d="M150 170 L164 164 L172 250 L160 252 Z" fill="#553b25"/><path d="M244 186 L256 190 L250 290 L240 286 Z" fill="#463020"/>
+  <!-- glowing slit eyes, heavy brow -->
+  <path d="M146 214 L198 226 L198 236 L146 226 Z" fill="#48321f"/>
+  <path d="M254 214 L202 226 L202 236 L254 226 Z" fill="#3c2a1a"/>
+  <path d="M156 238 L188 242 L188 248 L158 246 Z" fill="#d6f07a"/>
+  <path d="M244 238 L212 242 L212 248 L242 246 Z" fill="#c2de62"/>
+  <!-- mouth crack -->
+  <path d="M168 320 L186 314 L200 322 L214 314 L232 320 L230 326 L214 322 L200 330 L186 322 L170 326 Z" fill="#2e1f13"/>
+  <!-- leaves on the crown -->
+  <path d="M146 124 L176 96 L200 110 L224 96 L254 124 Z" fill="#8db55a"/>
+  <path d="M200 110 L224 96 L254 124 L204 124 Z" fill="#72974a"/>
+  <rect width="400" height="500" filter="url(#grain)"/>
+</svg>

@@ -1524,7 +1524,7 @@ button.medallion:active:not(.is-cooldown) { transform: scale(.97); }
   image-rendering: pixelated;
   filter: drop-shadow(0 2px 0 rgb(0 0 0 / .45));
 }
-.portrait-art img { image-rendering: pixelated; }
+.portrait-art img.is-pixel { image-rendering: pixelated; }
 .insp-intent-row .insp-text .kw { font-family: var(--f-body); font-size: inherit; }
 
 /* ==========================================================================
@@ -1670,7 +1670,7 @@ button.medallion:active:not(.is-cooldown) { transform: scale(.97); }
 .fx-smoke .p4 { animation-delay: -2s; animation-duration: 4s; }
 @keyframes drift { from { transform: translate(-6px, 4px) scale(1); } to { transform: translate(6px, -8px) scale(1.2); } }
 
-.fx-bleed { z-index: 4; left: 30%; width: 40%; bottom: calc(var(--w) * .36); height: calc(var(--w) * .5); }
+.fx-bleed { z-index: 4; left: 34%; width: 32%; bottom: calc(var(--w) * .2); height: calc(var(--w) * .34); }
 .fx-bleed span {
   position: absolute; top: 0; left: calc(20% + var(--i) * 28%);
   width: 9px; height: 13px;

@@ -1,6 +1,6 @@
 import { useId } from 'react';
 import type { Role } from '../../engine';
-import { portraitUrl } from '../art';
+import { portrait } from '../art';
 import { Icon } from './Icon';
 
 export const ROLE_CLASS: Record<Role, string> = {
@@ -95,7 +95,7 @@ function HealthGem({ value, tone }: { value: number; tone: string }) {
 export function Portrait({ p, size = 150, children, className = '', dead, minion }: {
   p: PortraitStats; size?: number; children?: React.ReactNode; className?: string; dead?: boolean; minion?: boolean;
 }) {
-  const art = portraitUrl(p.defId);
+  const art = portrait(p.defId);
   const atkTone = p.attack > p.baseAttack ? 'up' : p.attack < p.baseAttack ? 'down' : '';
   const hpTone = p.health < p.maxHealth ? 'down' : p.maxHealth > p.baseMaxHealth ? 'up' : '';
   const roleCls = p.role ? ROLE_CLASS[p.role] : 'role-none';
@@ -107,7 +107,7 @@ export function Portrait({ p, size = 150, children, className = '', dead, minion
       <div className="portrait-frame">
         <div className="portrait-art">
           {art ? (
-            <img src={art} alt="" draggable={false} />
+            <img src={art.url} alt="" draggable={false} className={art.pixel ? 'is-pixel' : undefined} />
           ) : (
             <div className="portrait-placeholder">
               {p.role && <Icon name={ROLE_ICON[p.role]} className="ph-emblem" />}

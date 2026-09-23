@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 500" width="400" height="500">
+  <!-- Mordekai Hollowspire. Flat planes; Hollow Court slate, gone to grave-green. -->
+  <defs><filter id="grain" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="2" seed="33"/><feColorMatrix values="0 0 0 0 .08  0 0 0 0 .08  0 0 0 0 .14  0 0 0 .35 0"/></filter></defs>
+  <rect width="400" height="500" fill="#4f6158"/>
+  <circle cx="200" cy="215" r="150" fill="#5a6c62"/>
+  <!-- thin white hair, long at the sides -->
+  <path d="M120 160 L150 150 L140 400 L110 400 Z" fill="#dcdcd0"/>
+  <path d="M280 160 L250 150 L260 400 L290 400 Z" fill="#b9b9ac"/>
+  <!-- robe and a tall spiked collar -->
+  <path d="M40 500 L66 404 L150 370 L250 370 L334 404 L360 500 Z" fill="#1e2a1e"/>
+  <path d="M214 370 L250 370 L334 404 L360 500 L232 500 Z" fill="#172117"/>
+  <path d="M80 420 L96 250 L162 360 Z" fill="#263626"/><path d="M320 420 L304 250 L238 360 Z" fill="#1d2b1d"/>
+  <path d="M96 250 L162 360 L154 366 L92 262 Z" fill="#7ad04a"/><path d="M304 250 L238 360 L246 366 L308 262 Z" fill="#62ad3a"/>
+  <!-- long gaunt face -->
+  <path d="M150 120 L250 120 L256 280 L222 350 L178 350 L144 280 Z" fill="#a2b28c"/>
+  <path d="M210 120 L250 120 L256 280 L222 350 L200 350 Z" fill="#8a9a76"/>
+  <path d="M152 270 L172 256 L176 304 Z" fill="#879874"/><path d="M248 270 L228 256 L224 304 Z" fill="#76865f"/>
+  <!-- green points in sunken eyes -->
+  <path d="M156 214 L192 218 L192 236 L158 234 Z" fill="#2c3624"/>
+  <path d="M244 214 L208 218 L208 236 L242 234 Z" fill="#242e1e"/>
+  <rect x="172" y="224" width="6" height="6" fill="#b8ff7a"/><rect x="222" y="224" width="6" height="6" fill="#a2e864"/>
+  <path d="M194 234 L206 234 L210 284 L190 284 Z" fill="#96a680"/>
+  <rect x="180" y="310" width="40" height="4" fill="#3a2a2a"/>
+  <!-- skull circlet -->
+  <rect x="146" y="150" width="108" height="8" fill="#6b705a"/>
+  <path d="M184 126 L216 126 L218 150 L208 160 L192 160 L182 150 Z" fill="#e8e4d0"/>
+  <rect x="188" y="136" width="8" height="8" fill="#1a1a14"/><rect x="204" y="136" width="8" height="8" fill="#1a1a14"/>
+  <rect width="400" height="500" filter="url(#grain)"/>
+</svg>

@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 500" width="400" height="500">
+  <!-- Lyra Thornquill. Flat planes; Thornwild moss. -->
+  <defs><filter id="grain" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="2" seed="22"/><feColorMatrix values="0 0 0 0 .1  0 0 0 0 .12  0 0 0 0 .08  0 0 0 .35 0"/></filter></defs>
+  <rect width="400" height="500" fill="#627448"/>
+  <circle cx="200" cy="215" r="150" fill="#6e8052"/>
+  <!-- arrows over the right shoulder -->
+  <path d="M286 390 L318 250 L324 252 L294 392 Z" fill="#d8ceb2"/>
+  <path d="M306 396 L346 262 L352 264 L314 398 Z" fill="#c4b99c"/>
+  <path d="M312 240 L330 238 L318 262 Z M340 250 L358 250 L346 272 Z" fill="#b34a2a"/>
+  <!-- hood down, green leather -->
+  <path d="M40 500 L64 404 L140 370 L260 370 L336 404 L360 500 Z" fill="#3f5f2e"/>
+  <path d="M214 370 L260 370 L336 404 L360 500 L230 500 Z" fill="#324c24"/>
+  <path d="M70 410 Q120 356 200 374 Q280 356 330 410 L300 420 Q250 388 200 400 Q150 388 100 420 Z" fill="#4c7038"/>
+  <path d="M80 500 L290 380 L298 392 L96 500 Z" fill="#6a4424"/>
+  <!-- auburn hair behind, braid -->
+  <path d="M130 170 Q130 92 200 86 Q270 92 270 170 L276 300 L124 300 Z" fill="#a4462a"/>
+  <path d="M214 87 Q270 94 270 170 L276 300 L226 300 Z" fill="#86381f"/>
+  <!-- long ears -->
+  <path d="M142 214 L88 160 L100 158 L148 196 Z" fill="#e8bd96"/>
+  <path d="M258 214 L312 160 L300 158 L252 196 Z" fill="#cfa47e"/>
+  <!-- face -->
+  <path d="M146 150 L254 150 L258 256 L226 318 L174 318 L142 256 Z" fill="#eec39c"/>
+  <path d="M212 150 L254 150 L258 256 L226 318 L204 318 Z" fill="#d5a984"/>
+  <rect x="186" y="318" width="28" height="56" fill="#d4a882"/>
+  <path d="M146 150 L254 150 L254 176 L204 160 L146 190 Z" fill="#a4462a"/>
+  <path d="M212 162 L254 176 L254 150 L212 150 Z" fill="#86381f"/>
+  <!-- eyes: level, watching -->
+  <path d="M160 212 L190 216 L190 222 L160 220 Z" fill="#7c3a20"/>
+  <path d="M240 212 L210 216 L210 222 L240 220 Z" fill="#7c3a20"/>
+  <rect x="166" y="228" width="16" height="8" rx="2" fill="#1f3a22"/>
+  <rect x="218" y="228" width="16" height="8" rx="2" fill="#1f3a22"/>
+  <path d="M194 236 L206 236 L210 270 L190 270 Z" fill="#dfb38c"/>
+  <rect x="188" y="290" width="24" height="4" fill="#a2554a"/>
+  <!-- braid on the left -->
+  <path d="M128 290 L148 290 L144 420 L124 420 Z" fill="#a4462a"/>
+  <rect x="120" y="410" width="28" height="12" fill="#c8a060"/>
+  <!-- leaf circlet -->
+  <path d="M148 150 L168 134 L184 146 L200 128 L216 146 L232 134 L252 150 Z" fill="#79b84a"/>
+  <rect width="400" height="500" filter="url(#grain)"/>
+</svg>

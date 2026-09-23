@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 500" width="400" height="500">
+  <!-- Fen Wolf, summoned by Call the Pack. Flat planes; Thornwild moss. -->
+  <defs><filter id="grain" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="2" seed="25"/><feColorMatrix values="0 0 0 0 .1  0 0 0 0 .12  0 0 0 0 .08  0 0 0 .35 0"/></filter></defs>
+  <rect width="400" height="500" fill="#5c6c44"/>
+  <circle cx="200" cy="215" r="150" fill="#68784e"/>
+  <!-- chest ruff -->
+  <path d="M60 500 L90 380 L150 330 L250 330 L310 380 L340 500 Z" fill="#8a8580"/>
+  <path d="M214 330 L250 330 L310 380 L340 500 L230 500 Z" fill="#716c67"/>
+  <path d="M150 420 L170 380 L186 424 L200 384 L214 424 L230 380 L250 420 L200 470 Z" fill="#c9c2b6"/>
+  <!-- ears -->
+  <path d="M112 200 L118 70 L186 150 Z" fill="#8a8580"/><path d="M288 200 L282 70 L214 150 Z" fill="#716c67"/>
+  <path d="M126 170 L130 104 L166 148 Z" fill="#a88a86"/><path d="M274 170 L270 104 L234 148 Z" fill="#8e7370"/>
+  <!-- head and long muzzle -->
+  <path d="M104 190 L200 130 L296 190 L284 300 L200 344 L116 300 Z" fill="#8f8a84"/>
+  <path d="M212 138 L296 190 L284 300 L208 342 Z" fill="#76716c"/>
+  <path d="M158 256 L242 256 L232 350 L200 372 L168 350 Z" fill="#c9c2b6"/>
+  <path d="M206 256 L242 256 L232 350 L206 370 Z" fill="#aca597"/>
+  <path d="M182 334 L218 334 L212 352 L188 352 Z" fill="#1c1818"/>
+  <!-- amber slit eyes under a hard brow -->
+  <path d="M134 222 L188 236 L188 244 L134 232 Z" fill="#5c5853"/>
+  <path d="M266 222 L212 236 L212 244 L266 232 Z" fill="#4a4743"/>
+  <path d="M148 244 L184 250 L182 258 L148 254 Z" fill="#f0b43a"/>
+  <path d="M252 244 L216 250 L218 258 L252 254 Z" fill="#d89c28"/>
+  <rect x="166" y="248" width="4" height="8" fill="#1c1818"/><rect x="230" y="248" width="4" height="8" fill="#1c1818"/>
+  <rect width="400" height="500" filter="url(#grain)"/>
+</svg>

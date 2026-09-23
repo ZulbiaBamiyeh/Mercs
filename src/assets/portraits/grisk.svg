@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 500" width="400" height="500">
+  <!-- Grisk Tallowtooth. Flat planes; Thornwild moss, gone muddy. -->
+  <defs><filter id="grain" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="2" seed="23"/><feColorMatrix values="0 0 0 0 .1  0 0 0 0 .12  0 0 0 0 .08  0 0 0 .35 0"/></filter></defs>
+  <rect width="400" height="500" fill="#6a6d46"/>
+  <circle cx="200" cy="215" r="150" fill="#767a50"/>
+  <!-- wolf pelt: hood with ears, draped over the shoulders -->
+  <path d="M30 500 L60 380 L100 190 L130 60 L170 140 L230 140 L270 60 L300 190 L340 380 L370 500 Z" fill="#7a756e"/>
+  <path d="M214 140 L230 140 L270 60 L300 190 L340 380 L370 500 L236 500 Z" fill="#625e58"/>
+  <path d="M138 96 L152 128 L128 126 Z" fill="#c8a0a0"/><path d="M262 96 L248 128 L272 126 Z" fill="#a88484"/>
+  <path d="M84 380 L96 406 L108 380 Z M292 380 L304 406 L316 380 Z" fill="#e8e4dc"/>
+  <!-- leather vest -->
+  <path d="M110 500 L130 400 L270 400 L290 500 Z" fill="#5e4a30"/>
+  <path d="M214 400 L270 400 L290 500 L226 500 Z" fill="#4a3a24"/>
+  <!-- big sideways ears -->
+  <path d="M142 236 L40 196 L62 226 L140 262 Z" fill="#86ad4c"/>
+  <path d="M258 236 L360 196 L338 226 L260 262 Z" fill="#6f933c"/>
+  <!-- face -->
+  <path d="M142 176 L258 176 L262 280 L226 336 L174 336 L138 280 Z" fill="#86ad4c"/>
+  <path d="M212 176 L258 176 L262 280 L226 336 L204 336 Z" fill="#6f933c"/>
+  <!-- sly eyes, one brow cocked -->
+  <path d="M152 218 L188 224 L188 230 L152 226 Z" fill="#3c5020"/>
+  <path d="M248 208 L212 222 L212 228 L248 216 Z" fill="#344618"/>
+  <path d="M160 236 L186 238 L186 246 L160 244 Z" fill="#1c2210"/>
+  <path d="M240 236 L214 238 L214 246 L240 244 Z" fill="#1c2210"/>
+  <rect x="172" y="238" width="5" height="5" fill="#f2c94c"/><rect x="224" y="238" width="5" height="5" fill="#f2c94c"/>
+  <!-- long nose, underbite with tusks -->
+  <path d="M192 240 L208 240 L224 288 L184 288 Z" fill="#94ba58"/>
+  <path d="M200 240 L208 240 L224 288 L204 288 Z" fill="#7a9e44"/>
+  <path d="M170 304 L230 300 L230 310 L170 312 Z" fill="#2c3218"/>
+  <path d="M176 304 L182 286 L188 304 Z M212 302 L218 284 L224 302 Z" fill="#f4efe0"/>
+  <rect width="400" height="500" filter="url(#grain)"/>
+</svg>

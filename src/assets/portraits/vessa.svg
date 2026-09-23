@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 500" width="400" height="500">
+  <!-- Vessa Nightcoil. Flat planes; Hollow Court slate, turned violet. -->
+  <defs><filter id="grain" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="2" seed="31"/><feColorMatrix values="0 0 0 0 .08  0 0 0 0 .08  0 0 0 0 .14  0 0 0 .35 0"/></filter></defs>
+  <rect width="400" height="500" fill="#595878"/>
+  <circle cx="200" cy="215" r="150" fill="#646385"/>
+  <!-- black hair falling long -->
+  <path d="M116 170 Q118 84 200 76 Q282 84 284 170 L296 420 L104 420 Z" fill="#1f1d2a"/>
+  <path d="M214 77 Q282 86 284 170 L296 420 L230 420 Z" fill="#171521"/>
+  <!-- plate with spiked pauldrons, violet trim -->
+  <path d="M30 500 L56 396 L140 364 L260 364 L344 396 L370 500 Z" fill="#2c2838"/>
+  <path d="M214 364 L260 364 L344 396 L370 500 L232 500 Z" fill="#221f2c"/>
+  <path d="M44 412 L20 340 L78 390 Z M82 390 L70 322 L112 378 Z" fill="#cfc8dc"/>
+  <path d="M356 412 L380 340 L322 390 Z M318 390 L330 322 L288 378 Z" fill="#aba3ba"/>
+  <path d="M56 420 L144 392 L150 402 L60 432 Z" fill="#9a6ae0"/><path d="M344 420 L256 392 L250 402 L340 432 Z" fill="#7d53bd"/>
+  <rect x="160" y="336" width="80" height="40" fill="#3a3448"/>
+  <!-- pale face, hollow cheeks -->
+  <path d="M148 148 L252 148 L258 262 L226 326 L174 326 L142 262 Z" fill="#b3b6c8"/>
+  <path d="M212 148 L252 148 L258 262 L226 326 L200 326 Z" fill="#9a9db1"/>
+  <path d="M152 262 L170 250 L176 292 Z" fill="#9194a8"/><path d="M248 262 L230 250 L224 292 Z" fill="#8285a0"/>
+  <!-- sunken eyes with violet points -->
+  <path d="M154 218 L192 222 L192 240 L156 238 Z" fill="#3c3850"/>
+  <path d="M246 218 L208 222 L208 240 L244 238 Z" fill="#34304a"/>
+  <rect x="172" y="228" width="6" height="6" fill="#c9a2ff"/><rect x="222" y="228" width="6" height="6" fill="#b48cf0"/>
+  <path d="M195 238 L205 238 L208 276 L192 276 Z" fill="#a4a7ba"/>
+  <rect x="184" y="296" width="32" height="4" fill="#4a3a5a"/>
+  <!-- hair over the brow, circlet -->
+  <path d="M146 146 L254 146 L254 170 L200 156 L146 184 Z" fill="#1f1d2a"/>
+  <rect x="142" y="140" width="116" height="8" fill="#6b5a8a"/>
+  <path d="M200 128 L210 144 L200 158 L190 144 Z" fill="#9a6ae0"/>
+  <rect width="400" height="500" filter="url(#grain)"/>
+</svg>

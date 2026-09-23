@@ -336,14 +336,14 @@ const MINION_SPECS: MercSpec[] = [
 function build(spec: MercSpec, roster: MercDef['roster']): MercDef {
   const abilities: AbilityDef[] = spec.abilities.map(({ text, ...a }) => {
     ORIGINAL_TEXT[a.id] = text;
-    return { ...a, isAttack: a.isAttack ?? false, pixel: true };
+    return { ...a, isAttack: a.isAttack ?? false };
   });
   return {
     id: spec.id, name: spec.name, title: spec.title, role: spec.role, rarity: spec.rarity,
     faction: spec.faction, types: spec.types, attack: spec.attack, health: spec.health,
     palette: spec.palette, roster,
     abilities,
-    items: spec.items.map((i) => ({ ...i, modifies: i.modifies ?? null, pixel: true })),
+    items: spec.items.map((i) => ({ ...i, modifies: i.modifies ?? null })),
   };
 }
 

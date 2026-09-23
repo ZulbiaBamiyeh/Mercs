@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 500" width="400" height="500">
+  <!-- Nyxa the Pale. Flat planes; Hollow Court slate, near night. -->
+  <defs><filter id="grain" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="2" seed="32"/><feColorMatrix values="0 0 0 0 .08  0 0 0 0 .08  0 0 0 0 .14  0 0 0 .35 0"/></filter></defs>
+  <rect width="400" height="500" fill="#4a5363"/>
+  <circle cx="200" cy="215" r="150" fill="#545e70"/>
+  <!-- dagger hilt at the shoulder -->
+  <path d="M300 330 L352 250 L360 256 L310 336 Z" fill="#b8c0cc"/>
+  <rect x="286" y="326" width="30" height="10" transform="rotate(-57 301 331)" fill="#6a4a2a"/>
+  <!-- the hood: one deep shape -->
+  <path d="M40 500 L64 360 L96 200 Q110 84 200 70 Q290 84 304 200 L336 360 L360 500 Z" fill="#262c3a"/>
+  <path d="M214 71 Q290 86 304 200 L336 360 L360 500 L236 500 Z" fill="#1d2230"/>
+  <path d="M60 500 L300 340 L308 352 L80 500 Z" fill="#4a3a2a"/>
+  <!-- the dark inside the hood -->
+  <path d="M136 164 Q140 120 200 114 Q260 120 264 164 L270 300 L232 350 L168 350 L130 300 Z" fill="#12151e"/>
+  <!-- a face half-seen, and the wrap over the mouth -->
+  <path d="M158 170 L242 170 L246 250 L154 250 Z" fill="#7d8898"/>
+  <path d="M212 170 L242 170 L246 250 L210 250 Z" fill="#6a7484"/>
+  <path d="M146 250 L254 244 L262 314 L200 340 L140 314 Z" fill="#343b4c"/>
+  <path d="M212 246 L254 244 L262 314 L206 338 Z" fill="#2b3140"/>
+  <!-- pale eyes -->
+  <path d="M166 212 L192 216 L192 222 L166 220 Z" fill="#d8f4ff"/>
+  <path d="M234 212 L208 216 L208 222 L234 220 Z" fill="#b8dcec"/>
+  <!-- one white strand -->
+  <path d="M152 150 L166 146 L150 280 L140 278 Z" fill="#e8eef4"/>
+  <rect width="400" height="500" filter="url(#grain)"/>
+</svg>

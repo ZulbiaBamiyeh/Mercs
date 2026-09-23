@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 500" width="400" height="500">
+  <!-- Torvik Stormbrand. Flat planes; Ironvow rust. -->
+  <defs><filter id="grain" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="2" seed="12"/><feColorMatrix values="0 0 0 0 .15  0 0 0 0 .1  0 0 0 0 .1  0 0 0 .35 0"/></filter></defs>
+  <rect width="400" height="500" fill="#b56a3a"/>
+  <circle cx="200" cy="215" r="150" fill="#c17845"/>
+  <!-- bare shoulders under a fur mantle -->
+  <path d="M40 500 L70 400 L130 372 L270 372 L330 400 L360 500 Z" fill="#d99a72"/>
+  <path d="M214 372 L270 372 L330 400 L360 500 L230 500 Z" fill="#c08463"/>
+  <path d="M30 470 L42 396 L96 360 L150 372 L126 408 L112 390 L100 418 L84 398 L72 430 L58 410 Z" fill="#7a5a3c"/>
+  <path d="M370 470 L358 396 L304 360 L250 372 L274 408 L288 390 L300 418 L316 398 L328 430 L342 410 Z" fill="#634830"/>
+  <path d="M80 470 L116 440 L112 452 Z" fill="#3a6fb0"/><path d="M320 470 L284 440 L288 452 Z" fill="#2f5d96"/>
+  <!-- bald head, woad -->
+  <path d="M120 150 Q120 70 200 64 Q280 70 280 150 L282 262 L118 262 Z" fill="#e0a27a"/>
+  <path d="M214 65 Q280 72 280 150 L282 262 L220 262 Z" fill="#c88c68"/>
+  <path d="M152 90 L170 84 L186 150 L176 152 Z" fill="#3a6fb0"/>
+  <path d="M248 90 L230 84 L214 150 L224 152 Z" fill="#2f5d96"/>
+  <path d="M192 100 L208 100 L204 136 L196 136 Z" fill="#3a6fb0"/>
+  <!-- angry brow, eyes, nose -->
+  <path d="M130 196 L198 216 L202 216 L270 196 L270 210 L202 230 L198 230 L130 210 Z" fill="#b8761e"/>
+  <rect x="158" y="226" width="14" height="9" rx="2" fill="#2a1a17"/>
+  <rect x="228" y="226" width="14" height="9" rx="2" fill="#2a1a17"/>
+  <path d="M186 226 L214 226 L222 266 L178 266 Z" fill="#d49470"/>
+  <path d="M202 226 L214 226 L222 266 L204 266 Z" fill="#bb7d5c"/>
+  <!-- the great blond beard -->
+  <path d="M104 244 L296 244 L304 340 L264 430 L200 466 L136 430 L96 340 Z" fill="#e1b04a"/>
+  <path d="M214 244 L296 244 L304 340 L264 430 L206 466 Z" fill="#c4942f"/>
+  <path d="M120 266 L200 256 L280 266 L292 296 L200 280 L108 296 Z" fill="#edc160"/>
+  <rect x="146" y="420" width="24" height="64" fill="#e1b04a"/><rect x="230" y="420" width="24" height="64" fill="#c4942f"/>
+  <rect x="142" y="470" width="32" height="12" fill="#8a5a2a"/><rect x="226" y="470" width="32" height="12" fill="#734a22"/>
+  <path d="M196 300 L204 300 L206 420 L194 420 Z" fill="#c4942f"/>
+  <rect width="400" height="500" filter="url(#grain)"/>
+</svg>

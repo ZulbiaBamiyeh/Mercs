@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 500" width="400" height="500">
+  <!-- Risen Skeleton, summoned by Raise Dead. Flat planes; Hollow Court slate. -->
+  <defs><filter id="grain" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="2" seed="34"/><feColorMatrix values="0 0 0 0 .08  0 0 0 0 .08  0 0 0 0 .14  0 0 0 .35 0"/></filter></defs>
+  <rect width="400" height="500" fill="#535b69"/>
+  <circle cx="200" cy="215" r="150" fill="#5e6776"/>
+  <!-- ribs and spine -->
+  <path d="M60 500 L86 404 L150 372 L250 372 L314 404 L340 500 Z" fill="#2a2632"/>
+  <rect x="190" y="340" width="20" height="160" fill="#d9d2bc"/>
+  <path d="M110 420 L186 400 L186 412 L114 432 Z M104 456 L186 436 L186 448 L108 468 Z M100 492 L186 472 L186 484 L102 500 Z" fill="#e6e0cc"/>
+  <path d="M290 420 L214 400 L214 412 L286 432 Z M296 456 L214 436 L214 448 L292 468 Z M300 492 L214 472 L214 484 L298 500 Z" fill="#c6bfa8"/>
+  <!-- skull -->
+  <path d="M120 170 Q122 84 200 78 Q278 84 280 170 L276 250 L250 276 L150 276 L124 250 Z" fill="#e6e0cc"/>
+  <path d="M214 79 Q278 86 280 170 L276 250 L250 276 L214 276 Z" fill="#c6bfa8"/>
+  <path d="M152 276 L248 276 L240 334 L160 334 Z" fill="#dcd5c0"/>
+  <path d="M214 276 L248 276 L240 334 L214 334 Z" fill="#bcb59e"/>
+  <!-- sockets with a green point, nasal hole, teeth -->
+  <path d="M142 186 L190 194 L188 238 L146 232 Z" fill="#16121c"/>
+  <path d="M258 186 L210 194 L212 238 L254 232 Z" fill="#16121c"/>
+  <rect x="164" y="208" width="7" height="7" fill="#9dff6a"/><rect x="229" y="208" width="7" height="7" fill="#88e45a"/>
+  <path d="M192 246 L208 246 L200 272 Z" fill="#16121c"/>
+  <path d="M162 296 L238 296 L238 302 L162 302 Z" fill="#3a3444"/>
+  <path d="M176 290 L180 310 M196 290 L200 310 M216 290 L220 310" stroke="#3a3444" stroke-width="4"/>
+  <path d="M150 110 L168 136 L160 138 Z" fill="#a8a28c"/>
+  <rect width="400" height="500" filter="url(#grain)"/>
+</svg>

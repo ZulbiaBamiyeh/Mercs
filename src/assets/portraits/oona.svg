@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 500" width="400" height="500">
+  <!-- Oona of the Fen. Flat planes; Thornwild moss, toward the water. -->
+  <defs><filter id="grain" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="2" seed="24"/><feColorMatrix values="0 0 0 0 .1  0 0 0 0 .12  0 0 0 0 .08  0 0 0 .35 0"/></filter></defs>
+  <rect width="400" height="500" fill="#557464"/>
+  <circle cx="200" cy="215" r="150" fill="#60806f"/>
+  <!-- shell behind the shoulders -->
+  <path d="M20 500 L30 380 Q60 320 200 312 Q340 320 370 380 L380 500 Z" fill="#7a6440"/>
+  <path d="M60 372 L110 340 L160 360 L130 400 Z M160 360 L200 330 L240 360 L200 392 Z M240 360 L290 340 L340 372 L270 400 Z" fill="#94804f"/>
+  <!-- robe, shell beads -->
+  <path d="M70 500 L96 420 L200 392 L304 420 L330 500 Z" fill="#3f7a74"/>
+  <path d="M212 392 L304 420 L330 500 L230 500 Z" fill="#33665f"/>
+  <circle cx="150" cy="418" r="7" fill="#f2ead6"/><circle cx="175" cy="428" r="7" fill="#f2ead6"/><circle cx="200" cy="432" r="8" fill="#f2ead6"/>
+  <circle cx="225" cy="428" r="7" fill="#d9d0ba"/><circle cx="250" cy="418" r="7" fill="#d9d0ba"/>
+  <!-- neck and a wide turtle head -->
+  <rect x="172" y="310" width="56" height="92" fill="#5f8a74"/>
+  <path d="M120 150 Q124 96 200 92 Q276 96 280 150 L282 262 L240 318 L160 318 L118 262 Z" fill="#6c9a82"/>
+  <path d="M214 93 Q276 98 280 150 L282 262 L240 318 L214 318 Z" fill="#5a846d"/>
+  <!-- beak -->
+  <path d="M160 262 L240 262 L228 304 L200 314 L172 304 Z" fill="#c9c29a"/>
+  <path d="M206 262 L240 262 L228 304 L206 312 Z" fill="#aea77f"/>
+  <rect x="170" y="284" width="60" height="4" fill="#4a4a30"/>
+  <!-- round, patient eyes -->
+  <circle cx="162" cy="216" r="14" fill="#1a1e18"/><circle cx="238" cy="216" r="14" fill="#1a1e18"/>
+  <rect x="156" y="208" width="5" height="5" fill="#e6efe8"/><rect x="232" y="208" width="5" height="5" fill="#e6efe8"/>
+  <path d="M142 196 L184 200 L184 206 L142 204 Z" fill="#4e7a62"/><path d="M258 196 L216 200 L216 206 L258 204 Z" fill="#446c56"/>
+  <!-- headband and feathers -->
+  <rect x="120" y="150" width="162" height="18" fill="#b8473a"/>
+  <rect x="214" y="150" width="68" height="18" fill="#9a3a2f"/>
+  <path d="M282 150 L318 70 L326 74 L292 156 Z" fill="#efe2c4"/>
+  <path d="M288 160 L340 100 L346 106 L296 166 Z" fill="#5a9fcf"/>
+  <rect width="400" height="500" filter="url(#grain)"/>
+</svg>

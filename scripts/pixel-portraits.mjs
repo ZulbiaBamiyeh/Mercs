@@ -1,6 +1,6 @@
 // Generates pixel-art portraits for the original roster.
 //
-//   node scripts/pixel-portraits.mjs            # writes src/assets/portraits/<id>.png
+//   node scripts/pixel-portraits.mjs            # writes docs/portrait-styles/pixel/<id>.png
 //   node scripts/pixel-portraits.mjs --sheet    # also writes portraits-sheet.png for review
 //
 // Each character is built from simple shapes on a 48x60 grid. A shared pass
@@ -402,7 +402,8 @@ const PALETTES = {
 };
 
 // ------------------------------------------------------------------ main --
-const outDir = new URL('../src/assets/portraits/', import.meta.url);
+// The game now uses the flat SVG portraits; these pixel versions are kept for reference.
+const outDir = new URL('../docs/portrait-styles/pixel/', import.meta.url);
 mkdirSync(outDir, { recursive: true });
 const rendered = {};
 Object.entries(C).forEach(([id, draw], i) => {
