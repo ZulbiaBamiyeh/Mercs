@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 500" width="400" height="500">
+  <!-- Style study D: flat planes, Reigns-like. Ilsa Frostveil, the Winter Widow. -->
+  <defs>
+    <filter id="grain" x="0" y="0" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="2" seed="3"/>
+      <feColorMatrix values="0 0 0 0 .08  0 0 0 0 .1  0 0 0 0 .16  0 0 0 .35 0"/>
+    </filter>
+  </defs>
+
+  <rect width="400" height="500" fill="#5d7486"/>
+  <circle cx="200" cy="215" r="150" fill="#687f91"/>
+
+  <!-- hair: one long fall of white, split light and shadow -->
+  <path d="M112 150 Q116 76 200 66 Q284 76 288 150 L318 470 L82 470 Z" fill="#eef3f6"/>
+  <path d="M214 67 Q284 78 288 150 L318 470 L226 470 Z" fill="#c9d4dc"/>
+  <!-- the hollow the face sits in -->
+  <path d="M138 146 L262 146 L266 264 L230 330 L170 330 L134 264 Z" fill="#8fa2b3"/>
+
+  <!-- gown with a high, sharp collar -->
+  <path d="M60 500 L96 404 L200 370 L304 404 L340 500 Z" fill="#2c3649"/>
+  <path d="M200 370 L304 404 L340 500 L200 500 Z" fill="#232b3b"/>
+  <path d="M132 404 L150 330 L200 382 Z" fill="#3a4760"/>
+  <path d="M268 404 L250 330 L200 382 Z" fill="#303b51"/>
+  <path d="M200 382 L212 404 L200 426 L188 404 Z" fill="#a9dcf5"/>
+
+  <!-- face: long and narrow, no warmth -->
+  <path d="M150 150 L250 150 L256 262 L224 322 L176 322 L144 262 Z" fill="#d3dfe8"/>
+  <path d="M210 150 L250 150 L256 262 L224 322 L196 322 Z" fill="#b2c3d1"/>
+  <rect x="192" y="322" width="16" height="40" fill="#b1c1ce"/>
+  <!-- eyes: narrow, pale-lit -->
+  <path d="M160 226 L190 222 L190 232 L162 234 Z" fill="#1d2433"/>
+  <path d="M240 226 L210 222 L210 232 L238 234 Z" fill="#1d2433"/>
+  <rect x="176" y="226" width="4" height="4" fill="#dff4ff"/>
+  <rect x="220" y="226" width="4" height="4" fill="#dff4ff"/>
+  <!-- nose and a closed mouth -->
+  <path d="M196 234 L204 234 L208 272 L192 272 Z" fill="#c4d2dd"/>
+  <rect x="186" y="292" width="28" height="4" fill="#7e93a6"/>
+  <!-- hair falling over the brow -->
+  <path d="M146 148 L254 148 L254 172 L206 158 L146 190 Z" fill="#eef3f6"/>
+  <path d="M214 160 L254 172 L254 148 L214 148 Z" fill="#c9d4dc"/>
+
+  <!-- crown of ice -->
+  <path d="M128 132 L144 60 L160 122 L176 40 L192 114 L200 18 L208 114 L224 40 L240 122 L256 60 L272 132 Z" fill="#f2fbff"/>
+  <path d="M200 18 L208 114 L224 40 L240 122 L256 60 L272 132 L200 132 Z" fill="#b7d7ea"/>
+  <rect x="124" y="128" width="152" height="12" fill="#8fc6e6"/>
+  <rect x="200" y="128" width="76" height="12" fill="#6fa9cd"/>
+
+  <rect width="400" height="500" filter="url(#grain)"/>
+</svg>

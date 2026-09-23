@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 500" width="400" height="500">
+  <!-- Style study D: flat planes, Reigns-like. Brannoc Emberhelm.
+       Rules: flat fills only, one shadow plane per shape (light from the left),
+       no outlines, stoic face, a small muted palette. -->
+  <defs>
+    <filter id="grain" x="0" y="0" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="2" seed="9"/>
+      <feColorMatrix values="0 0 0 0 .2  0 0 0 0 .12  0 0 0 0 .08  0 0 0 .35 0"/>
+    </filter>
+  </defs>
+
+  <rect width="400" height="500" fill="#b8643f"/>
+  <circle cx="200" cy="215" r="150" fill="#c4724b"/>
+
+  <!-- shoulders -->
+  <path d="M40 500 L64 404 Q70 380 104 372 L296 372 Q330 380 336 404 L360 500 Z" fill="#434856"/>
+  <path d="M200 372 L296 372 Q330 380 336 404 L360 500 L200 500 Z" fill="#373b47"/>
+  <path d="M52 452 Q58 396 118 384 L130 430 Z" fill="#555b6b"/>
+  <path d="M348 452 Q342 396 282 384 L270 430 Z" fill="#454a58"/>
+
+  <!-- beard: one heavy shape, two braids -->
+  <path d="M112 250 L288 250 L300 330 L262 420 L200 452 L138 420 L100 330 Z" fill="#cf5f2a"/>
+  <path d="M216 250 L288 250 L300 330 L262 420 L206 452 Z" fill="#b24e22"/>
+  <rect x="150" y="410" width="22" height="70" fill="#cf5f2a"/>
+  <rect x="228" y="410" width="22" height="70" fill="#b24e22"/>
+  <rect x="146" y="464" width="30" height="12" fill="#d6a24e"/>
+  <rect x="224" y="464" width="30" height="12" fill="#b88638"/>
+
+  <!-- face: a narrow band between helm and beard -->
+  <path d="M122 190 L278 190 L284 262 L116 262 Z" fill="#e3a07a"/>
+  <path d="M222 190 L278 190 L284 262 L212 262 Z" fill="#cc8a66"/>
+  <!-- one heavy brow across the face -->
+  <path d="M132 214 L196 222 L204 222 L268 214 L268 228 L204 234 L196 234 L132 228 Z" fill="#a8441c"/>
+  <!-- small still eyes -->
+  <rect x="156" y="236" width="14" height="9" rx="2" fill="#2a1a17"/>
+  <rect x="230" y="236" width="14" height="9" rx="2" fill="#2a1a17"/>
+  <!-- nose and moustache: the only volume in the face -->
+  <path d="M184 232 L216 232 L224 272 L176 272 Z" fill="#d48f6b"/>
+  <path d="M200 232 L216 232 L224 272 L200 272 Z" fill="#bb7a58"/>
+  <path d="M112 272 L200 262 L288 272 L300 302 L200 284 L100 302 Z" fill="#e0703a"/>
+  <path d="M214 264 L288 272 L300 302 L210 286 Z" fill="#c45a2a"/>
+
+  <!-- helm: dome, band, horns -->
+  <path d="M104 196 Q104 96 200 86 Q296 96 296 196 Z" fill="#8c919b"/>
+  <path d="M214 87 Q296 98 296 196 L230 196 Z" fill="#747983"/>
+  <rect x="96" y="180" width="208" height="22" fill="#d6a24e"/>
+  <rect x="200" y="180" width="104" height="22" fill="#b88638"/>
+  <path d="M110 170 Q64 140 72 72 Q96 124 132 146 Z" fill="#ece2cb"/>
+  <path d="M290 170 Q336 140 328 72 Q304 124 268 146 Z" fill="#cfc4ab"/>
+  <path d="M200 116 L212 132 L200 148 L188 132 Z" fill="#f08a2a"/>
+
+  <rect width="400" height="500" filter="url(#grain)"/>
+</svg>
